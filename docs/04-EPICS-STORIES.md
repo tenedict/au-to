@@ -12,7 +12,7 @@
 - [x] S-2.2 규칙 기반 Draft 생성
 - [ ] S-2.3 익명화 평가셋 50건과 기대 JSON 작성
 - [x] S-2.4 OpenAI backend adapter
-- [ ] S-2.5 모호성/evidence 표시
+- [x] S-2.5 모호성/evidence 표시
 
 ## E3 · 할 일
 

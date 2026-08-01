@@ -3,7 +3,7 @@
 스크린샷을 iOS 공유 시트로 보내면 텍스트와 문맥을 분석해 앱 안의 할 일 후보를 만들고,
 확인된 날짜/시간 항목은 Apple 캘린더에도 추가하는 개인 비서 앱입니다.
 
-현재 단계는 R0 실행 뼈대입니다.
+현재 단계는 R0 실행 뼈대 완료, 실기기 MVP 준비입니다.
 
 - 메인 앱 할 일 목록
 - Share Extension 이미지 수집
@@ -42,5 +42,12 @@ xcodebuild -project CaptureTask.xcodeproj -scheme CaptureTask \
   -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
 ```
+
+## 개발 기획서
+
+- [통합 HTML 기획서](docs/CaptureTask-Development-Plan.html): 제품, UX, 기능 요구사항,
+  아키텍처, OpenAI/API, 개인정보, 비용, 테스트, 배포, 로드맵을 한 문서로 정리했습니다.
+- [PDF 기획서](output/pdf/CaptureTask-Development-Plan.pdf): 공유와 인쇄용 A4 문서입니다.
+- [통합 원문](docs/08-INTEGRATED-DEVELOPMENT-PLAN.md): HTML/PDF 생성의 기준 문서입니다.
 
 제품 결정과 다음 순서는 [`docs/project-context.md`](docs/project-context.md)에서 시작합니다.

@@ -70,10 +70,15 @@ curl http://127.0.0.1:8787/health
 ### 2. iOS 앱
 
 ```bash
-brew install xcodegen          # 최초 1회
-xcodegen generate              # .xcodeproj 는 생성물입니다 (커밋하지 않습니다)
+brew install xcodegen                                        # 최초 1회
+cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig   # 최초 1회
+xcodegen generate                                            # .xcodeproj 는 생성물입니다
 open CaptureTask.xcodeproj
 ```
+
+`Secrets.xcconfig` 는 백엔드 주소와 공유 비밀이 들어가는 파일이라 커밋되지 않습니다.
+기본값은 로컬 백엔드(`http://127.0.0.1:8787`)라 그대로 두고 시작해도 됩니다.
+`./scripts/verify.sh` 는 없으면 자동으로 만들어 줍니다.
 
 또는 명령줄에서:
 

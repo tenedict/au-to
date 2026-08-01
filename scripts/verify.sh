@@ -70,9 +70,21 @@ else
   step "iOS 빌드 · 테스트"
   SIM_ID=$(./scripts/select-simulator.sh) || { printf '%s  ✕ 시뮬레이터 없음%s\n' "$RED" "$OFF"; exit 1; }
 
+  # Secrets.xcconfig 는 커밋되지 않는다. 없으면 xcodegen 이 configFiles 를 찾지 못해
+  # 실패하고, 새 체크아웃과 CI 가 전부 막힌다 — 실제로 CI 가 한 번 이걸로 죽었다.
+  # 예제의 기본값은 로컬 백엔드라 그대로 복사해도 안전하다.
+  if [ ! -f Config/Secrets.xcconfig ]; then
+    cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig \
+      && printf '%s  · Config/Secrets.xcconfig 를 예제에서 만들었습니다 (로컬 백엔드)%s\n' \
+           "$DIM" "$OFF"
+  fi
+
   # 생성물이 소스보다 오래되면 새 파일이 타깃에 안 들어간 채 초록이 난다.
   if command -v xcodegen >/dev/null 2>&1; then
-    xcodegen generate >/dev/null 2>&1 || bad "xcodegen generate 실패"
+    if ! out=$(xcodegen generate 2>&1); then
+      bad "xcodegen generate 실패"
+      echo "$out" | tail -5 | sed 's/^/    /'
+    fi
   else
     skip "xcodegen" "brew install xcodegen"
   fi

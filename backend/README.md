@@ -311,7 +311,7 @@ printf '%s' "$(openssl rand -base64 32)" | \
 ### 배포 뒤 앱 연결
 
 ```bash
-cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig
+cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig   # 없으면
 gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY
 ```
 

@@ -41,6 +41,12 @@ xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTask -sdk iphones
 ```
 
 `.xcodeproj` 는 생성물이다. 프로젝트 설정은 **`project.yml` 에서만** 고친다.
+`Config/Secrets.xcconfig` 는 커밋되지 않는다. 없으면 `verify.sh` 가 예제에서 만든다.
+
+**빌드 설정 우선순위** — 타깃 설정 > 타깃 xcconfig > **프로젝트 설정** > 프로젝트 xcconfig.
+그래서 xcconfig 로 덮어써야 하는 값의 기본값은 `project.yml` 의 **프로젝트 수준**에 둔다.
+타깃 `settings.base` 에 두면 xcconfig 가 조용히 무시되고, 빌드는 성공하는데
+앱만 엉뚱한 주소를 바라본다.
 
 ---
 

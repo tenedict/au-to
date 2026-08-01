@@ -91,6 +91,90 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask.share
         SKIP_INSTALL: YES
         INFOPLIST_KEY_CFBundleDisplayName: "CaptureTask에 담기"
+  # ── macOS ────────────────────────────────────────────────
+  # Models·Services·Store·Shared 를 iOS 와 그대로 공유한다.
+  # Views 는 공유하지 않는다 — 화면은 플랫폼마다 다른 것이 맞다.
+  CaptureTaskMac:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - CaptureTaskMac
+      - CaptureTask/Models
+      - CaptureTask/Services
+      - CaptureTask/Store
+      - CaptureTask/Shared
+    info:
+      path: CaptureTaskMac/App/Info.plist
+      properties:
+        CFBundleDisplayName: CaptureTask
+        CFBundleDevelopmentRegion: ko
+        CFBundleLocalizations: [ko]
+        CAPTURETASK_API_BASE_URL: "$(CAPTURETASK_API_BASE_URL)"
+        CAPTURETASK_CLIENT_KEY: "$(CAPTURETASK_CLIENT_KEY)"
+        NSCalendarsFullAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 접근이 필요해요."
+        NSCalendarsWriteOnlyAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 쓰기 접근이 필요해요."
+        # 물방울만 띄우고 Dock 아이콘은 두지 않는다. 메뉴바에서 켜고 끈다.
+        LSUIElement: true
+        # 이미지를 받는 앱으로 등록한다. 이걸 넣으면 세 가지가 한 번에 열린다.
+        #   · 파인더 "다른 앱으로 열기 → CaptureTask"
+        #   · 이미지를 앱 아이콘에 끌어다 놓기
+        #   · open -a CaptureTask <파일>
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: 이미지
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes: [public.image]
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    entitlements:
+      path: Config/CaptureTaskMac.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        # 백엔드를 부른다.
+        com.apple.security.network.client: true
+        # 사용자가 끌어다 놓거나 고른 파일만 읽는다.
+        com.apple.security.files.user-selected.read-only: true
+        com.apple.security.personal-information.calendars: true
+    configFiles:
+      Debug: Config/Secrets.xcconfig
+      Release: Config/Secrets.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask.mac
+        SWIFT_VERSION: "5.0"
+    dependencies:
+      - target: CaptureTaskMacShare
+        embed: true
+
+  # macOS 공유 확장. 파일 URL 만 받아 메인 앱을 열어 준다 — App Group 이 필요 없다.
+  CaptureTaskMacShare:
+    type: app-extension
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - CaptureTaskMacShare
+    info:
+      path: CaptureTaskMacShare/Info.plist
+      properties:
+        CFBundleDisplayName: "CaptureTask에 담기"
+        CFBundleDevelopmentRegion: ko
+        NSExtension:
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsImageWithMaxCount: 10
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).MacShareViewController"
+    entitlements:
+      path: Config/CaptureTaskMacShare.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.files.user-selected.read-only: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask.mac.share
+        SKIP_INSTALL: YES
+
   CaptureTaskTests:
     type: bundle.unit-test
     platform: iOS
@@ -102,6 +186,12 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask.tests
 schemes:
+  CaptureTaskMac:
+    build:
+      targets:
+        CaptureTaskMac: all
+    run:
+      config: Debug
   CaptureTask:
     build:
       targets:

@@ -101,6 +101,17 @@ else
     skipped+=("xcbeautify — brew install xcbeautify")
   fi
   [ $rc -eq 0 ] && ok "iOS 테스트 통과" || bad "iOS 테스트 실패"
+
+  # macOS 앱은 iOS 와 Models·Services·Store·Shared 를 공유한다. 공유 코드를 고치면
+  # 여기가 먼저 깨지는데, 빌드하지 않으면 그 사실을 아무도 모른 채 초록이 난다.
+  step "macOS 빌드"
+  if out=$(xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTaskMac \
+             -derivedDataPath build CODE_SIGNING_ALLOWED=NO 2>&1); then
+    ok "macOS 앱 빌드"
+  else
+    bad "macOS 앱 빌드 실패"
+    echo "$out" | grep -E '(^|[^-])error:' | head -10 | sed 's/^/    /'
+  fi
 fi
 
 # ── 결과 ───────────────────────────────────────────────────

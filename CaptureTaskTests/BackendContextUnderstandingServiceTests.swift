@@ -3,6 +3,90 @@ import XCTest
 @testable import CaptureTask
 
 final class BackendContextUnderstandingServiceTests: XCTestCase {
+
+    // MARK: - 클라이언트 인증
+
+    /// 배포한 서버는 이 헤더가 없으면 401 을 줍니다.
+    func testSendsClientKeyHeaderWhenConfigured() async throws {
+        let httpClient = MockHTTPClient { request in
+            XCTAssertEqual(
+                request.value(
+                    forHTTPHeaderField: BackendContextUnderstandingService.clientKeyHeader
+                ),
+                "비밀키-충분히-긴-값"
+            )
+            return try response(status: 200, body: Self.validBody)
+        }
+
+        _ = try await makeService(clientKey: "비밀키-충분히-긴-값", httpClient: httpClient)
+            .makeDraft(from: "치과", captureID: nil)
+    }
+
+    /// 로컬 백엔드는 키 없이 돕니다. 빈 값을 헤더로 보내면 401 이 됩니다.
+    func testOmitsClientKeyHeaderWhenNotConfigured() async throws {
+        for key in [String?.none, ""] {
+            let httpClient = MockHTTPClient { request in
+                XCTAssertNil(
+                    request.value(
+                        forHTTPHeaderField: BackendContextUnderstandingService.clientKeyHeader
+                    )
+                )
+                return try response(status: 200, body: Self.validBody)
+            }
+
+            _ = try await makeService(clientKey: key, httpClient: httpClient)
+                .makeDraft(from: "치과", captureID: nil)
+        }
+    }
+
+    /// 401 은 사용자가 고칠 수 있는 것이 아닙니다. 서버 메시지를 그대로 보여주지 않고,
+    /// "다시 시도하세요" 로 오해하게 만들지도 않습니다.
+    func testUnauthorizedIsItsOwnErrorWithASafeMessage() async throws {
+        let httpClient = MockHTTPClient { _ in
+            try response(
+                status: 401,
+                body: ["error": ["code": "unauthorized", "message": "이 서버를 쓸 수 없어요."]]
+            )
+        }
+        let service = makeService(clientKey: "틀린키", httpClient: httpClient)
+
+        do {
+            _ = try await service.makeDraft(from: "치과", captureID: nil)
+            XCTFail("401 은 던져야 합니다")
+        } catch let error as BackendAnalysisError {
+            guard case .unauthorized = error else {
+                return XCTFail("unauthorized 여야 합니다: \(error)")
+            }
+            let message = try XCTUnwrap(error.errorDescription)
+            XCTAssertTrue(message.contains("업데이트"), message)
+            XCTAssertFalse(message.contains("다시 시도"), "재시도를 권하면 안 됩니다: \(message)")
+        }
+    }
+
+    private static let validBody: [String: Any] = [
+        "title": "치과 방문",
+        "notes": "",
+        "due_at": NSNull(),
+        "has_explicit_time": false,
+        "confidence": 0.5,
+        "evidence": [],
+        "ambiguities": [],
+    ]
+
+    private func makeService(
+        clientKey: String?,
+        httpClient: MockHTTPClient
+    ) -> BackendContextUnderstandingService {
+        BackendContextUnderstandingService(
+            baseURL: URL(string: "https://example.test")!,
+            clientKey: clientKey,
+            httpClient: httpClient,
+            localeIdentifier: { "ko-KR" },
+            timezoneIdentifier: { "Asia/Seoul" },
+            now: { Date(timeIntervalSince1970: 0) }
+        )
+    }
+
     func testMapsBackendResponseToTaskDraft() async throws {
         let captureID = UUID()
         let httpClient = MockHTTPClient { request in

@@ -19,11 +19,11 @@ release:
 
 verification:
   command: ./scripts/verify.sh
-  ios_tests_total: 90
-  ios_tests_passed: 90
-  backend_tests_total: 15
-  backend_tests_passed: 15
-  project_rules: 11
+  ios_tests_total: 93
+  ios_tests_passed: 93
+  backend_tests_total: 40
+  backend_tests_passed: 40
+  project_rules: 12
   build_warnings: 0
   simulator_checked:
     [

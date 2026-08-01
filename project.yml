@@ -32,7 +32,10 @@ targets:
         CFBundleDevelopmentRegion: ko
         CFBundleLocalizations: [ko]
         CAPTURETASK_API_BASE_URL: "$(CAPTURETASK_API_BASE_URL)"
+        CAPTURETASK_CLIENT_KEY: "$(CAPTURETASK_CLIENT_KEY)"
         NSAppTransportSecurity:
+          # 로컬 백엔드(http://127.0.0.1)를 개발 중에 부르기 위한 예외입니다.
+          # 배포한 서버는 HTTPS 라 이 설정과 무관합니다.
           NSAllowsLocalNetworking: true
         NSCalendarsFullAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 접근이 필요해요."
         NSCalendarsWriteOnlyAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 쓰기 접근이 필요해요."
@@ -42,10 +45,16 @@ targets:
         # SharedInbox.appGroupIdentifier 와 반드시 같아야 한다 (프로젝트 규칙 1 이 대조한다).
         com.apple.security.application-groups:
           - group.com.example.capturetask
+    # 실제 값은 Config/Secrets.xcconfig 에 있고 그 파일은 커밋되지 않습니다.
+    # 없으면 아래 base 의 기본값(로컬 백엔드)이 그대로 쓰입니다.
+    configFiles:
+      Debug: Config/Secrets.xcconfig
+      Release: Config/Secrets.xcconfig
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask
         CAPTURETASK_API_BASE_URL: "http://127.0.0.1:8787"
+        CAPTURETASK_CLIENT_KEY: ""
     dependencies:
       - target: CaptureTaskShare
         embed: true

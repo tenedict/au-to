@@ -1,0 +1,8 @@
+# 비밀은 이미지에 들어가면 안 됩니다. Cloud Run Secret Manager 로 주입합니다.
+.env
+.env.local
+
+# 실행에 필요 없는 것
+test
+README.md
+node_modules

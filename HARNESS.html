@@ -81,7 +81,7 @@
   <p class="say">숫자의 원본은 <code>docs/sprint-status.yaml</code> 이다.</p>
 
   <div class="cards">
-    <div class="card"><div class="k">iOS 테스트</div><div class="v ok">90/90</div></div>
+    <div class="card"><div class="k">iOS 테스트</div><div class="v ok">93/93</div></div>
     <div class="card"><div class="k">백엔드 테스트</div><div class="v ok">15/15</div></div>
     <div class="card"><div class="k">프로젝트 규칙</div><div class="v ok">11</div></div>
     <div class="card"><div class="k">빌드 경고</div><div class="v ok">0</div></div>
@@ -304,7 +304,7 @@ printf '%s\n' $KNOWN_MODELS | grep -qxF "$model"</code></pre>
   </table>
 
   <div class="note warn">
-    <p><strong>B-2 를 특별히 적는 이유.</strong> 백엔드 테스트 15건은 전부 <code>fetchImpl</code> 을
+    <p><strong>B-2 를 특별히 적는 이유.</strong> 백엔드 테스트 40건은 전부 <code>fetchImpl</code> 을
     대역으로 바꿔 돈다. <strong>실제 OpenAI 응답의 모양을 확인한 적이 없다.</strong>
     <code>parseTaskDraftResponse</code> 가 <code>output[].content[].type === "output_text"</code> 를
     가정하는데, 그 가정이 맞는지는 한 번 불러 봐야 안다.</p>

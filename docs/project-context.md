@@ -49,7 +49,7 @@
 | 저장 | Application Support / JSON (원자적 쓰기) + App Group 파일 상자 |
 | 백엔드 | Node 22 · `node:http` · 외부 패키지 0 |
 | 프로젝트 정의 | XcodeGen (`project.yml`) — `.xcodeproj` 는 **생성물, 미추적** |
-| 테스트 | XCTest 90건 · `node:test` 15건 |
+| 테스트 | XCTest 93건 · `node:test` 40건 |
 | 번들 ID | `com.example.capturetask` (D-1 미확정) |
 | App Group | `group.com.example.capturetask` |
 | 기본 언어 | 한국어 |

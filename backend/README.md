@@ -65,14 +65,15 @@ OPENAI_API_KEY가 아직 자리표시자입니다. backend/.env에 실제 키를
 
 ```
 backend/
+├─ Dockerfile                Cloud Run 용. 외부 패키지가 0개라 소스만 복사한다
 ├─ src/
 │  ├─ server.mjs             켜는 자리 — 환경변수 읽기 · 조립 · listen
-│  ├─ app.mjs                HTTP 계층 — 라우팅 · 검증 · 오류 매핑
+│  ├─ app.mjs                HTTP 계층 — 라우팅 · 인증 · 한도 · 검증 · 오류 매핑
+│  ├─ auth.mjs               공유 비밀 검사 (timingSafeEqual)
+│  ├─ rate-limit.mjs         IP 당 분당 · 인스턴스 당 하루
 │  ├─ openai-client.mjs      OpenAI 호출 — 요청 조립 · 타임아웃 · 응답 파싱
 │  └─ task-draft-schema.mjs  스키마 + 범위 검증/다듬기
-└─ test/
-   ├─ app.test.mjs           HTTP 계약
-   └─ openai-client.test.mjs 요청 모양 · 모델 분기 · 타임아웃 · 클램프
+└─ test/                     40건 — 실제 OpenAI 호출 없음
 ```
 
 **외부 패키지가 0개입니다.** `node:http` 와 내장 `fetch` 만 씁니다.
@@ -182,9 +183,10 @@ curl http://127.0.0.1:8787/health   # {"status":"ok"}
 | 상태 | `code` | 언제 | 앱이 보여주는 말 |
 | --- | --- | --- | --- |
 | 400 | `invalid_request` | 빈 원문, 해석 불가 JSON | "스크린샷 내용을 분석 요청으로 보낼 수 없어요." |
+| 401 | `unauthorized` | 클라이언트 키 없음·틀림 | "이 앱이 분석 서버를 쓸 수 없어요. 앱을 업데이트해 주세요." |
 | 404 | `not_found` | 없는 경로 | 〃 |
 | 413 | `payload_too_large` | 본문 128KB 초과 | 〃 |
-| 429 | `rate_limited` | OpenAI 한도 | "요청이 많아요. 잠시 후 다시 시도해 주세요." |
+| 429 | `rate_limited` | OpenAI 한도 **또는** 우리 요청 한도 | "요청이 많아요. 잠시 후 다시 시도해 주세요." |
 | 502 | `analysis_failed` | OpenAI 오류·연결 실패·응답 검증 실패 | "OpenAI 분석 서버에 연결하지 못했어요. 캡처는 보관했어요." |
 | 504 | `upstream_timeout` | OpenAI 응답 15초 초과 | 〃 |
 
@@ -241,7 +243,7 @@ export function isReasoningModel(model) {
 cd backend && npm test
 ```
 
-15건 전부 **실제 OpenAI 호출 없이** 돕니다. `fetchImpl` 을 대역으로 바꿔 넣습니다.
+40건 전부 **실제 OpenAI 호출 없이** 돕니다. `fetchImpl` 을 대역으로 바꿔 넣습니다.
 
 | 무엇을 잡나 |
 | --- |
@@ -251,6 +253,11 @@ cd backend && npm test
 | 길이 초과를 버리지 않고 자르는가 |
 | 날짜 없이 시간만 있는 결과를 거절하는가 |
 | 429·타임아웃·연결 실패를 구분해 감싸는가 |
+| 키 없는 요청을 401 로 막고, **분석 함수를 부르지 않는가** |
+| 외부에 바인딩했는데 키가 없으면 **시작을 거부하는가** |
+| 클라이언트 키에 OpenAI 키를 넣으려 하면 막는가 |
+| 한도를 넘으면 429 와 `Retry-After` 를 주는가 |
+| 하루 총량을 IP 를 바꿔 가며 넘을 수 없는가 |
 
 > ⚠️ **실제 OpenAI 응답의 모양은 아직 확인하지 못했습니다** (`B-2`).
 > `parseTaskDraftResponse` 가 `output[].content[].type === "output_text"` 를 가정하는데,
@@ -270,26 +277,72 @@ cd backend && npm test
 | --- | --- |
 | **시뮬레이터** | 없음. 맥의 네트워크를 그대로 쓰므로 `127.0.0.1` 이 맥의 localhost 입니다 |
 | **실기기** | `.env` 의 `HOST=0.0.0.0` + `project.yml` 의 주소를 맥의 LAN IP 로 (`http://192.168.x.x:8787`) |
-| **배포** | 아래 9장을 먼저 읽어 주세요 |
+| **배포** | `./scripts/deploy-backend.sh` — 9장 |
 
 평문 HTTP 는 `NSAppTransportSecurity.NSAllowsLocalNetworking` 으로 허용돼 있습니다.
 개발용입니다.
 
 ---
 
-## 9. 배포 전에 반드시
+## 9. 배포 (Cloud Run · 서울)
 
-⛔ **지금 상태로 인터넷에 올리면 안 됩니다.**
+```bash
+./scripts/deploy-backend.sh
+```
 
-지금 이 서버는 **주소만 알면 누구나 당신의 OpenAI 키로 요청을 보낼 수 있습니다.**
-로컬 전용이라 문제가 없을 뿐입니다.
+스크립트가 준비물·비밀·API 를 순서대로 확인하고, **무엇이 빠졌는지 알려 줍니다.**
+조용히 넘어가지 않습니다 — 반쯤 설정된 채로 배포되면 401 과 500 을 구분하지 못합니다.
+
+### 처음 한 번
+
+```bash
+gcloud auth login
+gcloud config set project <PROJECT_ID>
+
+# OpenAI 키
+printf '%s' "sk-proj-실제키" | \
+  gcloud secrets create OPENAI_API_KEY --data-file=-
+
+# 앱과 서버가 나눠 갖는 공유 비밀
+printf '%s' "$(openssl rand -base64 32)" | \
+  gcloud secrets create CAPTURETASK_CLIENT_KEY --data-file=-
+```
+
+### 배포 뒤 앱 연결
+
+```bash
+cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig
+gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY
+```
+
+`Config/Secrets.xcconfig` 에 주소와 비밀을 넣고 `xcodegen generate` 를 다시 돌립니다.
+이 파일은 **커밋되지 않습니다** (프로젝트 규칙 11 이 검사합니다).
+
+### 스크립트가 배포 뒤에 확인하는 것
+
+| | |
+| --- | --- |
+| `/health` 가 200 인가 | 컨테이너가 실제로 떴는가 |
+| **키 없는 요청이 401 인가** | 인증이 실제로 켜져 있는가 |
+
+두 번째가 중요합니다. 비밀이 주입되지 않은 채 배포되면 서버는 정상으로 보이지만
+**누구나 쓸 수 있는 상태**입니다. 스크립트가 그 경우 실패로 끝냅니다.
+
+### 왜 `--allow-unauthenticated` 인가
+
+"구글 IAM 인증을 요구하지 않는다"는 뜻입니다. 우리 인증은 그 위에서
+`X-CaptureTask-Key` 헤더로 합니다. IAM 을 켜면 앱이 구글 토큰을 들고 다녀야 해서
+이 제품에는 맞지 않습니다.
+
+### 아직 없는 것
 
 | # | 없는 것 | 근거 |
 | --- | --- | --- |
-| 1 | 사용자 인증 | `NFR-SEC-05` — R2 게이트 차단 |
-| 2 | rate limit | 〃 |
-| 3 | HTTPS | `NFR-SEC-06` |
-| 4 | 요청 로그·비용 관측 | — |
+| 1 | App Attest (진짜 기기 검증) | 공유 비밀은 앱 번들을 뜯으면 나옵니다 (SPEC H-3.2) |
+| 2 | 요청 로그·비용 관측 | — |
+| 3 | 인스턴스 간 공유 한도 | 메모리 기반이라 `--max-instances` 가 실제 상한입니다 (SPEC H-4.3) |
+
+> **OpenAI 계정 쪽에도 사용량 한도를 걸어 두세요.** 마지막 방어선입니다.
 
 ---
 

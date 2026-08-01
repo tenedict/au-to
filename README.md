@@ -14,6 +14,28 @@
 - EventKit 캘린더 저장
 - OpenAI/온디바이스 LLM 교체를 위한 서비스 프로토콜
 
+## OpenAI 백엔드
+
+OpenAI API 키는 iOS 앱에 넣지 않습니다. 로컬 백엔드에서만 환경변수로 읽습니다.
+
+```bash
+cd backend
+cp .env.example .env
+# .env의 OPENAI_API_KEY 값을 설정한 뒤
+set -a
+source .env
+set +a
+npm start
+```
+
+서버 기본 주소는 `http://127.0.0.1:8787`이며 기본 모델은
+구조화 추출 역할에 맞춘 `gpt-5.6-luna`입니다.
+
+```bash
+cd backend
+npm test
+```
+
 ```bash
 xcodegen generate
 xcodebuild -project CaptureTask.xcodeproj -scheme CaptureTask \
@@ -22,4 +44,3 @@ xcodebuild -project CaptureTask.xcodeproj -scheme CaptureTask \
 ```
 
 제품 결정과 다음 순서는 [`docs/project-context.md`](docs/project-context.md)에서 시작합니다.
-

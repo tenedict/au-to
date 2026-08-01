@@ -11,7 +11,7 @@
 - [x] S-2.1 Vision 한국어/영어 OCR
 - [x] S-2.2 규칙 기반 Draft 생성
 - [ ] S-2.3 익명화 평가셋 50건과 기대 JSON 작성
-- [ ] S-2.4 OpenAI backend adapter
+- [ ] S-2.4 OpenAI backend adapter `← 진행 중`
 - [ ] S-2.5 모호성/evidence 표시
 
 ## E3 · 할 일
@@ -37,3 +37,14 @@
 3. 앱을 열면 OCR 후 확인 화면이 한 번만 보인다.
 4. 앱 강제 종료/오프라인에서도 캡처가 사라지지 않는다.
 
+## S-2.4 · OpenAI backend adapter
+
+수용 기준:
+
+1. iOS 앱이나 Share Extension에 OpenAI API 키가 포함되지 않는다.
+2. `POST /v1/analyze-capture`는 OCR 원문, locale, timezone, 현재 시각을 받는다.
+3. 서버는 Responses API와 strict JSON Schema로 TaskDraft를 반환한다.
+4. `store: false`, 명시적인 모델·reasoning 설정을 사용한다.
+5. 빈 원문, 과대 요청, OpenAI 오류, 잘못된 모델 응답을 구분해 반환한다.
+6. API 키가 없는 서버는 시작 즉시 실패하고 원인을 설명한다.
+7. 단위 테스트는 실제 OpenAI 호출 없이 요청 계약과 응답 파서를 검증한다.

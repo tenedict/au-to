@@ -74,6 +74,7 @@ SIMCTL_CHILD_CAPTURETASK_OFFLINE=1 SIMCTL_CHILD_CAPTURETASK_TAB=1 \
 | --- | --- |
 | `CAPTURETASK_OFFLINE` | `1` — 백엔드 없이 규칙 기반 분석기 |
 | `CAPTURETASK_TAB` | `0` 할 일 · `1` 캘린더 |
+| `CAPTURETASK_SHEET` | `settings` 설정 · `text` 텍스트 분석 |
 | `CAPTURETASK_API_BASE_URL` | 백엔드 주소 |
 
 | 확인할 것 | 어떻게 |
@@ -83,6 +84,8 @@ SIMCTL_CHILD_CAPTURETASK_OFFLINE=1 SIMCTL_CHILD_CAPTURETASK_TAB=1 \
 | 확인 화면 | 신뢰도가 낮은 초안에서 캘린더 토글이 꺼진 채로 뜨는지 |
 | 알림 문구 | 확인 화면의 "언제 알려드려요" 가 실제 예약 시각과 같은지 |
 | 캘린더 탭 | 마감 있는 날에 점이 찍히고, 날짜를 누르면 그날 할 일이 나오는지 |
+| 설정 | 엔진 선택이 되고, 온디바이스가 **왜** 비활성인지 함께 보이는지 |
+| 사진 고르기 | 여러 장을 골라도 하나씩 이어서 확인 화면이 뜨는지 |
 | 공유 시트 | **실기기에서만** 확인 가능 (App Group 프로비저닝 필요) |
 
 ## 5. 보고
@@ -90,7 +93,7 @@ SIMCTL_CHILD_CAPTURETASK_OFFLINE=1 SIMCTL_CHILD_CAPTURETASK_TAB=1 \
 통과했을 때만 완료라고 말한다. 보고에는 숫자를 넣는다.
 
 ```
-✓ 프로젝트 규칙 통과 · iOS 79/79 · 백엔드 15/15 · 빌드 경고 0
+✓ 프로젝트 규칙 통과 · iOS 90/90 · 백엔드 15/15 · 빌드 경고 0
 ```
 
 **금지**

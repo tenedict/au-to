@@ -49,7 +49,7 @@
 | 저장 | Application Support / JSON (원자적 쓰기) + App Group 파일 상자 |
 | 백엔드 | Node 22 · `node:http` · 외부 패키지 0 |
 | 프로젝트 정의 | XcodeGen (`project.yml`) — `.xcodeproj` 는 **생성물, 미추적** |
-| 테스트 | XCTest 79건 · `node:test` 15건 |
+| 테스트 | XCTest 90건 · `node:test` 15건 |
 | 번들 ID | `com.example.capturetask` (D-1 미확정) |
 | App Group | `group.com.example.capturetask` |
 | 기본 언어 | 한국어 |
@@ -78,6 +78,7 @@ set -a; source .env; set +a; npm start
 | --- | --- |
 | `CAPTURETASK_OFFLINE=1` | 백엔드 없이 규칙 기반 분석기 사용 |
 | `CAPTURETASK_TAB=0\|1` | 시작 탭 (할 일 / 캘린더) |
+| `CAPTURETASK_SHEET=settings\|text` | 시작하자마자 열 시트 |
 | `CAPTURETASK_API_BASE_URL` | 백엔드 주소 (기본 `http://127.0.0.1:8787`) |
 | `CAPTURETASK_SIMULATOR_ID` | 시뮬레이터 고정 |
 
@@ -103,9 +104,9 @@ CaptureTask/
   Services/     플랫폼·네트워크 어댑터
   Shared/       앱 ↔ Extension 공유       ← Extension 타깃에도 들어간다
   Store/        상태·영속화·유스케이스 조율
-  Views/        SwiftUI 6개
+  Views/        SwiftUI 7개
 CaptureTaskShare/   담기 전용
-CaptureTaskTests/   79건
+CaptureTaskTests/   90건
 backend/            src 4개 · test 2개
 scripts/            verify · 규칙 검사 · 시뮬레이터 선택
 docs/               BMAD 00~16 + sprint-status.yaml + plans/
@@ -142,6 +143,8 @@ Model 은 아무도 모른다.
 - Apple 캘린더 추가·삭제
 - 저장 손상 격리 · 구버전 파일 호환
 - 텍스트 붙여넣기로 분석 시험 · 오프라인 규칙 기반 모드
+- 앱 안에서 사진 고르기 (최대 10장) · 공유 시트로 여러 장 받기
+- 설정에서 분석 엔진 고르기 (백엔드 / 규칙 기반 / 온디바이스는 준비 중)
 - 접근성 — 큰 글자에서 목록으로 전환 · 모션 줄이기 · 대비 높이기 · 알림 탭 라우팅
 
 ## 지금 안 되는 것
@@ -152,7 +155,7 @@ Model 은 아무도 모른다.
 | 실제 OpenAI 응답 확인 | 사용자가 `.env` 에 키를 넣어야 한다 |
 | 중복 감지 | 무엇을 중복으로 볼지 미결정 (D-5) |
 | 백엔드 인증·rate limit | 배포 차단 (NFR-SEC-05) |
-| 온디바이스 LLM | 평가셋 50건 없음 (S-2.3) |
+| 온디바이스 LLM | 평가셋 50건 없음 (S-2.3). 비교 분석은 [17장](17-ONDEVICE-LLM-RESEARCH.md) |
 
 ---
 
@@ -170,6 +173,6 @@ Model 은 아무도 모른다.
 
 ## 상태 숫자
 
-iOS 테스트 79 · 백엔드 테스트 15 · 프로젝트 규칙 11 · 빌드 경고 0 · 스토리 63/69
+iOS 테스트 79 · 백엔드 테스트 15 · 프로젝트 규칙 11 · 빌드 경고 0 · 스토리 67/74
 
 > 숫자의 원본은 [sprint-status.yaml](sprint-status.yaml) 이다.

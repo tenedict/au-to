@@ -10,6 +10,8 @@ struct DueStackView: View {
     @Binding var expandedTaskID: UUID?
     let onReviewDrafts: () -> Void
     let onAddText: () -> Void
+    let onPickPhotos: () -> Void
+    let onOpenSettings: () -> Void
 
     @State private var collapsedBuckets: Set<DueBucket> = Set(
         DueBucket.allCases.filter(\.startsCollapsed)
@@ -73,8 +75,21 @@ struct DueStackView: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button(action: onAddText) {
-                    Label("텍스트로 추가", systemImage: "plus")
+                Menu {
+                    Button {
+                        onPickPhotos()
+                    } label: {
+                        Label("사진에서 고르기", systemImage: "photo.on.rectangle")
+                    }
+                    Button(action: onAddText) {
+                        Label("텍스트 붙여넣기", systemImage: "text.viewfinder")
+                    }
+                    Divider()
+                    Button(action: onOpenSettings) {
+                        Label("설정", systemImage: "gearshape")
+                    }
+                } label: {
+                    Label("추가", systemImage: "plus")
                 }
             }
         }
@@ -142,10 +157,17 @@ struct DueStackView: View {
         ContentUnavailableView {
             Label("아직 할 일이 없어요", systemImage: "checklist")
         } description: {
-            Text("스크린샷을 공유하거나 텍스트를 붙여 넣으면 할 일 후보를 만들어요.")
+            Text(
+                "다른 앱에서 스크린샷을 공유하거나, 사진에서 골라도 돼요. "
+                    + "텍스트를 붙여 넣어 시험해 볼 수도 있어요."
+            )
         } actions: {
-            Button("텍스트로 시험하기", action: onAddText)
-                .buttonStyle(.borderedProminent)
+            VStack(spacing: 10) {
+                Button("사진에서 고르기", action: onPickPhotos)
+                    .buttonStyle(.borderedProminent)
+                Button("텍스트로 시험하기", action: onAddText)
+                    .buttonStyle(.bordered)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 60)

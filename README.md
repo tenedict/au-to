@@ -11,7 +11,7 @@
 | 항목 | 값 |
 | --- | --- |
 | 단계 | R0 PASS · MVP 기능 + 접근성 완성 · 실기기 확인 대기 |
-| iOS 테스트 | 79 / 79 |
+| iOS 테스트 | 90 / 90 |
 | 백엔드 테스트 | 15 / 15 |
 | 프로젝트 규칙 | 11건 |
 | 빌드 경고 | 0 |
@@ -24,7 +24,9 @@
 - **지갑 스타일 마감 스택** — 지난 마감부터 급한 순으로 카드가 겹쳐 쌓이고, 누르면 펼쳐집니다
 - **로컬 마감 알림** — 시간 지정은 1시간 전, 종일은 당일 09:00, 공통으로 하루 전 20:00
 - **이번 달 캘린더** — 마감이 있는 날을 표시하는 읽기 전용 월 뷰
-- **Share Extension** — 스크린샷을 App Group 상자에 담고 즉시 닫힙니다
+- **Share Extension** — 다른 앱에서 공유하면 뜹니다. 이미지 최대 10장을 한 번에 담습니다
+- **앱 안에서 사진 고르기** — 사진 라이브러리에서 직접 골라도 됩니다 (권한 불필요)
+- **분석 엔진 선택** — 설정에서 백엔드 / 규칙 기반 중 고릅니다. 온디바이스는 자리만 있습니다
 - **온디바이스 Vision OCR** — 원본 이미지는 기기를 떠나지 않습니다
 - **OpenAI 문맥 분석** — 키는 백엔드에만 있습니다
 - **확인 화면** — AI 결과는 제안입니다. 여기를 지나지 않는 저장 경로는 없습니다
@@ -45,6 +47,8 @@ cp .env.example .env
 set -a; source .env; set +a
 npm start
 ```
+
+> 구조와 키를 넣는 곳은 [`backend/README.md`](backend/README.md)에 자세히 있습니다.
 
 기본 주소는 `http://127.0.0.1:8787`, 기본 모델은 `gpt-4.1-mini` 입니다.
 추론 계열(`gpt-5*`, `o*`)을 넣으면 `reasoning`·`verbosity` 파라미터가 자동으로 함께 붙습니다.
@@ -128,6 +132,8 @@ brew install lefthook && lefthook install
 | | |
 | --- | --- |
 | [`docs/README.md`](docs/README.md) | 문서 인덱스 · BMAD 워크플로 대응 |
+| [`backend/README.md`](backend/README.md) | **백엔드 구조 · API 키를 어디에 넣는지** |
+| [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/17-ONDEVICE-LLM-RESEARCH.md) | 온디바이스 LLM 비교 분석 |
 | [`docs/project-context.md`](docs/project-context.md) | 5분 요약 — 새 세션은 여기부터 |
 | [`CLAUDE.md`](CLAUDE.md) | 작업 규칙 (사람·AI 공용) |
 | [통합 HTML 기획서](docs/CaptureTask-Development-Plan.html) | 제품·UX·아키텍처·비용·배포를 한 문서로 |

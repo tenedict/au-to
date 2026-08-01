@@ -28,7 +28,7 @@ xcodegen generate && xcodebuild test -project CaptureTask.xcodeproj -scheme Capt
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO
 ```
 
-DEBUG 라우팅 — `CAPTURETASK_OFFLINE=1` (백엔드 없이 규칙 기반 분석기) · `CAPTURETASK_TAB=0|1` (시작 탭)
+DEBUG 라우팅 — `CAPTURETASK_OFFLINE=1` · `CAPTURETASK_TAB=0|1` (탭) · `CAPTURETASK_SHEET=settings|text` (시트)
 시뮬레이터에서는 `SIMCTL_CHILD_` 접두사를 붙인다.
 
 **시뮬레이터에서 공유 상자를 쓰려면 서명해서 빌드한다.** `CODE_SIGNING_ALLOWED=NO` 로 빌드하면
@@ -51,7 +51,12 @@ View (SwiftUI) → Store (@MainActor ObservableObject) → Service 프로토콜 
                               ↘ Model (순수 값 · 순수 함수)
 
 Share Extension → App Group inbox → 메인 앱이 꺼내서 처리
+사진 고르기(PhotosPicker) ↗
 ```
+
+**분석 엔진을 고르는 지점은 `AnalysisEngine` + `ContextUnderstanding.make(_:)` 한 곳뿐이다.**
+나중에 온디바이스를 붙일 때 건드릴 파일은 둘이고, 화면·저장소·테스트는 그대로다.
+비교 분석은 [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/17-ONDEVICE-LLM-RESEARCH.md).
 
 의존은 이 한 방향뿐이다. Model은 Store·View·EventKit·Vision·UserNotifications를 모른다.
 마감 분류·알림 시각·월 격자·지갑 스택 배치가 전부 `CaptureTask/Models/` 의 순수 함수다.
@@ -166,6 +171,6 @@ Apple 캘린더    선택적 출력. 실패해도 할 일은 남는다
 
 ## 현재 상태
 
-R0 실행 뼈대 + MVP 기능 + 접근성 완성 · **iOS 테스트 79건 · 백엔드 테스트 15건 · 빌드 경고 0**
+R0 실행 뼈대 + MVP 기능 + 접근성 완성 · **iOS 테스트 90건 · 백엔드 테스트 15건 · 빌드 경고 0**
 공유 시트 → OCR → 분석 → 확인 → 할 일·캘린더·알림까지 이어진다.
 다음: 실기기 서명·App Group 프로비저닝 · 실제 OpenAI 키 E2E · 중복 감지 정책

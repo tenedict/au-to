@@ -15,15 +15,38 @@ protocol ContextUnderstandingService: Sendable {
 /// - (예정) 온디바이스 모델 — 같은 프로토콜을 구현해 여기에 한 줄로 끼운다.
 enum ContextUnderstanding {
 
-    /// DEBUG 빌드에서 `CAPTURETASK_OFFLINE=1` 이면 규칙 기반 분석기를 쓴다.
-    /// 릴리스 빌드에서는 이 분기가 아예 없다.
-    static func makeDefault() -> any ContextUnderstandingService {
-        #if DEBUG
-        if ProcessInfo.processInfo.environment["CAPTURETASK_OFFLINE"] == "1" {
+    /// 고른 엔진에 맞는 구현을 만든다.
+    ///
+    /// `onDevice` 는 아직 구현이 없다. **조용히 다른 것으로 떨어뜨리지 않고**
+    /// 고를 수 없게 막는 쪽을 택했다 (`AnalysisEngine.isAvailable`).
+    /// 그래도 여기까지 오면 기본값으로 되돌린다 — 앱이 분석기 없이 뜨는 것보다는 낫다.
+    static func make(_ engine: AnalysisEngine) -> any ContextUnderstandingService {
+        switch engine {
+        case .backend:
+            return BackendContextUnderstandingService()
+        case .ruleBased:
             return RuleBasedContextUnderstandingService()
+        case .onDevice:
+            return BackendContextUnderstandingService()
+        }
+    }
+
+    /// 앱이 처음 뜰 때 쓸 엔진.
+    ///
+    /// DEBUG 빌드에서 `CAPTURETASK_OFFLINE=1` 이면 규칙 기반으로 시작한다.
+    /// 릴리스 빌드에서는 이 분기가 아예 없다.
+    static func defaultEngine(
+        stored: AnalysisEngine? = nil,
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> AnalysisEngine {
+        #if DEBUG
+        if environment["CAPTURETASK_OFFLINE"] == "1" {
+            return .ruleBased
         }
         #endif
-        return BackendContextUnderstandingService()
+        // 저장된 값이 그 사이 못 쓰게 됐을 수 있다 (예: 온디바이스를 골라 뒀는데 아직 없음).
+        guard let stored, stored.isAvailable else { return .default }
+        return stored
     }
 }
 

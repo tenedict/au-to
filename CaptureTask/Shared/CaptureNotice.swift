@@ -37,17 +37,28 @@ enum CaptureNotice {
     ///
     /// 문구가 "할 일을 만들었어요" 가 아닌 이유 — 이 시점에는 아직 아무것도 읽지 않았다.
     /// 하지 않은 일을 했다고 말하면 열어 봤을 때 어긋난다.
-    static func postCaptureTaken(captureID: UUID, center: UNUserNotificationCenter = .current()) {
+    ///
+    /// **여러 장이어도 알림은 한 번이다.** 5장을 공유했다고 배너가 5번 뜨면
+    /// 사용자는 알림을 꺼 버린다. 식별자는 첫 캡처의 것을 쓰고, 앱은 어느 캡처를
+    /// 처리하든 그 캡처의 알림을 지우므로 남지 않는다.
+    static func postCaptureTaken(
+        captureIDs: [UUID],
+        center: UNUserNotificationCenter = .current()
+    ) {
+        guard let first = captureIDs.first else { return }
+
         let content = UNMutableNotificationContent()
-        content.title = "스크린샷을 담았어요"
+        content.title = captureIDs.count == 1
+            ? "스크린샷을 담았어요"
+            : "스크린샷 \(captureIDs.count)장을 담았어요"
         content.body = "눌러서 할 일로 만들지 확인해 주세요."
         content.sound = .default
-        content.userInfo = ["captureID": captureID.uuidString]
+        content.userInfo = ["captureID": first.uuidString]
 
         // trigger 가 nil 이면 곧바로 전달된다. Extension 이 닫힌 뒤에도 남는다.
         center.add(
             UNNotificationRequest(
-                identifier: identifier(for: captureID),
+                identifier: identifier(for: first),
                 content: content,
                 trigger: nil
             )

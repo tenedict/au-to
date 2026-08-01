@@ -1,0 +1,38 @@
+# Git Hook — 설치하면 붙습니다.
+#   brew install lefthook && lefthook install
+#
+# 커밋 전에는 몇 초짜리만, 시간이 걸리는 iOS 테스트는 푸시 전에.
+# Hook 은 --no-verify 로 건너뛸 수 있으니 최종 강제는 CI 가 한다.
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: 프로젝트 규칙
+      run: ./scripts/check-project-rules.sh
+    - name: 포맷
+      run: swift format lint --recursive --strict CaptureTask CaptureTaskShare CaptureTaskTests
+      skip:
+        - run: '! xcrun --find swift-format >/dev/null 2>&1'
+    - name: 린트
+      run: swiftlint lint --quiet --strict
+      skip:
+        - run: '! command -v swiftlint >/dev/null 2>&1'
+    - name: 백엔드 테스트
+      run: cd backend && npm test
+      glob: "backend/**"
+      skip:
+        - run: '! command -v node >/dev/null 2>&1'
+
+commit-msg:
+  jobs:
+    # 커밋 기록에는 사람만 남는다. AI 도구가 붙이는 공동 작성자 트레일러를 지운다.
+    # 이 저장소는 lefthook 을 쓰므로 core.hooksPath 대신 여기서 부른다 — 스크립트는 같다.
+    - name: AI 협업자 트레일러 제거
+      run: ./.githooks/commit-msg {1}
+
+pre-push:
+  jobs:
+    - name: 전체 검증
+      run: ./scripts/verify.sh
+    - name: 커밋 위생
+      run: ./.githooks/no-ai-trailers.sh "origin/main..HEAD"

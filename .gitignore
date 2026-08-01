@@ -1,9 +1,47 @@
-.DS_Store
+# ─── 빌드 산출물 ───────────────────────────────
+# 사람마다 매번 달라지고 용량이 크다
 build/
 DerivedData/
 *.xcresult
+*.xcarchive
+*.ipa
+*.dSYM
+
+# ─── 생성물 ───────────────────────────────────
+# .xcodeproj 는 project.yml 에서 만든다. 커밋하면 소스가 두 벌이 되고,
+# 병합 충돌이 pbxproj 안에서 나서 아무도 못 읽는다.
+#   xcodegen generate
+CaptureTask.xcodeproj/
+
+# ─── Xcode 사용자 상태 ─────────────────────────
+# Xcode를 켜기만 해도 바뀌는 바이너리. 여러 명이 쓰면 매번 충돌하고 병합도 안 된다.
+*.xcuserstate
+*.xcuserdatad/
 xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# ─── 의존성 ───────────────────────────────────
+.swiftpm/
+node_modules/
+
+# ─── 비밀 ─────────────────────────────────────
+# OpenAI 키가 들어간다. .env.example 만 올린다.
 .env
 .env.local
 backend/.env
+
+# ─── macOS ────────────────────────────────────
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# ─── 기타 ─────────────────────────────────────
+*.log
 tmp/
+
+# ─── Claude Code ──────────────────────────────
+# 개인 권한 설정. 이 머신의 시뮬레이터 UDID·경로가 들어 있다.
+# 스킬(.claude/skills/)은 팀이 함께 쓰므로 올린다.
+.claude/settings.local.json

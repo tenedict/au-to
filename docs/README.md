@@ -106,7 +106,7 @@ BMAD 가 **무엇을 만들지**를 정한다면, Superpowers 는 **어떻게 �
 | 12 | [Implementation Readiness](12-IMPLEMENTATION-READINESS.md) | PASS / CONCERNS / FAIL 판정 |
 | 13 | [Test Strategy](13-TEST-STRATEGY.md) | 위험 23건 · 자동화율 · 릴리스 게이트 |
 | 14 | [Sprint](14-SPRINT.md) | 스프린트 계획 · 완료 정의 |
-| 15 | [Retrospective](15-RETROSPECTIVE.md) | Sprint 1 회고 · 규칙으로 승격한 것 7건 |
+| 15 | [Retrospective](15-RETROSPECTIVE.md) | Sprint 1~2 회고 · 규칙으로 승격한 것 8건 |
 | 16 | [Engineering Playbook](16-ENGINEERING-PLAYBOOK.md) | TDD · 디버깅 · 검증 · 리뷰 규율 |
 | — | [sprint-status.yaml](sprint-status.yaml) | **기계가 읽는 스프린트 상태 (숫자의 원본)** |
 | — | [plans/](plans/) | 스토리별 2~5분 태스크 계획 |
@@ -140,12 +140,12 @@ python3 scripts/build_development_plan.py
 | 항목 | 값 |
 | --- | --- |
 | 릴리스 단계 | **R0 PASS** · MVP 기능 완성 |
-| 스토리 | 56 / 66 (85%) |
-| iOS 테스트 | ✅ 69 / 69 |
+| 스토리 | 60 / 66 (91%) |
+| iOS 테스트 | ✅ 73 / 73 |
 | 백엔드 테스트 | ✅ 15 / 15 |
 | 프로젝트 규칙 | ✅ 11건 |
 | 빌드 | ✅ 경고 0 |
 | R1 게이트 | ⚠️ CONCERNS — 실기기 서명 · 실제 키 E2E |
-| R2 게이트 | ⛔ FAIL — 접근성 3건 · 백엔드 인증 · 평가셋 |
+| R2 게이트 | ⛔ FAIL — 백엔드 인증 · 평가셋 (접근성 3건 해소) |
 
 > 숫자가 [sprint-status.yaml](sprint-status.yaml) 과 어긋나면 **그쪽이 맞다.**

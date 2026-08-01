@@ -40,4 +40,22 @@ struct WalletStackLayout: Equatable, Sendable {
         return offset(forCardAt: last, expandedIndex: expandedIndex)
             + height(forCardAt: last, expandedIndex: expandedIndex)
     }
+
+    /// Dynamic Type 배율을 적용한 사본.
+    ///
+    /// 카드 높이가 고정값이면 글자를 키운 사용자에게는 제목과 마감이 잘린다.
+    /// 세 값을 **함께** 키우기 때문에 `peekHeight < collapsedHeight` 라는 겹침의
+    /// 정의가 배율과 무관하게 유지된다 — 하나만 키우면 겹침이 사라지거나 카드가 서로를 덮는다.
+    ///
+    /// 배율은 뷰가 `@ScaledMetric` 으로 읽어 넘긴다. 여기서 환경을 읽지 않는 이유는
+    /// 그 순간 이 타입이 순수하지 않게 되고 테스트가 기기 설정에 흔들리기 때문이다.
+    func scaled(by factor: CGFloat) -> WalletStackLayout {
+        // 0 이하가 들어오면 카드가 사라진다. 배율은 언제나 1 이상으로 본다.
+        let safe = max(1, factor)
+        return WalletStackLayout(
+            collapsedHeight: collapsedHeight * safe,
+            peekHeight: peekHeight * safe,
+            expandedHeight: expandedHeight * safe
+        )
+    }
 }

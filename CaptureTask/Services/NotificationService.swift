@@ -106,6 +106,40 @@ struct LocalNotificationService: TaskReminderScheduling {
     }
 }
 
+/// 알림을 눌러 앱에 들어왔을 때 어느 할 일로 갈지 전달한다.
+///
+/// 알림에 `taskID` 를 담아 두고도 받는 쪽이 없으면, 사용자는 알림을 누른 뒤
+/// 목록 맨 위에서 그 할 일을 **다시 찾아야 한다.** 알림의 목적이 사라진다.
+@MainActor
+final class ReminderTapRouter: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
+    /// 눌린 할 일. 화면이 처리한 뒤 nil 로 되돌린다.
+    @Published var requestedTaskID: UUID?
+
+    func install(into center: UNUserNotificationCenter = .current()) {
+        center.delegate = self
+    }
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        guard let raw = response.notification.request.content.userInfo["taskID"] as? String,
+              let taskID = UUID(uuidString: raw) else {
+            return
+        }
+        await MainActor.run { requestedTaskID = taskID }
+    }
+
+    /// 앱을 보고 있는 동안에도 알림을 보여준다.
+    /// 기본 동작은 조용히 삼키는 것이라, 앱을 켜 둔 사용자는 마감을 그대로 놓친다.
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .sound, .list]
+    }
+}
+
 /// 테스트와 미리보기용. 알림을 실제로 걸지 않고 요청만 기록한다.
 final class RecordingReminderScheduler: TaskReminderScheduling, @unchecked Sendable {
     private(set) var scheduled: [UUID: [ReminderPlan]] = [:]

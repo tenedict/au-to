@@ -8,16 +8,29 @@ struct TaskCard: View {
     let task: AssistantTask
     let bucket: DueBucket
     let isExpanded: Bool
+    /// 지갑처럼 겹쳐 쌓인 상태인가.
+    ///
+    /// 겹쳐 있으면 아래 카드가 윗부분만 남기고 덮으므로 제목을 한 줄로 자른다.
+    /// 접근성 글자 크기에서는 겹치지 않으므로(`DueStackView.usesWalletStack`)
+    /// 줄 수를 풀어 준다 — 그 크기의 사용자에게 잘린 제목은 아무 정보가 아니다.
+    let isStacked: Bool
     let onTap: () -> Void
     let onToggleCompletion: () -> Void
     let onDelete: () -> Void
+
+    /// 대비 높이기를 켠 사용자에게는 카드 경계를 그림자 대신 선으로 준다.
+    /// 그림자는 대비가 낮아 겹친 카드가 하나의 긴 카드로 보인다.
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var wantsHighContrast: Bool { contrast == .increased }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
             if isExpanded {
                 detail
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
             }
             Spacer(minLength: 0)
         }
@@ -42,7 +55,19 @@ struct TaskCard: View {
                 }
         )
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: .black.opacity(isExpanded ? 0.16 : 0.10), radius: isExpanded ? 14 : 7, y: 4)
+        .overlay {
+            if wantsHighContrast {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(isExpanded ? 0.55 : 0.35), lineWidth: 1)
+            }
+        }
+        // 겹침을 읽히게 하는 단서는 그림자뿐이다. 대비를 높인 사용자에게는
+        // 그림자가 거의 안 보이므로 위의 선이 그 역할을 대신한다.
+        .shadow(
+            color: .black.opacity(wantsHighContrast ? 0 : (isExpanded ? 0.16 : 0.10)),
+            radius: isExpanded ? 14 : 7,
+            y: 4
+        )
         .contentShape(.rect)
         .onTapGesture(perform: onTap)
         .accessibilityElement(children: .contain)
@@ -67,25 +92,12 @@ struct TaskCard: View {
                 Text(task.title)
                     .font(.headline)
                     .strikethrough(task.isCompleted)
-                    .lineLimit(isExpanded ? 3 : 1)
+                    .lineLimit(titleLineLimit)
+                    .fixedSize(horizontal: false, vertical: true)
                     .foregroundStyle(task.isCompleted ? .secondary : .primary)
 
-                HStack(spacing: 8) {
-                    Label(dueText, systemImage: dueSymbol)
-                        .font(.caption)
-                        .foregroundStyle(bucket == .overdue ? Color.red : .secondary)
-                    if task.calendarEventIdentifier != nil {
-                        Label("캘린더", systemImage: "calendar.badge.checkmark")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    if task.dueDate != nil, !task.wantsReminders {
-                        Label("알림 꺼짐", systemImage: "bell.slash")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .labelStyle(.titleAndIcon)
+                // 겹치지 않을 때는 마감·배지를 세로로 흘려 잘리지 않게 한다.
+                metadata
             }
             Spacer(minLength: 0)
         }
@@ -93,6 +105,44 @@ struct TaskCard: View {
         .padding(.trailing, 16)
         .padding(.top, 16)
         .padding(.bottom, 12)
+    }
+
+    private var titleLineLimit: Int? {
+        guard isStacked else { return nil }
+        return isExpanded ? 3 : 1
+    }
+
+    /// 마감과 배지.
+    ///
+    /// 겹쳐 있을 때는 한 줄에 나란히 둔다. 겹치지 않을 때(접근성 글자 크기)는
+    /// 세로로 흘린다 — 가로로 두면 "2026년 7월 30일"이 잘리거나 배지가 화면 밖으로 나간다.
+    @ViewBuilder
+    private var metadata: some View {
+        if isStacked {
+            HStack(spacing: 8) { metadataItems }
+                .labelStyle(.titleAndIcon)
+        } else {
+            VStack(alignment: .leading, spacing: 5) { metadataItems }
+                .labelStyle(.titleAndIcon)
+        }
+    }
+
+    @ViewBuilder
+    private var metadataItems: some View {
+        Label(dueText, systemImage: dueSymbol)
+            .font(.caption)
+            .foregroundStyle(bucket == .overdue ? Color.red : .secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        if task.calendarEventIdentifier != nil {
+            Label("캘린더", systemImage: "calendar.badge.checkmark")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        if task.dueDate != nil, !task.wantsReminders {
+            Label("알림 꺼짐", systemImage: "bell.slash")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 
     // MARK: - 펼쳤을 때만

@@ -6,6 +6,7 @@ import SwiftUI
 /// 같은 초안이 두 번 뜨거나, "나중에" 를 눌러도 다시 튀어나온다.
 struct RootView: View {
     @ObservedObject var store: TaskStore
+    @ObservedObject var reminderTaps: ReminderTapRouter
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var reviewDraft: TaskDraft?
@@ -13,6 +14,8 @@ struct RootView: View {
     /// 이번 실행에서 "나중에" 를 누른 초안. 자동으로 다시 띄우지 않는다.
     @State private var deferredDraftIDs: Set<UUID> = []
     @State private var selectedTab = Tab.initialFromEnvironment
+    /// 펼친 카드. 알림을 눌러 들어온 경우 여기서 정한다.
+    @State private var expandedTaskID: UUID?
 
     /// 탭 라우팅.
     ///
@@ -40,6 +43,7 @@ struct RootView: View {
             NavigationStack {
                 DueStackView(
                     store: store,
+                    expandedTaskID: $expandedTaskID,
                     onReviewDrafts: presentNextDraft,
                     onAddText: { showsManualCapture = true }
                 )
@@ -63,6 +67,14 @@ struct RootView: View {
         .onChange(of: store.pendingDrafts) { _, drafts in
             guard reviewDraft == nil else { return }
             reviewDraft = drafts.first { !deferredDraftIDs.contains($0.id) }
+        }
+        .onChange(of: reminderTaps.requestedTaskID) { _, taskID in
+            guard let taskID else { return }
+            // 알림을 눌러 들어왔다. 그 할 일을 펼쳐서 보여준다 — 목록 맨 위에서
+            // 다시 찾게 하면 알림의 목적이 사라진다.
+            selectedTab = .tasks
+            expandedTaskID = taskID
+            reminderTaps.requestedTaskID = nil
         }
         .sheet(isPresented: $showsManualCapture) {
             ManualCaptureSheet { text in

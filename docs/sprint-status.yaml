@@ -19,8 +19,8 @@ release:
 
 verification:
   command: ./scripts/verify.sh
-  ios_tests_total: 79
-  ios_tests_passed: 79
+  ios_tests_total: 90
+  ios_tests_passed: 90
   backend_tests_total: 15
   backend_tests_passed: 15
   project_rules: 11
@@ -75,14 +75,14 @@ previous_sprint:
 epics:
   - id: E1
     name: 캡처 수집
-    stories: 6
-    done: 5
+    stories: 8
+    done: 7
     status: in_progress
     blocked_by: [D-1]
   - id: E2
     name: 텍스트와 문맥
-    stories: 8
-    done: 7
+    stories: 11
+    done: 9
     status: in_progress
   - id: E3
     name: 확인
@@ -123,8 +123,8 @@ epics:
     status: completed
 
 progress:
-  stories_total: 69
-  stories_done: 63
+  stories_total: 74
+  stories_done: 67
   percent: 91
 
 completed_stories:
@@ -178,6 +178,24 @@ completed_stories:
     name: 알림 권한 옵트인 줄
     completed_at: 2026-08-01
     note: 첫 저장까지 기다리면 첫 공유의 확인 알림을 놓친다
+  - id: S-1.7
+    name: 공유 시트로 이미지 여러 장 받기
+    completed_at: 2026-08-01
+    note: 여러 장이어도 알림은 한 번. 5장에 배너 5번이면 알림을 꺼 버린다
+  - id: S-1.8
+    name: 앱 안에서 사진 고르기
+    completed_at: 2026-08-01
+    note: PHPicker 라 사진 접근 권한이 필요 없다
+  - id: S-2.9
+    name: 설정에서 분석 엔진 고르기
+    completed_at: 2026-08-01
+    tests_added: 11
+  - id: S-2.10
+    name: 온디바이스 LLM 비교 분석
+    doc: docs/17-ONDEVICE-LLM-RESEARCH.md
+    completed_at: 2026-08-01
+    conclusion: Apple Foundation Models 1순위. 모델 0MB · 한국어 공식 지원 · guided generation.
+      다만 iPhone 15 Pro 이상이라 백엔드는 계속 필요하다
   - id: S-2.7
     name: 실재하는 기본 모델과 모델군별 파라미터 분기
     completed_at: 2026-08-01

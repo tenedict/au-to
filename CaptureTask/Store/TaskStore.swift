@@ -13,6 +13,10 @@ final class TaskStore: ObservableObject {
     @Published private(set) var isImporting = false
     @Published private(set) var inboxAvailability: SharedInbox.Availability = .ready
     @Published private(set) var reminderAuthorization: ReminderAuthorizationState = .notDetermined
+    /// 방금 확인 없이 넣은 것. 배너가 이걸 보고 "실행 취소" 를 띄운다.
+    @Published var lastFiled: FiledCapture?
+    /// 바로 넣을 수 없어 확인이 필요한 초안. 맥의 물방울이 이걸 보고 창을 연다.
+    @Published var needsConfirmation: TaskDraft?
 
     /// 지금 쓰는 분석 엔진. 바꾸면 곧바로 다음 분석부터 적용된다.
     @Published var engine: AnalysisEngine {
@@ -190,6 +194,70 @@ final class TaskStore: ObservableObject {
         } catch {
             lastErrorMessage = error.localizedDescription
         }
+    }
+
+    /// 이미지 한 장을 받아 **확인 없이** 캘린더까지 넣는다. 맥 물방울의 주 경로다.
+    ///
+    /// 분명하면 넣고 되돌릴 수 있게 하고, 모호하면 그때만 확인 화면을 연다.
+    /// 판정은 `AutoFilePolicy` 순수 함수가 한다.
+    ///
+    /// - Returns: 바로 넣었으면 그 결과, 확인이 필요하면 nil
+    @discardableResult
+    func fileImage(_ imageData: Data) async -> FiledCapture? {
+        isImporting = true
+        defer { isImporting = false }
+
+        do {
+            let text = try await ocrService.recognizeText(in: imageData)
+            let draft = try await understandingService.makeDraft(from: text, captureID: nil)
+            return await file(draft)
+        } catch {
+            lastErrorMessage = error.localizedDescription
+            return nil
+        }
+    }
+
+    /// 초안 하나를 정책에 따라 처리한다.
+    @discardableResult
+    func file(_ draft: TaskDraft) async -> FiledCapture? {
+        guard case .fileNow = AutoFilePolicy.decide(for: draft) else {
+            // 확인 화면으로 넘긴다. 초안은 남겨 둬야 앱을 껐다 켜도 사라지지 않는다.
+            appendDraft(draft)
+            needsConfirmation = draft
+            return nil
+        }
+
+        var task = draft.makeTask()
+        var eventIdentifier: String?
+        do {
+            eventIdentifier = try await CalendarService().addToCalendar(task)
+            task.calendarEventIdentifier = eventIdentifier
+        } catch {
+            // 캘린더가 실패해도 할 일은 남긴다. 캘린더는 출력이지 원장이 아니다 (ADR-7).
+            lastErrorMessage = error.localizedDescription
+        }
+
+        await save(task)
+
+        let filed = FiledCapture(
+            id: task.id,
+            title: task.title,
+            dueDate: task.dueDate,
+            hasExplicitTime: task.hasExplicitTime,
+            calendarEventIdentifier: eventIdentifier,
+            filedAt: now()
+        )
+        lastFiled = filed
+        return filed
+    }
+
+    /// 방금 넣은 것을 되돌린다. 할 일과 캘린더 일정을 **둘 다** 거둔다.
+    ///
+    /// 하나만 지우면 사용자는 "취소했는데 일정이 그대로" 인 상태를 보게 된다.
+    func undoLastFiled() async {
+        guard let filed = lastFiled else { return }
+        lastFiled = nil
+        await delete(filed.id)
     }
 
     func analyzeManualText(_ text: String) async {

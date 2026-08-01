@@ -102,13 +102,14 @@ BMAD 가 **무엇을 만들지**를 정한다면, Superpowers 는 **어떻게 �
 | 08 | [와이어프레임 ↔ 구현](08-와이어프레임.md) | 화면↔코드 대응 · 남은 어긋남 5건 |
 | 09 | [SPEC](09-SPEC.md) | 도메인·묶음·알림·저장·API 계약 + 추적 매트릭스 |
 | 10 | [Architecture Spine](10-ARCHITECTURE-SPINE.md) | ADR 10건 · 모듈 구조 · 다음 과제 |
-| 11 | [Epics & Stories](11-EPICS-STORIES.md) | 에픽 9 · 스토리 74 |
+| 11 | [Epics & Stories](11-EPICS-STORIES.md) | 에픽 10 · 스토리 80 |
 | 12 | [Implementation Readiness](12-IMPLEMENTATION-READINESS.md) | PASS / CONCERNS / FAIL 판정 |
 | 13 | [Test Strategy](13-TEST-STRATEGY.md) | 위험 26건 · 자동화율 · 릴리스 게이트 |
 | 14 | [Sprint](14-SPRINT.md) | 스프린트 계획 · 완료 정의 |
 | 15 | [Retrospective](15-RETROSPECTIVE.md) | Sprint 1~2 회고 · 규칙으로 승격한 것 9건 |
 | 16 | [Engineering Playbook](16-ENGINEERING-PLAYBOOK.md) | TDD · 디버깅 · 검증 · 리뷰 규율 |
 | 17 | [온디바이스 LLM 리서치](17-ONDEVICE-LLM-RESEARCH.md) | 어떤 모델을 쓸지 비교 분석 (구현 전 조사) |
+| 18 | [macOS 앱](18-MACOS.md) | 물방울 · 바로 넣기와 되돌리기 · 샌드박스 |
 | — | [sprint-status.yaml](sprint-status.yaml) | **기계가 읽는 스프린트 상태 (숫자의 원본)** |
 | — | [plans/](plans/) | 스토리별 2~5분 태스크 계획 |
 | — | [INTEGRATED-DEVELOPMENT-PLAN.md](INTEGRATED-DEVELOPMENT-PLAN.md) | HTML/PDF 생성의 기준 원문 |
@@ -142,8 +143,8 @@ python3 scripts/build_development_plan.py
 | 항목 | 값 |
 | --- | --- |
 | 릴리스 단계 | **R0 PASS** · MVP 기능 완성 |
-| 스토리 | 67 / 74 (91%) |
-| iOS 테스트 | ✅ 93 / 93 |
+| 스토리 | 72 / 80 (90%) |
+| iOS 테스트 | ✅ 102 / 102 |
 | 백엔드 테스트 | ✅ 15 / 15 |
 | 프로젝트 규칙 | ✅ 11건 |
 | 빌드 | ✅ 경고 0 |

@@ -34,8 +34,8 @@ deployment:
 
 verification:
   command: ./scripts/verify.sh
-  ios_tests_total: 93
-  ios_tests_passed: 93
+  ios_tests_total: 102
+  ios_tests_passed: 102
   backend_tests_total: 40
   backend_tests_passed: 40
   project_rules: 12
@@ -136,11 +136,17 @@ epics:
     stories: 4
     done: 4
     status: completed
+  - id: E10
+    name: macOS
+    stories: 6
+    done: 5
+    status: in_progress
+    note: 물방울 · 바로 넣기와 되돌리기 · 다른 앱으로 열기까지 동작. 공유 확장은 서명 필요
 
 progress:
-  stories_total: 74
-  stories_done: 67
-  percent: 91
+  stories_total: 80
+  stories_done: 72
+  percent: 90
 
 completed_stories:
   - id: S-8.1
@@ -205,6 +211,18 @@ completed_stories:
     name: 설정에서 분석 엔진 고르기
     completed_at: 2026-08-01
     tests_added: 11
+  - id: S-10.2
+    name: 물방울 창과 바로 넣기
+    doc: docs/18-MACOS.md
+    completed_at: 2026-08-01
+    tests_added: 9
+    verified:
+      - open -a 경로로 캘린더까지 실제 생성됨
+      - 백엔드 200 (Darwin/27)
+      - 샌드박스가 임의 경로 읽기를 차단하는 것 확인
+    not_verified:
+      - 물방울의 실제 모양 (화면 캡처 권한 없음)
+      - 끌어다 놓기와 배너 (자동화 불가)
   - id: S-2.10
     name: 온디바이스 LLM 비교 분석
     doc: docs/17-ONDEVICE-LLM-RESEARCH.md

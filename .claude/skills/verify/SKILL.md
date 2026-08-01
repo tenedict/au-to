@@ -93,7 +93,7 @@ SIMCTL_CHILD_CAPTURETASK_OFFLINE=1 SIMCTL_CHILD_CAPTURETASK_TAB=1 \
 통과했을 때만 완료라고 말한다. 보고에는 숫자를 넣는다.
 
 ```
-✓ 프로젝트 규칙 통과 · iOS 93/93 · 백엔드 40/40 · 빌드 경고 0
+✓ 프로젝트 규칙 통과 · iOS 102/102 · 백엔드 40/40 · 빌드 경고 0
 ```
 
 **금지**

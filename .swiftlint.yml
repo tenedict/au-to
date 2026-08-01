@@ -1,0 +1,79 @@
+# SwiftLint 설정 — 설치돼 있으면 verify.sh 가 자동으로 씁니다.
+#   brew install swiftlint
+
+included:
+  - CaptureTask
+  - CaptureTaskShare
+  - CaptureTaskTests
+excluded:
+  - build
+  - docs
+  - output
+  - backend
+
+# 화면 파일 500줄 (NFR-MNT-05)
+file_length:
+  warning: 450
+  error: 500
+  ignore_comment_only_lines: true
+
+type_body_length:
+  warning: 300
+  error: 400
+
+function_body_length:
+  warning: 60
+  error: 100
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+
+cyclomatic_complexity:
+  warning: 10
+  error: 15
+
+identifier_name:
+  min_length: 1          # i, n, e 같은 짧은 이름을 허용한다
+  excluded: [id, me, x, y, now]
+
+nesting:
+  type_level: 2          # SharedInbox.Availability 처럼 의미가 붙는 중첩을 허용한다
+
+disabled_rules:
+  - todo                  # TODO 는 백로그로 관리한다
+  - trailing_comma
+
+opt_in_rules:
+  - empty_count
+  - force_unwrapping
+  - first_where
+  - unused_import
+  - redundant_nil_coalescing
+  - explicit_init
+
+# force_unwrapping 은 테스트의 DateComponents 조립에서 의도적으로 쓴다
+force_unwrapping:
+  severity: warning
+
+custom_rules:
+  confidence_threshold_literal:
+    name: "신뢰도 임계값 리터럴"
+    regex: '(?<![0-9.])0\.80?(?![0-9])'
+    excluded: ".*(AssistantTask|Tests)\\.swift"
+    message: "Confidence.autoCalendarThreshold 를 쓰세요. 흩어 놓으면 한 곳만 고쳐집니다."
+    severity: error
+
+  openai_key_in_app:
+    name: "앱 코드의 OpenAI 키"
+    regex: '(OPENAI_API_KEY|api\.openai\.com)'
+    message: "OpenAI 호출은 backend/ 만 합니다 (CLAUDE 규칙 3)."
+    severity: error
+
+  swallowed_storage_error:
+    name: "삼킨 저장 실패"
+    regex: 'try\?\s*storage\.'
+    message: "저장·복원 실패는 화면까지 올려야 합니다. 사용자는 잃은 뒤에 압니다."
+    severity: error

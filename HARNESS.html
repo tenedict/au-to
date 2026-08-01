@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CaptureTask — 개발 하네스 보고서</title>
+<style>
+  :root{
+    --ink:#14171c; --sub:#5b6472; --dim:#8b95a3; --line:#e4e8ee; --bg:#fff;
+    --panel:#f7f9fc; --accent:#1d4ed8; --ok:#0f7b52; --warn:#a4650b; --bad:#b3261e;
+    --code:#f3f5f9;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --ink:#e8ebf0; --sub:#a3adbb; --dim:#78818f; --line:#252a32; --bg:#0c0e12;
+           --panel:#12151b; --accent:#7ea3ff; --ok:#4ec08c; --warn:#e0a94a; --bad:#f2857c;
+           --code:#14181f; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:400 16px/1.75 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Pretendard,system-ui,sans-serif;
+    letter-spacing:-.011em}
+  .wrap{max-width:860px;margin:0 auto;padding:0 28px}
+  header{padding:88px 0 44px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-size:12.5px;font-weight:700;letter-spacing:.14em;color:var(--dim);margin:0 0 18px}
+  h1{font-size:clamp(30px,5.5vw,42px);line-height:1.2;margin:0 0 16px;letter-spacing:-.03em;font-weight:700}
+  .sub{font-size:18px;color:var(--sub);margin:0}
+  .meta{margin-top:26px;font-size:13.5px;color:var(--dim)}
+  .meta b{color:var(--sub);font-weight:600}
+
+  section{padding:52px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:23px;margin:0 0 8px;letter-spacing:-.02em;font-weight:700}
+  h2 .n{color:var(--dim);font-weight:600;margin-right:10px;font-variant-numeric:tabular-nums}
+  .say{color:var(--sub);margin:0 0 28px}
+  h3{font-size:16px;margin:32px 0 10px;font-weight:650}
+  p{margin:0 0 14px}
+  strong{font-weight:650}
+
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;display:block;overflow-x:auto}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:12.5px;color:var(--dim);font-weight:650;letter-spacing:.02em;white-space:nowrap}
+  td code{white-space:nowrap}
+
+  code{background:var(--code);padding:2px 6px;border-radius:5px;font-size:.88em;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  pre{background:var(--code);padding:18px 20px;border-radius:12px;overflow-x:auto;
+    font:13.5px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;margin:18px 0}
+  pre code{background:none;padding:0}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin:24px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .card .k{font-size:12px;color:var(--dim);font-weight:600;margin-bottom:6px}
+  .card .v{font-size:26px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .card .v.ok{color:var(--ok)} .card .v.warn{color:var(--warn)} .card .v.bad{color:var(--bad)}
+
+  .note{background:var(--panel);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;
+    padding:16px 20px;margin:22px 0}
+  .note.bad{border-left-color:var(--bad)}
+  .note.warn{border-left-color:var(--warn)}
+  .note p:last-child{margin-bottom:0}
+
+  ul,ol{padding-left:22px;margin:0 0 14px}
+  li{margin-bottom:7px}
+  .ok{color:var(--ok);font-weight:650}
+  .warn{color:var(--warn);font-weight:650}
+  .bad{color:var(--bad);font-weight:650}
+  footer{padding:56px 0 88px;color:var(--dim);font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">CAPTURETASK · 개발 하네스</p>
+  <h1>검증이 거짓말을 시작하지 않게 하는 장치</h1>
+  <p class="sub">사람 · AI · Git Hook · CI 가 같은 명령 하나를 쓴다. 규칙은 전부 실제로 한 번씩 사고를 낸 것이다.</p>
+  <p class="meta"><b>2026-08-01</b> · iOS 테스트 69 · 백엔드 테스트 15 · 프로젝트 규칙 11 · 빌드 경고 0</p>
+</header>
+
+<section>
+  <h2><span class="n">01</span>지금 상태</h2>
+  <p class="say">숫자의 원본은 <code>docs/sprint-status.yaml</code> 이다.</p>
+
+  <div class="cards">
+    <div class="card"><div class="k">iOS 테스트</div><div class="v ok">69/69</div></div>
+    <div class="card"><div class="k">백엔드 테스트</div><div class="v ok">15/15</div></div>
+    <div class="card"><div class="k">프로젝트 규칙</div><div class="v ok">11</div></div>
+    <div class="card"><div class="k">빌드 경고</div><div class="v ok">0</div></div>
+    <div class="card"><div class="k">스토리</div><div class="v">56/66</div></div>
+    <div class="card"><div class="k">P0 위험 자동화</div><div class="v ok">100%</div></div>
+  </div>
+
+  <table>
+    <tr><th>게이트</th><th>판정</th><th>남은 것</th></tr>
+    <tr><td>R0 · 실행 뼈대</td><td class="ok">PASS</td><td>—</td></tr>
+    <tr><td>R1 · 실기기 MVP</td><td class="warn">CONCERNS</td><td>서명·App Group 프로비저닝 · 실제 키 E2E</td></tr>
+    <tr><td>R2 · TestFlight</td><td class="bad">FAIL</td><td>접근성 3건 · 백엔드 인증 · 평가셋 50건</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">02</span>명령은 하나다</h2>
+  <p class="say">각자 다른 명령을 쓰면 "내 쪽에서는 됐는데"가 생긴다.</p>
+
+<pre><code>./scripts/verify.sh          # 규칙 + 포맷 + 린트 + 백엔드 + iOS 테스트
+./scripts/verify.sh --quick  # iOS 테스트 제외 (몇 초) — pre-commit 용</code></pre>
+
+  <table>
+    <tr><th>누가</th><th>언제</th><th>무엇을</th></tr>
+    <tr><td>사람</td><td>완료 보고 전</td><td><code>verify.sh</code></td></tr>
+    <tr><td>Claude</td><td><code>verify</code> 스킬</td><td><code>verify.sh</code></td></tr>
+    <tr><td>lefthook</td><td>pre-commit</td><td>규칙 · 포맷 · 린트 · 백엔드</td></tr>
+    <tr><td>lefthook</td><td>pre-push</td><td><code>verify.sh</code> 전체</td></tr>
+    <tr><td>CI (ubuntu)</td><td>모든 푸시·PR</td><td>규칙 · 백엔드</td></tr>
+    <tr><td>CI (macOS)</td><td>PR · 수동</td><td><code>verify.sh</code> 전체</td></tr>
+  </table>
+
+  <div class="note">
+    <p><strong>설치 안 된 도구는 건너뛰되 무엇이 빠졌는지 알린다.</strong>
+    없다고 조용히 통과시키면 검증이 거짓말을 시작한다. SwiftLint 가 없으면
+    "건너뛴 검사"에 <code>brew install swiftlint</code> 가 찍힌다.</p>
+  </div>
+
+  <p>CI 는 비용을 나눠 설계했다. macOS 러너는 private 저장소에서 분당 10배로 계산되므로,
+  ubuntu 에서 도는 규칙 검사와 백엔드 테스트는 모든 푸시에서, iOS 빌드·테스트는 PR 과 수동 실행에서만 돈다.</p>
+</section>
+
+<section>
+  <h2><span class="n">03</span>규칙이 실제로 잡은 것</h2>
+  <p class="say">하네스를 세우자마자 열 건이 나왔다. <strong>전부 빌드와 테스트를 통과하던 상태였다.</strong></p>
+
+  <table>
+    <tr><th>#</th><th>결함</th><th>왜 안 보였나</th></tr>
+    <tr><td>1</td><td><code>Config/*.entitlements</code> 가 빈 <code>&lt;dict/&gt;</code> → App Group 전체 무효</td><td>빌드도 테스트도 통과한다. 공유 시트 경로는 실기기에서만 드러난다</td></tr>
+    <tr><td>2</td><td>파일에 App Group 을 써 넣어도 <code>xcodegen generate</code> 가 지운다</td><td><code>project.yml</code> 에 <code>path</code> 만 있었다</td></tr>
+    <tr><td>3</td><td>기본 모델 <code>gpt-5.6-luna</code> 가 실재하지 않음</td><td>키가 없으면 호출하지 않으니 아무도 모른다</td></tr>
+    <tr><td>4</td><td>strict 스키마에 <code>maxLength</code>·<code>minimum</code>·<code>maxItems</code></td><td>모델/버전에 따라 400. 로컬 테스트는 통과</td></tr>
+    <tr><td>5</td><td>초안이 메모리에만 있어 재실행마다 재분석</td><td>한 번 쓰고 끄면 안 보인다</td></tr>
+    <tr><td>6</td><td>앱 활성화 시 재수집 없음</td><td>켤 때만 훑었다</td></tr>
+    <tr><td>7</td><td>OCR 이 메인 스레드를 막음</td><td>한 장이면 티가 안 난다</td></tr>
+    <tr><td>8</td><td>저장·복원 실패를 <code>try?</code> 로 삼킴</td><td>실패하기 전까지 안 보인다</td></tr>
+    <tr><td>9</td><td>초안 버리기 경로 없음</td><td>잘못 담으면 영원히 남는다</td></tr>
+    <tr><td>10</td><td>OpenAI 호출 타임아웃 없음</td><td>응답이 오면 안 보인다</td></tr>
+  </table>
+
+  <div class="note bad">
+    <p><strong>1번과 2번의 성질이 특히 나쁘다.</strong> 담기는 성공한다.
+    사용자에게는 "담았어요" 라고 말한 뒤 아무 일도 일어나지 않는다.
+    어디가 고장인지 짐작할 단서가 하나도 없다.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">04</span>프로젝트 규칙</h2>
+  <p class="say">기성 린터가 모르는 것만 본다. 목록은 검사기가 직접 출력한다 —
+  개수를 문서에 손으로 적으면 반드시 어긋나기 때문이다.</p>
+
+<pre><code>./scripts/check-project-rules.sh --list</code></pre>
+
+  <table>
+    <tr><th>#</th><th>규칙</th><th>어겼을 때 벌어지는 일</th></tr>
+    <tr><td>0</td><td>검사기 자신을 검사한다</td><td>경로가 어긋나면 모든 grep 이 빈손으로 돌아와 조용히 초록이 난다</td></tr>
+    <tr><td>1</td><td>App Group 식별자가 네 곳에서 같은가</td><td>담기는 성공하고 도착만 실패한다</td></tr>
+    <tr><td>2</td><td>OpenAI 키가 앱·Extension 에 없는가</td><td>번들의 문자열은 누구나 꺼낸다</td></tr>
+    <tr><td>3</td><td>Share Extension 은 수집만 한다</td><td>무거우면 시스템이 중간에 죽인다</td></tr>
+    <tr><td>4</td><td>신뢰도 임계값은 한 곳에서만</td><td>한 곳만 고쳐지고 경로마다 약속이 달라진다</td></tr>
+    <tr><td>5</td><td>캡처를 지우는 지점은 저장소 하나뿐</td><td>여러 곳이면 그중 하나는 확인보다 먼저 지운다</td></tr>
+    <tr><td>6</td><td>모델은 화면·플랫폼을 모른다</td><td>계산을 검증하려고 화면을 띄워야 한다</td></tr>
+    <tr><td>7</td><td>알림 예약은 서비스 한 곳에서만</td><td>취소 지점이 갈라져 끝낸 일이 계속 울린다</td></tr>
+    <tr><td>8</td><td>저장 실패를 <code>try?</code> 로 삼키지 않는다</td><td>사용자는 잃은 뒤에 안다</td></tr>
+    <tr><td>9</td><td>화면 파일 500줄</td><td>—</td></tr>
+    <tr><td>10</td><td>백엔드 기본 모델이 확인된 이름인가</td><td>키를 넣은 첫 호출이 404 로 죽는다</td></tr>
+  </table>
+
+  <h3>규칙 0 을 따로 두는 이유</h3>
+  <p>경로 한 글자가 어긋나면 모든 <code>grep</code> 이 아무것도 못 찾고 검사기는 <strong>통과를 보고한다.</strong>
+  그래서 규칙 0 이 먼저 디렉터리 존재와 훑은 파일 수(15개 이상)를 확인하고,
+  계약을 실제로 지키는 핵심 테스트 9건이 사라지지 않았는지도 본다.</p>
+</section>
+
+<section>
+  <h2><span class="n">05</span>규칙은 일부러 어겨 본 다음에만 규칙이다</h2>
+  <p class="say">Sprint 1 에서 이 절차 덕분에 가짜 규칙 하나를 잡았다.</p>
+
+  <p>규칙 10(기본 모델 검사)을 처음에는 접두사 매칭으로 썼다.</p>
+
+<pre><code># 처음 — 통과해 버린다
+grep -qE '^(gpt-4\.1|gpt-4o|gpt-5|o[1-9])'    ← "gpt-5.6-luna" 가 "gpt-5" 로 시작한다
+
+# 고친 뒤 — 정확 일치
+printf '%s\n' $KNOWN_MODELS | grep -qxF "$model"</code></pre>
+
+  <p>실제로 <code>gpt-5.6-luna</code> 를 넣고 돌려 보니 <span class="ok">종료 코드 0</span> 이 나왔다.
+  잡아야 할 값을 그대로 통과시킨 것이다. 정확 일치 목록으로 바꾼 뒤에야
+  <span class="bad">종료 코드 1</span> 이 나왔고, 그때 규칙으로 인정했다.</p>
+
+  <div class="note warn">
+    <p><strong>안 잡히는 규칙은 있는 것이 없는 것보다 나쁘다.</strong>
+    검사기가 본다고 믿고 사람이 안 보게 되기 때문이다.
+    새 검사를 넣으면 그 자리에서 위반 사례를 만들어 넣고,
+    빨간불과 종료 코드 1 을 확인한 뒤에 커밋한다.</p>
+  </div>
+
+  <p>Sprint 1 에서 이렇게 확인한 규칙 — 1 · 3 · 4 · 5 · 10.</p>
+</section>
+
+<section>
+  <h2><span class="n">06</span>규칙이 확인하지 <em>못하는</em> 것</h2>
+  <p class="say">규칙은 grep 이다. "어떤 글자가 어디 있는가"까지만 답할 수 있다.</p>
+
+  <table>
+    <tr><th>무엇</th><th>규칙이 보는 것</th><th>규칙이 못 보는 것</th></tr>
+    <tr><td>App Group</td><td>네 파일의 문자열이 같은가</td><td>그 그룹이 개발자 계정에 등록됐는가 → <strong>실기기</strong></td></tr>
+    <tr><td>알림</td><td><code>UNUserNotificationCenter</code> 가 서비스 안에만 있는가</td><td>실제로 울리는가 → <strong>테스트 + 실기기</strong></td></tr>
+    <tr><td>기본 모델</td><td>목록에 있는 이름인가</td><td>OpenAI 가 실제로 제공하는가 → <strong>사람</strong></td></tr>
+    <tr><td>저장 실패</td><td><code>try? storage.</code> 가 없는가</td><td>화면까지 실제로 올라가는가 → <strong>테스트</strong></td></tr>
+  </table>
+
+  <div class="note">
+    <p><strong>규칙 통과 ≠ 올바름.</strong> 규칙은 문법과 구조를 본다.
+    올바름은 테스트만 본다. 실기기에서만 드러나는 것은 사람만 본다.</p>
+    <p>그래서 <code>--quick</code>(iOS 테스트 제외)으로 본 초록은 <strong>iOS 계약을 하나도 검증하지 않았다.</strong></p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">07</span>테스트가 지키는 것</h2>
+
+  <table>
+    <tr><th>레벨</th><th>무엇</th><th>개수</th></tr>
+    <tr><td>순수 계산</td><td>마감 묶음 · 알림 시각 · 월 격자 · 지갑 배치 · 초안 판정</td><td>39</td></tr>
+    <tr><td>저장 계약</td><td>왕복 · 구버전 · 손상 격리 · 밀리초 정밀도</td><td>8</td></tr>
+    <tr><td>유스케이스</td><td>저장 · 버리기 · 완료 · 삭제 · 알림 연동 · 재시작</td><td>13</td></tr>
+    <tr><td>서비스 계약</td><td>백엔드 요청/응답 · 오류 매핑</td><td>9</td></tr>
+    <tr><td>백엔드</td><td>HTTP · 스키마 · 모델 분기 · 타임아웃 · 클램프</td><td>15</td></tr>
+  </table>
+
+  <h3>왜 이것들을 순수 함수로 뺐나</h3>
+  <p>전부 <strong>"화면에서는 맞아 보이는데 틀린"</strong> 부류다.
+  지난 마감이 하나 아래로 밀려 있어도, 알림이 한 시간 늦어도, 지갑 카드가 2pt 더 겹쳐도 눈으로는 모른다.</p>
+
+  <p>예를 들어 지갑 스택의 배치는 <code>WalletStackLayout</code> 순수 함수이고,
+  테스트가 <strong>마지막 카드가 잘리지 않는지</strong>까지 숫자로 확인한다.
+  뷰 안에 뒀으면 "아래가 조금 잘리네"를 매번 눈으로 잡아야 했을 것이다.</p>
+</section>
+
+<section>
+  <h2><span class="n">08</span>커밋 기록에는 사람만 남는다</h2>
+  <p class="say">AI 도구가 붙이는 공동 작성자 트레일러는 저자 정보를 흐리고 기여자 목록에 사람이 아닌 항목을 만든다.</p>
+
+  <table>
+    <tr><th>층</th><th>무엇</th><th>건너뛸 수 있나</th></tr>
+    <tr><td><code>.githooks/commit-msg</code></td><td>조용히 지우고 통과시킨다</td><td><code>--no-verify</code> 로 가능</td></tr>
+    <tr><td><code>.github/workflows/commit-hygiene.yml</code></td><td>남아 있으면 CI 실패</td><td><span class="ok">불가</span></td></tr>
+  </table>
+
+  <p>훅은 편의이고 CI 가 강제다. 이 구조는 하네스 전체에 반복된다 —
+  <strong>훅은 건너뛸 수 있으므로 최종 강제는 언제나 CI 가 한다.</strong></p>
+</section>
+
+<section>
+  <h2><span class="n">09</span>다음</h2>
+
+  <table>
+    <tr><th>#</th><th>할 일</th><th>막고 있는 것</th></tr>
+    <tr><td>1</td><td>제품명 · Bundle ID · App Group 확정 (D-1)</td><td>—</td></tr>
+    <tr><td>2</td><td>실기기 공유 E2E (S-1.3)</td><td>D-1</td></tr>
+    <tr><td>3</td><td>실제 OpenAI 키로 E2E 1회 (B-2)</td><td>사용자가 키를 넣어야 한다</td></tr>
+    <tr><td>4</td><td>익명화 평가셋 50건 (S-2.3)</td><td>—</td></tr>
+    <tr><td>5</td><td>접근성 3건 (S-9.1~3)</td><td>R2 차단</td></tr>
+    <tr><td>6</td><td>백엔드 인증 · rate limit</td><td>배포 차단</td></tr>
+  </table>
+
+  <div class="note warn">
+    <p><strong>B-2 를 특별히 적는 이유.</strong> 백엔드 테스트 15건은 전부 <code>fetchImpl</code> 을
+    대역으로 바꿔 돈다. <strong>실제 OpenAI 응답의 모양을 확인한 적이 없다.</strong>
+    <code>parseTaskDraftResponse</code> 가 <code>output[].content[].type === "output_text"</code> 를
+    가정하는데, 그 가정이 맞는지는 한 번 불러 봐야 안다.</p>
+  </div>
+</section>
+
+<footer>
+  <p>CaptureTask 개발 하네스 · 2026-08-01<br>
+  숫자의 원본은 <code>docs/sprint-status.yaml</code> · 규칙 목록은 <code>./scripts/check-project-rules.sh --list</code></p>
+</footer>
+
+</div>
+</body>
+</html>

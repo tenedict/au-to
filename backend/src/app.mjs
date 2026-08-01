@@ -92,10 +92,18 @@ function mapError(error) {
   if (error instanceof ClientInputError) {
     return { status: 400, code: "invalid_request", message: error.message };
   }
+  // 업스트림 상태를 그대로 흘리지 않는다. 앱은 "다시 시도해도 되는가" 만 알면 되고,
+  // OpenAI 의 401 을 그대로 내보내면 앱이 사용자 잘못으로 오해하게 만든다.
   const upstreamStatus = Number.isInteger(error?.status) ? error.status : 502;
+  if (upstreamStatus === 429) {
+    return { status: 429, code: "rate_limited", message: error.message };
+  }
+  if (upstreamStatus === 504) {
+    return { status: 504, code: "upstream_timeout", message: error.message };
+  }
   return {
-    status: upstreamStatus === 429 ? 429 : 502,
-    code: upstreamStatus === 429 ? "rate_limited" : "analysis_failed",
+    status: 502,
+    code: "analysis_failed",
     message: error?.message ?? "분석하지 못했어요.",
   };
 }

@@ -1,0 +1,83 @@
+name: CI
+
+# Git Hook 은 --no-verify 로 건너뛸 수 있다. 최종 강제는 여기서 한다.
+#
+# 비용 설계 — macOS 러너는 private 저장소에서 분당 10배로 계산된다.
+#   · 프로젝트 규칙 · 백엔드 테스트   ubuntu (1배) · 모든 푸시·PR
+#   · iOS 빌드 · 테스트              macOS (10배) · PR 과 수동 실행에서만
+# 전체 검증이 필요하면 Actions 탭에서 "Run workflow" 로 직접 돌린다.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rules:
+    name: 프로젝트 규칙
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 규칙 검사
+        run: ./scripts/check-project-rules.sh
+
+  backend:
+    name: 백엔드 테스트
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: 테스트
+        working-directory: backend
+        # 외부 패키지가 없다. npm ci 는 lockfile 이 없어 실패하므로 부르지 않는다.
+        run: npm test
+
+  ios:
+    name: iOS 빌드 · 테스트
+    # 푸시마다 macOS 를 돌리면 분이 금방 빈다. PR 과 수동 실행에서만.
+    if: github.event_name != 'push'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode 선택
+        # 경로를 하드코딩하면 러너 이미지가 바뀌는 순간 조용히 깨진다.
+        # 설치된 것 중 가장 높은 버전을 고르고, 없으면 **여기서 멈춘다.**
+        run: |
+          set -euo pipefail
+          echo "설치된 Xcode:"; ls -d /Applications/Xcode*.app 2>/dev/null || true
+
+          dev=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1 || true)
+          if [ -z "$dev" ]; then
+            echo "::error::Xcode 가 설치돼 있지 않습니다."
+            exit 1
+          fi
+          sudo xcode-select -s "$dev"
+          xcodebuild -version
+
+      - name: 도구 설치
+        run: brew install xcodegen xcbeautify
+
+      - name: 시뮬레이터 확인
+        run: |
+          xcrun simctl list devices available | grep iPhone | head -5
+          echo "CAPTURETASK_SIMULATOR_ID=$(./scripts/select-simulator.sh)" >> "$GITHUB_ENV"
+
+      - name: 검증
+        run: ./scripts/verify.sh
+
+      - name: 실패 시 로그
+        if: failure()
+        run: |
+          echo "::group::최근 빌드 로그"
+          find build -name '*.xcresult' -maxdepth 3 2>/dev/null | head -3
+          echo "::endgroup::"

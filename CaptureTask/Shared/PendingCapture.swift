@@ -4,6 +4,7 @@ struct PendingCapture: Codable, Identifiable, Sendable {
     let id: UUID
     let createdAt: Date
     let imageFilename: String
+    /// OCR 결과. 한 번 읽은 스크린샷을 다시 읽지 않기 위해 캡처에 붙여 둔다.
     var recognizedText: String?
 
     init(
@@ -19,8 +20,38 @@ struct PendingCapture: Codable, Identifiable, Sendable {
     }
 }
 
+/// Share Extension 과 메인 앱이 공유하는 파일 상자.
+///
+/// 두 프로세스는 메모리를 공유하지 않는다. 담는 쪽(Extension)과 꺼내는 쪽(앱)이
+/// 만나는 자리는 App Group 컨테이너의 파일뿐이다.
+///
+/// **삭제는 사용자가 확인한 뒤에만 한다** (AGENTS 규칙 7). 분석이 실패했다고 지우면
+/// 사용자는 공유한 스크린샷을 영영 잃는다. 지우는 지점은 `complete(_:)` 하나뿐이고,
+/// 프로젝트 규칙 3 이 저장소 밖에서의 호출을 막는다.
 enum SharedInbox {
+    /// `Config/*.entitlements` 두 파일과 반드시 같은 값이어야 한다.
+    /// 프로젝트 규칙 1 이 세 곳을 대조한다.
     static let appGroupIdentifier = "group.com.example.capturetask"
+
+    /// 상자를 쓸 수 있는지. 화면이 "왜 안 되는지" 말할 수 있어야 한다.
+    enum Availability: Equatable, Sendable {
+        case ready
+        case appGroupUnavailable
+
+        var explanation: String? {
+            switch self {
+            case .ready:
+                return nil
+            case .appGroupUnavailable:
+                return "공유 상자를 열지 못했어요. App Group(\(SharedInbox.appGroupIdentifier)) "
+                    + "서명 설정을 확인해 주세요. 텍스트 붙여넣기는 그대로 쓸 수 있어요."
+            }
+        }
+    }
+
+    static var availability: Availability {
+        (try? inboxDirectory()) == nil ? .appGroupUnavailable : .ready
+    }
 
     static func enqueue(imageData: Data) throws -> PendingCapture {
         let captureID = UUID()
@@ -38,8 +69,7 @@ enum SharedInbox {
             at: directory,
             includingPropertiesForKeys: nil
         )
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        let decoder = makeDecoder()
 
         return urls
             .filter { $0.pathExtension == "json" }
@@ -51,6 +81,17 @@ enum SharedInbox {
         try Data(contentsOf: try inboxDirectory().appendingPathComponent(capture.imageFilename))
     }
 
+    /// OCR 결과를 캡처에 붙여 둔다.
+    ///
+    /// 초안 만들기가 네트워크에서 실패해도 다음 시도에서 인식을 다시 하지 않게 한다.
+    /// OCR 은 수백 밀리초씩 걸리고, 결과는 같은 이미지에 대해 언제나 같다.
+    static func cacheRecognizedText(_ text: String, for capture: PendingCapture) throws {
+        var updated = capture
+        updated.recognizedText = text
+        try write(updated, to: try inboxDirectory())
+    }
+
+    /// 사용자가 확인(저장 또는 버리기)을 마친 캡처를 상자에서 치운다.
     static func complete(_ capture: PendingCapture) throws {
         let directory = try inboxDirectory()
         let imageURL = directory.appendingPathComponent(capture.imageFilename)
@@ -63,14 +104,33 @@ enum SharedInbox {
         }
     }
 
+    static func complete(captureID: UUID) throws {
+        guard let capture = try pendingCaptures().first(where: { $0.id == captureID }) else {
+            return
+        }
+        try complete(capture)
+    }
+
     private static func write(_ capture: PendingCapture, to directory: URL) throws {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        let data = try encoder.encode(capture)
+        let data = try makeEncoder().encode(capture)
         try data.write(
             to: directory.appendingPathComponent("\(capture.id.uuidString).json"),
             options: .atomic
         )
+    }
+
+    // Extension 타깃은 Store/ 를 포함하지 않으므로 인코더를 여기에 따로 둔다.
+    // 두 곳의 날짜 전략이 갈라지면 Extension 이 쓴 파일을 앱이 못 연다.
+    private static func makeEncoder() -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
+    }
+
+    private static func makeDecoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
     }
 
     private static func inboxDirectory() throws -> URL {
@@ -92,7 +152,6 @@ enum SharedInboxError: LocalizedError {
     case appGroupUnavailable
 
     var errorDescription: String? {
-        "App Group을 사용할 수 없어요. 서명 설정과 그룹 식별자를 확인해 주세요."
+        SharedInbox.Availability.appGroupUnavailable.explanation
     }
 }
-

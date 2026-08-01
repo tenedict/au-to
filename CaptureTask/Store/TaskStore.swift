@@ -1,123 +1,243 @@
 import Combine
 import Foundation
 
+/// 상태 · 영속화 · 유스케이스 조율.
+///
+/// 화면은 여기만 부른다. 모델은 여기를 모른다.
+/// 캡처를 상자에서 지우는 지점(`SharedInbox.complete`)도 여기 하나뿐이다 — 확인이 끝난 뒤에만.
 @MainActor
 final class TaskStore: ObservableObject {
     @Published private(set) var tasks: [AssistantTask] = []
-    @Published var pendingDrafts: [TaskDraft] = []
+    @Published private(set) var pendingDrafts: [TaskDraft] = []
     @Published var lastErrorMessage: String?
-    @Published var isImporting = false
+    @Published private(set) var isImporting = false
+    @Published private(set) var inboxAvailability: SharedInbox.Availability = .ready
+    @Published private(set) var reminderAuthorization: ReminderAuthorizationState = .notDetermined
 
     private let ocrService: any OCRService
     private let understandingService: any ContextUnderstandingService
+    private let reminderScheduler: any TaskReminderScheduling
+    private let storage: TaskStorage?
+    private let now: () -> Date
 
     init(
         ocrService: any OCRService = VisionOCRService(),
-        understandingService: any ContextUnderstandingService = BackendContextUnderstandingService()
+        understandingService: any ContextUnderstandingService = ContextUnderstanding.makeDefault(),
+        reminderScheduler: any TaskReminderScheduling = LocalNotificationService(),
+        storage: TaskStorage? = nil,
+        now: @escaping () -> Date = { .now }
     ) {
         self.ocrService = ocrService
         self.understandingService = understandingService
-        load()
+        self.reminderScheduler = reminderScheduler
+        self.now = now
+
+        if let storage {
+            self.storage = storage
+        } else {
+            // 저장 위치를 못 잡으면 그 사실을 화면에 말한다. 조용히 메모리 전용으로
+            // 돌아가면 사용자는 앱을 껐다 켠 뒤에야 잃은 걸 안다.
+            do {
+                self.storage = try TaskStorage.makeDefault()
+            } catch {
+                self.storage = nil
+                self.lastErrorMessage = error.localizedDescription
+            }
+        }
+        loadFromDisk()
     }
+
+    // MARK: - 시작과 재진입
+
+    /// 앱이 켜지거나 다시 앞으로 나올 때마다 부른다.
+    ///
+    /// 공유 시트로 담는 동안 앱은 뒤에 있었을 수 있다. 켜질 때 한 번만 훑으면
+    /// 담고 곧바로 돌아온 사용자는 아무것도 보지 못한다.
+    func refresh() async {
+        inboxAvailability = SharedInbox.availability
+        reminderAuthorization = await reminderScheduler.authorizationState()
+        await importPendingCaptures()
+        // 알림이 없는 사이 마감이 지났거나 시스템이 예약을 잃었을 수 있다.
+        await reminderScheduler.syncAll(tasks, now: now())
+    }
+
+    // MARK: - 수집
 
     func importPendingCaptures() async {
         guard !isImporting else { return }
         isImporting = true
         defer { isImporting = false }
 
+        let captures: [PendingCapture]
         do {
-            for capture in try SharedInbox.pendingCaptures() {
-                if tasks.contains(where: { $0.sourceCaptureID == capture.id }) {
-                    try? SharedInbox.complete(capture)
-                    continue
-                }
-                let imageData = try SharedInbox.imageData(for: capture)
-                let text = try await ocrService.recognizeText(in: imageData)
-                let draft = try await understandingService.makeDraft(
-                    from: text,
-                    captureID: capture.id
-                )
-                if !pendingDrafts.contains(where: { $0.sourceCaptureID == capture.id }) {
-                    pendingDrafts.append(draft)
-                }
-            }
+            captures = try SharedInbox.pendingCaptures()
         } catch SharedInboxError.appGroupUnavailable {
-#if !targetEnvironment(simulator)
-            lastErrorMessage = SharedInboxError.appGroupUnavailable.localizedDescription
-#endif
+            inboxAvailability = .appGroupUnavailable
+            return
         } catch {
+            lastErrorMessage = error.localizedDescription
+            return
+        }
+
+        for capture in captures {
+            // 이미 할 일이 된 캡처는 상자에서 치운다. 확인이 끝난 것이므로 안전하다.
+            if tasks.contains(where: { $0.sourceCaptureID == capture.id }) {
+                try? SharedInbox.complete(capture)
+                continue
+            }
+            // 확인을 기다리는 초안이 이미 있으면 다시 분석하지 않는다.
+            // 이 검사가 없으면 앱을 열 때마다 같은 캡처로 OpenAI 를 다시 부른다.
+            if pendingDrafts.contains(where: { $0.sourceCaptureID == capture.id }) {
+                continue
+            }
+            await analyze(capture)
+        }
+    }
+
+    private func analyze(_ capture: PendingCapture) async {
+        do {
+            let text: String
+            if let cached = capture.recognizedText, !cached.isEmpty {
+                text = cached
+            } else {
+                text = try await ocrService.recognizeText(in: try SharedInbox.imageData(for: capture))
+                // 분석이 실패해도 인식은 재사용한다.
+                try? SharedInbox.cacheRecognizedText(text, for: capture)
+            }
+
+            let draft = try await understandingService.makeDraft(from: text, captureID: capture.id)
+            appendDraft(draft)
+        } catch {
+            // 캡처는 상자에 그대로 둔다. 다음에 다시 시도할 수 있어야 한다.
             lastErrorMessage = error.localizedDescription
         }
     }
 
     func analyzeManualText(_ text: String) async {
         do {
-            pendingDrafts.append(
-                try await understandingService.makeDraft(from: text, captureID: nil)
-            )
+            appendDraft(try await understandingService.makeDraft(from: text, captureID: nil))
         } catch {
             lastErrorMessage = error.localizedDescription
         }
     }
 
-    func save(_ task: AssistantTask, sourceCaptureID: UUID?) {
-        tasks.insert(task, at: 0)
+    private func appendDraft(_ draft: TaskDraft) {
+        pendingDrafts.append(draft)
+        persistDrafts()
+    }
+
+    // MARK: - 확인
+
+    /// 사용자가 확인한 할 일을 저장한다.
+    ///
+    /// 저장 → 알림 예약 → 캡처 치우기 순서다. 캡처를 먼저 치우면 저장이 실패했을 때
+    /// 원본이 사라진 채 할 일도 없는 상태가 된다.
+    func save(_ task: AssistantTask) async {
+        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+            tasks[index] = task
+        } else {
+            tasks.insert(task, at: 0)
+        }
         pendingDrafts.removeAll { $0.id == task.id }
-        save()
+        persistTasks()
+        persistDrafts()
 
-        guard let sourceCaptureID,
-              let capture = try? SharedInbox.pendingCaptures().first(
-                where: { $0.id == sourceCaptureID }
-              ) else {
-            return
+        if task.wantsReminders, task.dueDate != nil {
+            _ = await reminderScheduler.requestAuthorizationIfNeeded()
+            reminderAuthorization = await reminderScheduler.authorizationState()
         }
-        do {
-            try SharedInbox.complete(capture)
-        } catch {
-            lastErrorMessage = error.localizedDescription
-        }
+        await reminderScheduler.reschedule(task, now: now())
+
+        completeCapture(task.sourceCaptureID)
     }
+
+    /// 초안을 버린다. 할 일로 만들지 않고 캡처도 치운다.
+    func discard(_ draft: TaskDraft) {
+        pendingDrafts.removeAll { $0.id == draft.id }
+        persistDrafts()
+        completeCapture(draft.sourceCaptureID)
+    }
+
+    // MARK: - 목록 조작
 
     func updateCalendarIdentifier(_ identifier: String, for taskID: UUID) {
         guard let index = tasks.firstIndex(where: { $0.id == taskID }) else { return }
         tasks[index].calendarEventIdentifier = identifier
-        save()
+        persistTasks()
     }
 
-    func toggleCompletion(for taskID: UUID) {
+    func toggleCompletion(for taskID: UUID) async {
         guard let index = tasks.firstIndex(where: { $0.id == taskID }) else { return }
-        tasks[index].state = tasks[index].state == .pending ? .completed : .pending
-        save()
+        tasks[index].state = tasks[index].isCompleted ? .pending : .completed
+        persistTasks()
+        // 끝낸 일로 다시 울리지 않게, 되돌리면 다시 울리게.
+        await reminderScheduler.reschedule(tasks[index], now: now())
     }
 
-    func delete(at offsets: IndexSet) {
-        tasks.remove(atOffsets: offsets)
-        save()
-    }
+    func delete(_ taskID: UUID) async {
+        guard let index = tasks.firstIndex(where: { $0.id == taskID }) else { return }
+        let removed = tasks.remove(at: index)
+        persistTasks()
+        await reminderScheduler.cancel(taskID: removed.id)
 
-    private var persistenceURL: URL? {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-            .first?
-            .appendingPathComponent("CaptureTask/tasks.json")
-    }
-
-    private func load() {
-        guard let url = persistenceURL,
-              let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode([AssistantTask].self, from: data) else {
-            return
+        if let eventIdentifier = removed.calendarEventIdentifier {
+            await CalendarService().removeFromCalendar(eventIdentifier: eventIdentifier)
         }
-        tasks = decoded
     }
 
-    private func save() {
-        guard let url = persistenceURL else { return }
+    // MARK: - 파생 값
+    //
+    // 저장하지 않고 매번 계산한다. 저장하면 할 일이 바뀔 때마다 두 곳을 맞춰야 하고,
+    // 반드시 한 곳이 뒤처진다.
+
+    func dueGroups(asOf reference: Date? = nil) -> [DueGroup] {
+        DueGrouping.groups(for: tasks, now: reference ?? now())
+    }
+
+    func tasksByDay() -> [Date: [AssistantTask]] {
+        MonthGridBuilder.tasksByDay(tasks)
+    }
+
+    // MARK: - 영속화
+
+    private func loadFromDisk() {
+        guard let storage else { return }
         do {
-            try FileManager.default.createDirectory(
-                at: url.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            try JSONEncoder().encode(tasks).write(to: url, options: .atomic)
+            tasks = try storage.loadTasks()
+        } catch {
+            lastErrorMessage = error.localizedDescription
+        }
+        do {
+            pendingDrafts = try storage.loadDrafts()
+        } catch {
+            lastErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func persistTasks() {
+        guard let storage else { return }
+        do {
+            try storage.saveTasks(tasks)
+        } catch {
+            lastErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func persistDrafts() {
+        guard let storage else { return }
+        do {
+            try storage.saveDrafts(pendingDrafts)
+        } catch {
+            lastErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func completeCapture(_ captureID: UUID?) {
+        guard let captureID else { return }
+        do {
+            try SharedInbox.complete(captureID: captureID)
+        } catch SharedInboxError.appGroupUnavailable {
+            inboxAvailability = .appGroupUnavailable
         } catch {
             lastErrorMessage = error.localizedDescription
         }

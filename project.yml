@@ -1,3 +1,8 @@
+# XcodeGen 정의 — `.xcodeproj` 는 생성물이다. 프로젝트 설정은 **여기서만** 고친다.
+#
+# entitlements 는 `properties` 에 적는다. `path` 만 적으면 XcodeGen 이 그 파일을
+# 빈 <dict/> 로 덮어쓴다 — App Group 을 파일에 직접 써 넣으면 다음 `xcodegen generate`
+# 에서 조용히 사라지고, 공유 시트로 담은 스크린샷이 앱에 도착하지 않는다.
 name: CaptureTask
 options:
   bundleIdPrefix: com.example
@@ -21,6 +26,11 @@ targets:
       properties:
         CFBundleDisplayName: CaptureTask
         UILaunchScreen: {}
+        # 한국어 전용 앱이다. 이 선언이 없으면 영어 기기에서 Locale.current 가 en_US 가 되고,
+        # 화면의 날짜가 "Jul 30, 2026" 으로 나온다 — 나머지 문구는 전부 한국어인 채로.
+        # 백엔드로 보내는 locale 값도 함께 틀어져 날짜 해석이 어긋난다.
+        CFBundleDevelopmentRegion: ko
+        CFBundleLocalizations: [ko]
         CAPTURETASK_API_BASE_URL: "$(CAPTURETASK_API_BASE_URL)"
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
@@ -28,6 +38,10 @@ targets:
         NSCalendarsWriteOnlyAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 쓰기 접근이 필요해요."
     entitlements:
       path: Config/CaptureTask.entitlements
+      properties:
+        # SharedInbox.appGroupIdentifier 와 반드시 같아야 한다 (프로젝트 규칙 1 이 대조한다).
+        com.apple.security.application-groups:
+          - group.com.example.capturetask
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask
@@ -53,6 +67,10 @@ targets:
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).ShareViewController"
     entitlements:
       path: Config/CaptureTaskShare.entitlements
+      properties:
+        # 한쪽만 바꾸면 담기는 성공하고 도착이 실패한다.
+        com.apple.security.application-groups:
+          - group.com.example.capturetask
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask.share

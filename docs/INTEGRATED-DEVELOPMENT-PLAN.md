@@ -725,15 +725,23 @@ python3 scripts/build_development_plan.py
 이 통합 기획서는 아래 문서를 한 번에 읽을 수 있게 정리한 배포용 산출물이다. 세부 규칙을 변경할 때는
 원본 문서와 이 문서를 같은 커밋에서 갱신한다.
 
+- `docs/README.md`: 문서 인덱스와 BMAD 워크플로 대응
 - `docs/project-context.md`: 현재 제품 상태와 다음 작업
 - `docs/00-PRODUCT-BRIEF.md`: 문제, 사용자, 가치
-- `docs/01-PRD.md`: 요구사항과 성공 기준
-- `docs/02-SPEC.md`: 데이터 계약과 규칙
-- `docs/03-ARCHITECTURE-SPINE.md`: 경계와 의존성
-- `docs/04-EPICS-STORIES.md`: 에픽과 스토리
-- `docs/05-TEST-STRATEGY.md`: 테스트와 릴리스 게이트
-- `docs/06-SPRINT-READINESS.md`: 준비 상태와 미결정
-- `docs/07-ENGINEERING-PLAYBOOK.md`: 구현, 검증, Git 규율
+- `docs/01-PRD.md`: 제품 원칙, 확정 결정, MVP 범위, 성공 기준
+- `docs/02-SRS-기능요구사항.md`: FR과 불변 조건
+- `docs/03-SRS-비기능요구사항.md`: 성능, 프라이버시, 접근성, 유지보수
+- `docs/04-SRS-기능명세서.md`: 우선순위와 수용 기준
+- `docs/05-IA.md` · `docs/06-화면설계서.md` · `docs/07-유저플로우.md`: 정보 구조와 화면
+- `docs/08-와이어프레임.md`: 화면과 코드의 대응표
+- `docs/09-SPEC.md`: 데이터 계약과 규칙
+- `docs/10-ARCHITECTURE-SPINE.md`: 경계와 의존성, ADR
+- `docs/11-EPICS-STORIES.md`: 에픽과 스토리
+- `docs/12-IMPLEMENTATION-READINESS.md`: 준비 상태와 미결정
+- `docs/13-TEST-STRATEGY.md`: 테스트와 릴리스 게이트
+- `docs/14-SPRINT.md` · `docs/sprint-status.yaml`: 스프린트 계획과 진행 숫자
+- `docs/15-RETROSPECTIVE.md`: 회고와 규칙으로 승격한 것
+- `docs/16-ENGINEERING-PLAYBOOK.md`: 구현, 검증, Git 규율
 
 외부 기술 기준은 Apple Vision, EventKit, App Extension/App Group 문서와 OpenAI Responses API,
 Structured Outputs 공식 문서를 따른다. 가격, 모델 가용성, 개인정보 조건처럼 바뀔 수 있는 정보는

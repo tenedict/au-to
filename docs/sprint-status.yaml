@@ -1,0 +1,197 @@
+# CaptureTask — Sprint Status
+# BMAD Phase 4 · bmad-sprint-planning 산출물
+# 사람이 읽는 쪽: 14-SPRINT.md
+#
+# 이 파일이 진행 숫자의 원본이다. 문서에 손으로 적은 숫자와 어긋나면 이쪽이 맞다.
+
+project: capturetask
+platform: ios
+scale_level: 2 # 단일 플랫폼 · 단일 팀 · 작은 백엔드 하나
+updated: 2026-08-01
+
+release:
+  current: R0
+  next: R1
+  gates:
+    R0: PASS
+    R1: CONCERNS # 12-IMPLEMENTATION-READINESS.md §3
+    R2: FAIL # 접근성 3건 · 백엔드 인증 · 평가셋
+
+verification:
+  command: ./scripts/verify.sh
+  ios_tests_total: 69
+  ios_tests_passed: 69
+  backend_tests_total: 15
+  backend_tests_passed: 15
+  project_rules: 11
+  build_warnings: 0
+  simulator_checked: [due_stack, month_calendar, review_sheet, manual_text]
+  not_verified:
+    - id: M-1
+      what: 공유 시트로 담기 → 앱 도착
+      why: App Group 프로비저닝이 필요해 실기기에서만 확인 가능
+    - id: B-2
+      what: 실제 OpenAI 키로 백엔드 E2E
+      why: 사용자가 키를 넣어야 함. 테스트 15건은 전부 대역으로 돈다
+
+current_sprint:
+  id: sprint-1
+  name: 하네스 이식과 MVP 완성
+  goal: 검증 하네스를 세우고, 그 하네스로 죽어 있던 경로를 찾아 고친다
+  status: completed
+  completed_at: 2026-08-01
+  defects_found_by_harness: 10
+  defects_that_passed_build_and_tests: 10
+
+epics:
+  - id: E1
+    name: 캡처 수집
+    stories: 6
+    done: 5
+    status: in_progress
+    blocked_by: [D-1]
+  - id: E2
+    name: 텍스트와 문맥
+    stories: 8
+    done: 7
+    status: in_progress
+  - id: E3
+    name: 확인
+    stories: 9
+    done: 9
+    status: completed
+  - id: E4
+    name: 할 일 목록
+    stories: 10
+    done: 8
+    status: in_progress
+    blocked_by: [D-5]
+  - id: E5
+    name: 마감 알림
+    stories: 9
+    done: 9
+    status: completed
+  - id: E6
+    name: 캘린더
+    stories: 6
+    done: 4
+    status: in_progress
+    blocked_by: [D-3]
+  - id: E7
+    name: 캘린더 뷰
+    stories: 5
+    done: 5
+    status: completed
+  - id: E8
+    name: 신뢰 가능한 기반
+    stories: 9
+    done: 9
+    status: completed
+  - id: E9
+    name: 접근성 마감 품질
+    stories: 4
+    done: 0
+    status: pending
+
+progress:
+  stories_total: 66
+  stories_done: 56
+  percent: 85
+
+completed_stories:
+  - id: S-8.1
+    name: verify.sh — 사람·AI·훅·CI 공용 검증
+    completed_at: 2026-08-01
+  - id: S-8.2
+    name: 프로젝트 규칙 검사기
+    completed_at: 2026-08-01
+    rules: 11
+    rules_verified_by_deliberate_violation: [1, 3, 4, 5, 10]
+  - id: S-4.3
+    name: 지갑 스타일 겹침 배치
+    plan: docs/plans/S-4.3-지갑스택홈.md
+    completed_at: 2026-08-01
+    tests_added: 7
+  - id: S-5.1
+    name: 마감 알림 시각 계산과 예약
+    plan: docs/plans/S-5.1-마감알림.md
+    completed_at: 2026-08-01
+    tests_added: 14
+  - id: S-7.1
+    name: 이번 달 캘린더 뷰
+    completed_at: 2026-08-01
+    tests_added: 9
+  - id: S-2.7
+    name: 실재하는 기본 모델과 모델군별 파라미터 분기
+    completed_at: 2026-08-01
+    note: 기존 기본값 gpt-5.6-luna 는 존재하지 않는 이름이었다
+
+next_sprint:
+  id: sprint-2
+  name: 실기기 수직 절단
+  goal: 실제 iPhone 에서 공유 시트부터 알림까지 한 번 통과시킨다
+  status: not_started
+  estimate_days: 2
+  entry_criteria:
+    - id: D-1
+      question: 제품명 · Bundle ID · App Group 확정
+      status: open
+      blocks: [S-1.3]
+  planned_stories: [S-1.3, B-2, M-4]
+
+open_decisions:
+  - id: D-1
+    question: 제품명과 bundle identifier
+    status: open
+    blocks: [S-1.3]
+  - id: D-2
+    question: 원본 스크린샷 기본 보존 기간
+    status: open
+    blocks: [NFR-PRIV-06]
+  - id: D-3
+    question: 앱에서 마감을 고치면 캘린더 일정도 고칠지
+    status: open
+    blocks: [S-6.5]
+  - id: D-4
+    question: 서버에 이미지까지 보낼 조건
+    status: open
+    blocks: []
+  - id: D-5
+    question: 무엇을 중복으로 볼지 (제목 / 마감 / 원문)
+    status: open
+    blocks: [S-4.9]
+
+release_blockers:
+  R1:
+    - id: D-1
+      title: Bundle ID · App Group 프로비저닝 확정
+    - id: S-1.3
+      title: 실기기 공유 E2E
+    - id: B-2
+      title: 실제 OpenAI 키로 백엔드 E2E 1회
+  R2:
+    - id: S-9.1
+      title: Dynamic Type .xxxLarge 레이아웃
+      requirement: NFR-A11Y-06
+    - id: S-9.2
+      title: 모션 줄이기 대응
+      requirement: NFR-A11Y-07
+    - id: S-9.3
+      title: 대비 높이기 대응
+      requirement: NFR-A11Y-08
+    - id: NFR-SEC-05
+      title: 백엔드 사용자 인증과 rate limit
+    - id: S-2.3
+      title: 익명화 평가셋 50건
+
+risk_automation:
+  total_risks: 23
+  p0_risks: 7
+  p0_automated: 7
+  p1_risks: 11
+  p1_automated: 8
+  p2_risks: 5
+  p2_automated: 0
+  overall: 0.65
+  target_r1: 0.80
+  target_r2: 0.90

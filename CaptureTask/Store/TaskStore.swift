@@ -14,22 +14,44 @@ final class TaskStore: ObservableObject {
     @Published private(set) var inboxAvailability: SharedInbox.Availability = .ready
     @Published private(set) var reminderAuthorization: ReminderAuthorizationState = .notDetermined
 
+    /// 지금 쓰는 분석 엔진. 바꾸면 곧바로 다음 분석부터 적용된다.
+    @Published var engine: AnalysisEngine {
+        didSet {
+            guard engine != oldValue else { return }
+            guard engine.isAvailable else {
+                engine = oldValue
+                return
+            }
+            understandingService = ContextUnderstanding.make(engine)
+            Self.persist(engine, to: defaults)
+        }
+    }
+
     private let ocrService: any OCRService
-    private let understandingService: any ContextUnderstandingService
+    private var understandingService: any ContextUnderstandingService
     private let reminderScheduler: any TaskReminderScheduling
     private let storage: TaskStorage?
+    private let defaults: UserDefaults
     private let now: () -> Date
+
+    private static let engineDefaultsKey = "CaptureTask.analysisEngine"
 
     init(
         ocrService: any OCRService = VisionOCRService(),
-        understandingService: any ContextUnderstandingService = ContextUnderstanding.makeDefault(),
+        understandingService: (any ContextUnderstandingService)? = nil,
         reminderScheduler: any TaskReminderScheduling = LocalNotificationService(),
         storage: TaskStorage? = nil,
+        defaults: UserDefaults = .standard,
         now: @escaping () -> Date = { .now }
     ) {
+        let resolved = ContextUnderstanding.defaultEngine(
+            stored: Self.storedEngine(in: defaults)
+        )
+        self.engine = resolved
         self.ocrService = ocrService
-        self.understandingService = understandingService
+        self.understandingService = understandingService ?? ContextUnderstanding.make(resolved)
         self.reminderScheduler = reminderScheduler
+        self.defaults = defaults
         self.now = now
 
         if let storage {
@@ -135,6 +157,37 @@ final class TaskStore: ObservableObject {
             appendDraft(draft)
         } catch {
             // 캡처는 상자에 그대로 둔다. 다음에 다시 시도할 수 있어야 한다.
+            lastErrorMessage = error.localizedDescription
+        }
+    }
+
+    /// 앱 안에서 고른 사진을 분석한다.
+    ///
+    /// 상자를 거치는 이유는 분석 도중 앱이 죽어도 원본이 남게 하기 위해서다.
+    /// 상자를 못 쓰면 메모리에서 바로 분석한다 — 사진을 고른 사용자를
+    /// App Group 설정 때문에 막아 세우지는 않는다. 대신 그 사실을 화면에 남긴다.
+    func importImages(_ images: [Data]) async {
+        guard !images.isEmpty, !isImporting else { return }
+        isImporting = true
+        defer { isImporting = false }
+
+        for data in images {
+            do {
+                await analyze(try SharedInbox.enqueue(imageData: data))
+            } catch SharedInboxError.appGroupUnavailable {
+                inboxAvailability = .appGroupUnavailable
+                await analyzeInMemory(data)
+            } catch {
+                lastErrorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func analyzeInMemory(_ imageData: Data) async {
+        do {
+            let text = try await ocrService.recognizeText(in: imageData)
+            appendDraft(try await understandingService.makeDraft(from: text, captureID: nil))
+        } catch {
             lastErrorMessage = error.localizedDescription
         }
     }
@@ -256,6 +309,17 @@ final class TaskStore: ObservableObject {
         } catch {
             lastErrorMessage = error.localizedDescription
         }
+    }
+
+    // MARK: - 엔진 기억
+
+    private static func storedEngine(in defaults: UserDefaults) -> AnalysisEngine? {
+        guard let raw = defaults.string(forKey: engineDefaultsKey) else { return nil }
+        return AnalysisEngine(rawValue: raw)
+    }
+
+    private static func persist(_ engine: AnalysisEngine, to defaults: UserDefaults) {
+        defaults.set(engine.rawValue, forKey: engineDefaultsKey)
     }
 
     private func completeCapture(_ captureID: UUID?) {

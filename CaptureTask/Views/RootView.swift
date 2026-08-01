@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftUI
 
 /// 탭 두 개와 확인 흐름을 잇는 자리.
@@ -11,6 +12,9 @@ struct RootView: View {
 
     @State private var reviewDraft: TaskDraft?
     @State private var showsManualCapture = false
+    @State private var showsSettings = false
+    @State private var pickedPhotos: [PhotosPickerItem] = []
+    @State private var isPickingPhotos = false
     /// 이번 실행에서 "나중에" 를 누른 초안. 자동으로 다시 띄우지 않는다.
     @State private var deferredDraftIDs: Set<UUID> = []
     @State private var selectedTab = Tab.initialFromEnvironment
@@ -38,6 +42,21 @@ struct RootView: View {
         }
     }
 
+    /// 시트 라우팅.
+    ///
+    /// DEBUG 빌드에서 `CAPTURETASK_SHEET=settings|text` 로 시작하자마자 그 시트를 연다.
+    /// 시뮬레이터는 메뉴를 눌러 열 수 없어서, 이게 없으면 설정 화면을 사람이
+    /// 손으로 눌러 보는 것 말고는 확인할 방법이 없다.
+    private func openSheetFromEnvironment() {
+        #if DEBUG
+        switch ProcessInfo.processInfo.environment["CAPTURETASK_SHEET"] {
+        case "settings": showsSettings = true
+        case "text": showsManualCapture = true
+        default: break
+        }
+        #endif
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
@@ -45,7 +64,9 @@ struct RootView: View {
                     store: store,
                     expandedTaskID: $expandedTaskID,
                     onReviewDrafts: presentNextDraft,
-                    onAddText: { showsManualCapture = true }
+                    onAddText: { showsManualCapture = true },
+                    onPickPhotos: { isPickingPhotos = true },
+                    onOpenSettings: { showsSettings = true }
                 )
             }
             .tabItem { Label("할 일", systemImage: "checklist") }
@@ -57,7 +78,10 @@ struct RootView: View {
             .tabItem { Label("캘린더", systemImage: "calendar") }
             .tag(Tab.calendar)
         }
-        .task { await store.refresh() }
+        .task {
+            await store.refresh()
+            openSheetFromEnvironment()
+        }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
@@ -91,6 +115,22 @@ struct RootView: View {
             selectedTab = .tasks
             expandedTaskID = taskID
             reminderTaps.requestedTaskID = nil
+        }
+        // 사진 고르기는 별도 프로세스(PHPicker)에서 돈다. 그래서 사진 접근 권한을
+        // 묻지 않는다 — 사용자가 고른 것만 앱에 건네진다.
+        .photosPicker(
+            isPresented: $isPickingPhotos,
+            selection: $pickedPhotos,
+            maxSelectionCount: 10,
+            matching: .images
+        )
+        .onChange(of: pickedPhotos) { _, items in
+            guard !items.isEmpty else { return }
+            pickedPhotos = []
+            Task { await importPicked(items) }
+        }
+        .sheet(isPresented: $showsSettings) {
+            SettingsSheet(store: store)
         }
         .sheet(isPresented: $showsManualCapture) {
             ManualCaptureSheet { text in
@@ -126,6 +166,24 @@ struct RootView: View {
         } message: {
             Text(store.lastErrorMessage ?? "")
         }
+    }
+
+    /// 고른 사진을 데이터로 바꿔 저장소에 넘긴다.
+    ///
+    /// 한 장이 실패해도 나머지는 진행한다 — 여러 장을 고른 사용자가
+    /// 한 장 때문에 전부 잃으면 안 된다.
+    private func importPicked(_ items: [PhotosPickerItem]) async {
+        var images: [Data] = []
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self) {
+                images.append(data)
+            }
+        }
+        guard !images.isEmpty else {
+            store.lastErrorMessage = "고른 사진을 읽지 못했어요."
+            return
+        }
+        await store.importImages(images)
     }
 
     /// 사용자가 직접 "확인할 할 일" 을 눌렀을 때는 미뤄 둔 것까지 다시 보여준다.

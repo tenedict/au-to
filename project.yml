@@ -62,7 +62,7 @@ targets:
         NSExtension:
           NSExtensionAttributes:
             NSExtensionActivationRule:
-              NSExtensionActivationSupportsImageWithMaxCount: 1
+              NSExtensionActivationSupportsImageWithMaxCount: 10
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).ShareViewController"
     entitlements:

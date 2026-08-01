@@ -31,7 +31,7 @@ from reportlab.platypus.tableofcontents import TableOfContents
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "docs" / "08-INTEGRATED-DEVELOPMENT-PLAN.md"
+SOURCE = ROOT / "docs" / "INTEGRATED-DEVELOPMENT-PLAN.md"
 HTML_OUTPUT = ROOT / "docs" / "CaptureTask-Development-Plan.html"
 PDF_OUTPUT = ROOT / "output" / "pdf" / "CaptureTask-Development-Plan.pdf"
 KOREAN_FONT = Path("/System/Library/Fonts/Supplemental/AppleGothic.ttf")

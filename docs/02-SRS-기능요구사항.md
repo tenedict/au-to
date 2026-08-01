@@ -119,11 +119,24 @@
 | FR-NOTI-07 | 삭제하면 알림도 취소된다 | ✅ | `testDeletingTaskCancelsItsReminders` |
 | FR-NOTI-08 | 권한이 거절돼 있으면 그 사실과 켜는 법을 보여준다 | ✅ | `ReminderAuthorizationState.explanation` |
 | FR-NOTI-09 | 앱이 앞으로 나올 때 전체 알림을 다시 맞춘다 | ✅ | `TaskStore.refresh` |
+| FR-NOTI-10 | 스크린샷을 담으면 곧바로 확인을 요청한다 | ✅ | `CaptureNotice.postCaptureTaken` |
+| FR-NOTI-11 | 확인 안 한 초안을 남기고 나가면 1시간 뒤 다시 알린다 | ✅ | `RootView` scenePhase |
+| FR-NOTI-12 | 앱이 앞에 있으면 확인 요청 배너를 띄우지 않는다 | ✅ | `ReminderTapRouter.willPresent` |
+| FR-NOTI-13 | 처리한 캡처의 알림은 알림 센터에서도 사라진다 | ✅ | `CaptureNotice.clear` |
+| FR-NOTI-14 | 저장 전에도 사용자가 알림을 직접 켤 수 있다 | ✅ | `TaskStore.enableReminders` |
 
 **INV-NOTI-1 · 알림은 로컬 알림이다.** 서버가 사용자의 할 일을 알지 못한다.
 
-**INV-NOTI-2 · 알림 시각 계산은 `ReminderSchedule` 순수 함수 하나뿐이고, 예약은 `LocalNotificationService` 하나뿐이다.**
-프로젝트 규칙 7이 화면에서의 직접 예약을 막는다.
+**INV-NOTI-2 · 알림 예약 지점은 두 곳뿐이다** — 마감은 `LocalNotificationService`,
+확인 요청은 `CaptureNotice`. 시각 계산은 `ReminderSchedule` 순수 함수 하나다.
+프로젝트 규칙 7이 그 밖에서의 직접 예약을 막는다.
+
+**INV-NOTI-3 · 두 알림의 식별자가 겹치면 안 된다.**
+앱은 식별자 문자열만 보고 둘을 가른다. 겹치면 "앞에 있을 때 확인 요청은 안 띄운다"는
+규칙이 마감 알림에도 적용돼 **앱을 켜 둔 사용자가 마감을 그대로 놓친다.**
+
+**INV-NOTI-4 · 담은 직후 알림은 하지 않은 일을 했다고 말하지 않는다.**
+그 시점에는 아직 아무것도 읽지 않았다. "할 일을 만들었어요" 가 아니라 "담았어요" 다.
 
 ---
 
@@ -184,10 +197,10 @@
 | 텍스트·문맥 | 8 | 8 | 0 |
 | 확인 | 9 | 9 | 0 |
 | 할 일 목록 | 10 | 8 | 2 |
-| 마감 알림 | 9 | 9 | 0 |
+| 마감 알림 | 15 | 15 | 0 |
 | 캘린더 | 6 | 4 | 1 (1건 실기기 대기) |
 | 캘린더 뷰 | 5 | 5 | 0 |
 | 저장·복구 | 5 | 5 | 0 |
-| **합계** | **58** | **53** | **3** |
+| **합계** | **64** | **59** | **3** |
 
-불변 조건 12건.
+불변 조건 14건.

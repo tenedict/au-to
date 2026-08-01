@@ -59,14 +59,30 @@ struct RootView: View {
         }
         .task { await store.refresh() }
         .onChange(of: scenePhase) { _, phase in
-            // 공유 시트로 담고 곧바로 앱으로 돌아오는 것이 이 제품의 기본 동선이다.
-            // 켜질 때 한 번만 훑으면 그 사용자는 아무것도 보지 못한다.
-            guard phase == .active else { return }
-            Task { await store.refresh() }
+            switch phase {
+            case .active:
+                // 공유 시트로 담고 곧바로 앱으로 돌아오는 것이 이 제품의 기본 동선이다.
+                // 켜질 때 한 번만 훑으면 그 사용자는 아무것도 보지 못한다.
+                Task { await store.refresh() }
+            case .background:
+                // 확인 안 한 초안을 남기고 나갔다. 나중에 한 번 더 알린다 —
+                // 담아 두기만 하고 확인하지 않으면 이 제품은 사진첩과 같아진다.
+                store.scheduleUnconfirmedDraftReminderIfNeeded()
+            default:
+                break
+            }
         }
         .onChange(of: store.pendingDrafts) { _, drafts in
             guard reviewDraft == nil else { return }
             reviewDraft = drafts.first { !deferredDraftIDs.contains($0.id) }
+        }
+        .onChange(of: reminderTaps.requestedCaptureReview) { _, requested in
+            guard requested else { return }
+            // 확인 요청 알림을 눌러 들어왔다. 할 일 탭으로 옮기고 미뤄 둔 초안까지
+            // 다시 보여준다 — 확인하러 온 사람에게 "나중에 확인" 상태를 남기면 안 된다.
+            selectedTab = .tasks
+            reminderTaps.requestedCaptureReview = false
+            deferredDraftIDs.removeAll()
         }
         .onChange(of: reminderTaps.requestedTaskID) { _, taskID in
             guard let taskID else { return }

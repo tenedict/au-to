@@ -51,7 +51,11 @@ final class ShareViewController: UIViewController {
                 }
 
                 do {
-                    _ = try SharedInbox.enqueue(imageData: data)
+                    let capture = try SharedInbox.enqueue(imageData: data)
+                    // 분석은 메인 앱에서만 돈다. 앱을 열지 않으면 아무 일도 일어나지 않으므로
+                    // 여기서 한 번 알린다. 로컬 알림 예약은 파일 쓰기 한 번 수준이라
+                    // Extension 을 위험하게 만들지 않는다 (프로젝트 규칙 3 참고).
+                    CaptureNotice.postCaptureTaken(captureID: capture.id)
                     self.statusLabel.text = "담았어요. CaptureTask에서 할 일을 확인해 주세요."
                     self.extensionContext?.completeRequest(returningItems: nil)
                 } catch {

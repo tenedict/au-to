@@ -75,7 +75,12 @@ OCR·LLM·EventKit·알림은 전부 메인 앱이 한다.
 긴 작업을 넣으면 중간에 죽고, 사용자는 담기가 실패한 줄도 모른다.
 
 **강제** — 프로젝트 규칙 3이 `CaptureTaskShare/` 와 `CaptureTask/Shared/` 에서
-`EventKit`·`Vision`·`UserNotifications`·`URLSession` 을 막는다.
+`EventKit`·`Vision`·`URLSession` 을 막는다.
+
+**예외 하나 — 로컬 알림.** 막는 기준은 "무엇을 import 했는가"가 아니라 **"얼마나 오래 걸리는가"** 다.
+네트워크·EventKit·Vision 은 수백 밀리초에서 수 초가 걸리지만 로컬 알림 예약은 파일 쓰기 한 번
+수준이다. 그리고 그 알림이 없으면 **담기만 하고 앱을 안 연 사용자에게 아무 일도 일어나지 않는다** —
+분석이 메인 앱에서만 돌기 때문이다. 그래서 `CaptureNotice` 하나만 허용하고 나머지는 그대로 막는다.
 
 ### ADR-3 · 문맥 분석기는 프로토콜 뒤에서 교체한다
 
@@ -154,6 +159,16 @@ strict 모드가 지원하지 않는 키워드는 모델/버전에 따라 400 �
 **대가** — 기기 여러 대에서 각각 울린다(현재는 기기 간 동기화가 없으니 문제되지 않는다).
 알림 예약 한도(64건)를 넘으면 먼 미래 알림이 잘린다 — 할 일이 22건을 넘으면 검토가 필요하다.
 
+**알림은 두 종류이고 소유자도 둘이다.**
+
+| | 목적 | 소유자 | 식별자 |
+| --- | --- | --- | --- |
+| 마감 알림 | 마감을 놓치지 않게 | `LocalNotificationService` | `<taskID>#<kind>` |
+| 확인 요청 | 담아 둔 것을 잊지 않게 | `CaptureNotice` | `capture#…` |
+
+`CaptureNotice` 가 `Shared/` 에 있는 이유는 Share Extension 도 써야 하기 때문이다.
+두 식별자가 겹치면 앱이 앞에 있을 때 마감 알림까지 조용히 사라진다 (계약 N-4.1).
+
 **설계** — 시각 계산(`ReminderSchedule`)과 예약(`LocalNotificationService`)을 나눈 이유는,
 계산을 서비스 안에 두면 검증하려고 실제 알림을 예약해야 하기 때문이다.
 그러면 아무도 검증하지 않게 되고, 사용자는 안 오는 알림을 기다린다.
@@ -197,7 +212,7 @@ CaptureTask/
   Store/        상태 · 영속화 · 유스케이스 조율
   Views/        SwiftUI
 CaptureTaskShare/  담기 전용
-CaptureTaskTests/  73건
+CaptureTaskTests/  79건
 backend/           Node 22 · 외부 패키지 0 · 15건
 scripts/           verify · 규칙 검사 · 시뮬레이터 선택
 ```

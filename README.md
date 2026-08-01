@@ -10,8 +10,8 @@
 
 | 항목 | 값 |
 | --- | --- |
-| 단계 | R0 PASS · MVP 기능 + 접근성 완성 · 실기기 확인 대기 |
-| iOS 테스트 | 90 / 90 |
+| 단계 | R0 PASS · **백엔드 배포됨** (Cloud Run 서울) · 실기기 확인 대기 |
+| iOS 테스트 | 93 / 93 |
 | 백엔드 테스트 | 15 / 15 |
 | 프로젝트 규칙 | 11건 |
 | 빌드 경고 | 0 |
@@ -50,6 +50,15 @@ npm start
 
 > 구조와 키를 넣는 곳은 [`backend/README.md`](backend/README.md)에 자세히 있습니다.
 
+### 배포 (Cloud Run · 서울)
+
+```bash
+./scripts/deploy-backend.sh
+```
+
+배포 뒤 **키 없는 요청이 401 인지 직접 확인**합니다. 비밀이 주입되지 않은 채 배포되면
+서버는 정상으로 보이지만 누구나 쓸 수 있는 상태라, 그 경우 스크립트가 실패로 끝냅니다.
+
 기본 주소는 `http://127.0.0.1:8787`, 기본 모델은 `gpt-4.1-mini` 입니다.
 추론 계열(`gpt-5*`, `o*`)을 넣으면 `reasoning`·`verbosity` 파라미터가 자동으로 함께 붙습니다.
 
@@ -61,10 +70,15 @@ curl http://127.0.0.1:8787/health
 ### 2. iOS 앱
 
 ```bash
-brew install xcodegen          # 최초 1회
-xcodegen generate              # .xcodeproj 는 생성물입니다 (커밋하지 않습니다)
+brew install xcodegen                                        # 최초 1회
+cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig   # 최초 1회
+xcodegen generate                                            # .xcodeproj 는 생성물입니다
 open CaptureTask.xcodeproj
 ```
+
+`Secrets.xcconfig` 는 백엔드 주소와 공유 비밀이 들어가는 파일이라 커밋되지 않습니다.
+기본값은 로컬 백엔드(`http://127.0.0.1:8787`)라 그대로 두고 시작해도 됩니다.
+`./scripts/verify.sh` 는 없으면 자동으로 만들어 줍니다.
 
 또는 명령줄에서:
 
@@ -151,8 +165,8 @@ python3 scripts/build_development_plan.py    # HTML · PDF 재생성
 | | 막고 있는 것 |
 | --- | --- |
 | 실기기 공유 시트 확인 | Bundle ID · App Group 프로비저닝 |
-| 실제 OpenAI 응답 확인 | `.env` 에 키를 넣으면 됩니다 |
+| `confidence` 가 눈금 역할 못 함 | 실제 호출에서 전부 0.9~1.0. 평가셋(S-2.3)이 먼저 |
 | 중복 감지 · 검색 | 정책 미결정 |
-| 백엔드 인증 · rate limit | 배포 전 필수 |
+| 온디바이스 LLM | 평가셋 없음 |
 
 자세한 판정은 [`docs/12-IMPLEMENTATION-READINESS.md`](docs/12-IMPLEMENTATION-READINESS.md).

@@ -220,6 +220,25 @@ grep -q "$model" backend/.env.example 2>/dev/null || \
   report warn "예제 환경파일의 모델이 기본값과 다름" "SPEC A-2" \
     "backend/.env.example 의 OPENAI_MODEL 을 $model 로 맞추세요."
 
+# ── 규칙 11 · 공유 비밀이 커밋되지 않았는가 ──────────────────
+# Config/Secrets.xcconfig 에는 배포 주소와 공유 비밀이 들어간다. 커밋되면
+# 저장소를 보는 누구나 우리 백엔드를 부를 수 있고, 되돌려도 히스토리에 남는다.
+if git ls-files --error-unmatch Config/Secrets.xcconfig >/dev/null 2>&1; then
+  report error "Secrets.xcconfig 가 추적되고 있음" "NFR-SEC-05" \
+    "git rm --cached Config/Secrets.xcconfig 로 빼세요. .gitignore 에 이미 있습니다."
+fi
+
+# 예제 파일에 실제 값이 들어간 채로 커밋되는 사고도 막는다.
+if [ -f Config/Secrets.xcconfig.example ]; then
+  hits=$(grep -nE '^[[:space:]]*CAPTURETASK_CLIENT_KEY[[:space:]]*=[[:space:]]*[^[:space:]]' \
+          Config/Secrets.xcconfig.example 2>/dev/null)
+  if [ -n "$hits" ]; then
+    report error "예제 파일에 실제 비밀" "NFR-SEC-05" \
+      "Config/Secrets.xcconfig.example 의 CAPTURETASK_CLIENT_KEY 는 비어 있어야 합니다."
+    echo "$hits" | sed 's/^/      /'
+  fi
+fi
+
 echo
 if [ $fail -eq 0 ]; then
   printf '%s✓%s 프로젝트 규칙 통과\n' "$GRN" "$OFF"

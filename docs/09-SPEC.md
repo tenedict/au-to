@@ -277,9 +277,66 @@ group.com.example.capturetask
 | 200 | — | 성공 |
 | 400 | `invalid_request` | 빈 원문, 해석 불가 JSON |
 | 413 | `payload_too_large` | 본문 128KB 초과 |
-| 429 | `rate_limited` | OpenAI 한도 |
+| 401 | `unauthorized` | 클라이언트 키 없음·틀림 |
+| 429 | `rate_limited` | OpenAI 한도 **또는** 우리 요청 한도 |
 | 502 | `analysis_failed` | OpenAI 오류·연결 실패·응답 검증 실패 |
 | 504 | `upstream_timeout` | OpenAI 응답 15초 초과 |
+
+### H-3 · 클라이언트 인증
+
+앱이 `X-CaptureTask-Key` 헤더에 공유 비밀을 실어 보낸다.
+
+| | |
+| --- | --- |
+| 헤더 | `X-CaptureTask-Key` |
+| 최소 길이 | 24자 |
+| 비교 | `timingSafeEqual` — 길이가 다르면 먼저 거른다 |
+| 없거나 틀림 | **401** `unauthorized` |
+| `/health` | 인증 밖. Cloud Run 상태 확인이 키를 모른다 |
+
+**H-3.1 · 루프백에 바인딩했을 때만 키 없이 돌 수 있다.**
+`HOST` 가 `127.0.0.1`·`::1`·`localhost` 가 아니면 키를 **반드시** 요구하고,
+없으면 서버가 시작을 거부한다. "로컬은 예외"라는 규칙이 그대로 배포로 따라가서 사고를 낸다.
+
+**H-3.2 · 이 비밀은 앱 번들을 뜯으면 나온다.** 그걸 알고 쓰는 방식이다.
+
+| 그래도 의미가 있는 이유 |
+| --- |
+| 새는 것이 OpenAI 키가 **아니라** 이 값이다 — 교체하면 끝난다 |
+| 새기 전까지 무작위 스캐너와 크롤러를 전부 막는다 |
+| 새더라도 요청 한도가 금액 피해를 제한한다 |
+
+진짜로 앱만 통과시키려면 App Attest 가 필요하다. MVP 범위 밖이다.
+
+**H-3.3 · 클라이언트 키에 `sk-` 로 시작하는 값을 넣을 수 없다.**
+OpenAI 키를 여기에 잘못 넣으면 백엔드를 둔 이유(ADR-5)가 통째로 무너진다.
+서버가 시작 시 거부한다.
+
+**H-3.4 · 실제 값은 커밋되지 않는다.**
+`Config/Secrets.xcconfig` 는 `.gitignore` 에 있고, 프로젝트 규칙 11 이
+추적 여부와 예제 파일의 값을 함께 검사한다.
+
+### H-4 · 요청 한도
+
+| | 기본값 | 뜻 |
+| --- | --- | --- |
+| IP 당 분당 | 10회 | 사람이 스크린샷을 담는 속도를 훨씬 넘는다 |
+| 인스턴스 당 하루 | 500회 | **금액 상한** |
+
+**H-4.1 · 클라이언트 식별은 `X-Forwarded-For` 의 맨 앞이다.**
+프록시 뒤에서는 socket 주소가 언제나 프록시다. 뒤쪽 항목을 쓰면 모든 사용자가
+한 사람으로 묶여, 한 명이 한도를 채우는 순간 전부 막힌다.
+
+**H-4.2 · 이 헤더는 위조할 수 있다.** 그래서 분당 한도는 방어의 한 겹일 뿐이고,
+하루 총량이 위조와 무관하게 마지막 선을 지킨다.
+
+**H-4.3 · 한도는 인스턴스마다 따로 센다 (메모리 기반).**
+실제 금액 상한은 `하루 한도 × 최대 인스턴스 수` 다. 배포 스크립트가
+`--max-instances` 를 고정하는 이유가 이것이다.
+
+**H-4.4 · 429 에는 `Retry-After` 를 함께 준다.**
+
+> **검증** — 백엔드 테스트 40건 (`auth.test.mjs` 10 · `rate-limit.test.mjs` 11 포함)
 
 **H-1 · 업스트림 상태를 그대로 흘리지 않는다.**
 앱은 "다시 시도해도 되는가"만 알면 된다. OpenAI 의 401 을 그대로 내보내면 앱이
@@ -321,6 +378,8 @@ iOS URLRequest.timeoutInterval   20초
 | S-1 · S-2 | `TaskStorageTests` 8건 · 프로젝트 규칙 8 · SwiftLint `swallowed_storage_error` |
 | A-1 ~ A-5 | 백엔드 테스트 15건 · 프로젝트 규칙 10 |
 | H-1 · H-2 | `backend/test/app.test.mjs` · `openai-client.test.mjs` |
+| H-3 | `auth.test.mjs` 10건 · `app.test.mjs` 인증 4건 · **프로젝트 규칙 11** |
+| H-4 | `rate-limit.test.mjs` 11건 · `app.test.mjs` 한도 1건 |
 | 키 격리 | 프로젝트 규칙 2 · SwiftLint `openai_key_in_app` |
 | Extension 경량 | 프로젝트 규칙 3 |
 

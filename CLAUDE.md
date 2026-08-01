@@ -41,6 +41,12 @@ xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTask -sdk iphones
 ```
 
 `.xcodeproj` 는 생성물이다. 프로젝트 설정은 **`project.yml` 에서만** 고친다.
+`Config/Secrets.xcconfig` 는 커밋되지 않는다. 없으면 `verify.sh` 가 예제에서 만든다.
+
+**빌드 설정 우선순위** — 타깃 설정 > 타깃 xcconfig > **프로젝트 설정** > 프로젝트 xcconfig.
+그래서 xcconfig 로 덮어써야 하는 값의 기본값은 `project.yml` 의 **프로젝트 수준**에 둔다.
+타깃 `settings.base` 에 두면 xcconfig 가 조용히 무시되고, 빌드는 성공하는데
+앱만 엉뚱한 주소를 바라본다.
 
 ---
 
@@ -171,6 +177,6 @@ Apple 캘린더    선택적 출력. 실패해도 할 일은 남는다
 
 ## 현재 상태
 
-R0 실행 뼈대 + MVP 기능 + 접근성 완성 · **iOS 테스트 90건 · 백엔드 테스트 15건 · 빌드 경고 0**
+R0 실행 뼈대 + MVP 기능 + 접근성 완성 · **iOS 테스트 93건 · 백엔드 테스트 40건 · 빌드 경고 0**
 공유 시트 → OCR → 분석 → 확인 → 할 일·캘린더·알림까지 이어진다.
 다음: 실기기 서명·App Group 프로비저닝 · 실제 OpenAI 키 E2E · 중복 감지 정책

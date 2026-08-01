@@ -31,6 +31,9 @@ node_modules/
 .env.local
 backend/.env
 
+# 백엔드 주소와 공유 비밀. Secrets.xcconfig.example 만 올린다.
+Config/Secrets.xcconfig
+
 # ─── macOS ────────────────────────────────────
 .DS_Store
 ._*

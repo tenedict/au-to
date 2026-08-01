@@ -1,15 +1,26 @@
 import http from "node:http";
+import { isAuthorized } from "./auth.mjs";
+import { clientKeyFor, createRateLimiter } from "./rate-limit.mjs";
 
 const MAX_BODY_BYTES = 128 * 1024;
 
-export function createApp({ analyzeCapture }) {
+/**
+ * @param {object} options
+ * @param {(input: object) => Promise<object>} options.analyzeCapture
+ * @param {string | null} [options.clientKey] null 이면 인증 없이 받습니다 (루프백 전용)
+ * @param {ReturnType<typeof createRateLimiter>} [options.rateLimiter]
+ */
+export function createApp({ analyzeCapture, clientKey = null, rateLimiter }) {
   if (typeof analyzeCapture !== "function") {
     throw new Error("analyzeCapture 함수가 필요합니다.");
   }
+  const limiter = rateLimiter ?? createRateLimiter();
 
   return http.createServer(async (request, response) => {
     setCommonHeaders(response);
 
+    // /health 는 인증 밖에 둡니다. Cloud Run 의 상태 확인이 키를 모르고,
+    // 이 응답은 아무 정보도 흘리지 않습니다.
     if (request.method === "GET" && request.url === "/health") {
       sendJSON(response, 200, { status: "ok" });
       return;
@@ -17,6 +28,23 @@ export function createApp({ analyzeCapture }) {
 
     if (request.method !== "POST" || request.url !== "/v1/analyze-capture") {
       sendJSON(response, 404, { error: { code: "not_found", message: "경로가 없어요." } });
+      return;
+    }
+
+    // 인증을 먼저 봅니다. 본문을 읽기 전에 끊어야 남의 요청으로 메모리를 쓰지 않습니다.
+    if (!isAuthorized(request, clientKey)) {
+      sendJSON(response, 401, {
+        error: { code: "unauthorized", message: "이 서버를 쓸 수 없어요." },
+      });
+      return;
+    }
+
+    const verdict = limiter.check(clientKeyFor(request));
+    if (!verdict.allowed) {
+      response.setHeader("Retry-After", String(verdict.retryAfterSeconds));
+      sendJSON(response, 429, {
+        error: { code: "rate_limited", message: verdict.reason },
+      });
       return;
     }
 

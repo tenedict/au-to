@@ -78,6 +78,22 @@ for api in run.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis
   fi
 done
 
+# ── 비밀 읽기 권한 ──────────────────────────────────────────
+# Cloud Run 이 도는 서비스 계정에 secretAccessor 를 주지 않으면 컨테이너 빌드까지
+# 다 끝난 뒤 마지막 리비전 생성에서 죽는다. 빌드가 성공해서 다 된 것처럼 보이다가
+# 끝에 실패하므로, 원인을 찾는 데 시간이 가장 많이 든다. 미리 준다.
+step "비밀 읽기 권한"
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')
+RUNTIME_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+for secret in OPENAI_API_KEY CAPTURETASK_CLIENT_KEY; do
+  gcloud secrets add-iam-policy-binding "$secret" \
+    --member="serviceAccount:$RUNTIME_SA" \
+    --role="roles/secretmanager.secretAccessor" \
+    --project "$PROJECT" >/dev/null 2>&1 \
+    && ok "$secret → $RUNTIME_SA" \
+    || die "$secret 에 권한을 주지 못했습니다"
+done
+
 # ── 배포 ────────────────────────────────────────────────────
 step "배포 ($REGION)"
 gcloud run deploy "$SERVICE" \

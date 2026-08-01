@@ -8,9 +8,17 @@ options:
   bundleIdPrefix: com.example
   deploymentTarget:
     iOS: "17.0"
+# Xcode 빌드 설정 우선순위: 타깃 설정 > 타깃 xcconfig > **프로젝트 설정** > 프로젝트 xcconfig
+#
+# 그래서 Secrets.xcconfig(타깃 xcconfig)가 이기려면 기본값이 **프로젝트 수준**에 있어야 한다.
+# 타깃의 settings.base 에 두면 xcconfig 가 조용히 무시된다 — 빌드는 성공하고
+# 앱만 로컬 주소를 계속 바라본다. 실제로 한 번 그렇게 배포했다.
 settings:
   base:
     SWIFT_VERSION: "5.0"
+    # Config/Secrets.xcconfig 가 있으면 그쪽 값이 이긴다.
+    CAPTURETASK_API_BASE_URL: "http://127.0.0.1:8787"
+    CAPTURETASK_CLIENT_KEY: ""
     CURRENT_PROJECT_VERSION: 1
     MARKETING_VERSION: 0.1.0
     DEVELOPMENT_TEAM: ""
@@ -53,8 +61,6 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask
-        CAPTURETASK_API_BASE_URL: "http://127.0.0.1:8787"
-        CAPTURETASK_CLIENT_KEY: ""
     dependencies:
       - target: CaptureTaskShare
         embed: true

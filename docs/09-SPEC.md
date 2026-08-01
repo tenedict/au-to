@@ -151,6 +151,30 @@ group.com.example.capturetask
 **N-3.2 · 예약은 `LocalNotificationService` 하나, 시각 계산은 `ReminderSchedule` 하나다.**
 프로젝트 규칙 7이 화면에서의 직접 예약을 막는다.
 
+### N-4 · 확인 요청 알림
+
+분석은 메인 앱에서만 돈다. 담고 앱을 열지 않으면 스크린샷은 상자에 남고
+사용자에게는 아무 일도 일어나지 않는다. 그 구멍을 메우는 알림이다.
+
+| 언제 | 누가 | 식별자 |
+| --- | --- | --- |
+| 스크린샷을 담은 직후 | Share Extension | `capture#<captureID>` |
+| 확인 안 한 초안을 남기고 앱을 나간 뒤 1시간 | 메인 앱 | `capture#unconfirmed-drafts` |
+
+**N-4.1 · 식별자가 마감 알림과 겹치면 안 된다.**
+앱은 식별자 문자열만 보고 둘을 가른다. 겹치면 "앞에 있을 때 확인 요청은 안 띄운다"는
+규칙이 마감 알림에도 적용돼, **앱을 켜 둔 사용자가 마감을 그대로 놓친다.**
+`CaptureNoticeTests` 가 양방향으로 확인한다.
+
+**N-4.2 · 앱이 이 캡처를 손에 쥐면 예약과 전달된 것을 **둘 다** 지운다.**
+예약만 지우면 알림 센터에 남아, 이미 처리한 스크린샷을 확인하러 앱을 다시 연다.
+
+**N-4.3 · 앱이 앞에 있으면 배너를 띄우지 않는다.** 확인 화면이 이미 떠 있다.
+
+**N-4.4 · 문구는 하지 않은 일을 했다고 말하지 않는다.**
+담은 직후에는 아직 아무것도 읽지 않았으므로 "할 일을 만들었어요" 가 아니라
+"스크린샷을 담았어요 / 눌러서 할 일로 만들지 확인해 주세요" 다.
+
 > **검증** — `ReminderScheduleTests` 10건 · `TaskStoreTests` 알림 4건
 
 ---
@@ -292,6 +316,7 @@ iOS URLRequest.timeoutInterval   20초
 | C-4 · C-4.1 | **프로젝트 규칙 1** |
 | D-1 ~ D-3 | `DueGroupingTests` 13건 |
 | N-1 ~ N-3 | `ReminderScheduleTests` 10건 · `TaskStoreTests` 4건 · 프로젝트 규칙 7 |
+| N-4 | `CaptureNoticeTests` 6건 · 프로젝트 규칙 7 |
 | W-1 ~ W-6 | `TaskStoreTests` · 코드 리뷰 |
 | S-1 · S-2 | `TaskStorageTests` 8건 · 프로젝트 규칙 8 · SwiftLint `swallowed_storage_error` |
 | A-1 ~ A-5 | 백엔드 테스트 15건 · 프로젝트 규칙 10 |

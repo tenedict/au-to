@@ -56,9 +56,30 @@ final class TaskStore: ObservableObject {
     func refresh() async {
         inboxAvailability = SharedInbox.availability
         reminderAuthorization = await reminderScheduler.authorizationState()
+        // 사용자가 지금 여기 있다. 확인을 재촉하는 알림은 필요 없다.
+        CaptureNotice.cancelUnconfirmedDrafts()
         await importPendingCaptures()
         // 알림이 없는 사이 마감이 지났거나 시스템이 예약을 잃었을 수 있다.
         await reminderScheduler.syncAll(tasks, now: now())
+    }
+
+    /// 앱을 나갈 때 부른다. 확인 안 한 초안이 남아 있으면 나중에 한 번 더 알린다.
+    ///
+    /// 담아 두기만 하고 확인하지 않으면 이 제품은 사진첩과 같아진다.
+    func scheduleUnconfirmedDraftReminderIfNeeded() {
+        CaptureNotice.scheduleUnconfirmedDrafts(count: pendingDrafts.count)
+    }
+
+    /// 사용자가 알림을 직접 켰다.
+    ///
+    /// 첫 저장까지 기다리면 **첫 공유의 확인 알림을 놓친다** — 권한이 없으면
+    /// Share Extension 이 건 알림이 조용히 사라지기 때문이다.
+    func enableReminders() async {
+        _ = await reminderScheduler.requestAuthorizationIfNeeded()
+        reminderAuthorization = await reminderScheduler.authorizationState()
+        if reminderAuthorization == .authorized {
+            await reminderScheduler.syncAll(tasks, now: now())
+        }
     }
 
     // MARK: - 수집
@@ -80,6 +101,11 @@ final class TaskStore: ObservableObject {
         }
 
         for capture in captures {
+            // 앱이 이 캡처를 손에 쥐었다. "확인해 주세요" 알림은 할 일을 다했다.
+            // 전달된 것까지 지우지 않으면 알림 센터에 남아, 이미 처리한 스크린샷을
+            // 확인하러 앱을 다시 열게 된다.
+            CaptureNotice.clear(captureID: capture.id)
+
             // 이미 할 일이 된 캡처는 상자에서 치운다. 확인이 끝난 것이므로 안전하다.
             if tasks.contains(where: { $0.sourceCaptureID == capture.id }) {
                 try? SharedInbox.complete(capture)
@@ -234,6 +260,7 @@ final class TaskStore: ObservableObject {
 
     private func completeCapture(_ captureID: UUID?) {
         guard let captureID else { return }
+        CaptureNotice.clear(captureID: captureID)
         do {
             try SharedInbox.complete(captureID: captureID)
         } catch SharedInboxError.appGroupUnavailable {

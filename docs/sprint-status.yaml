@@ -19,8 +19,8 @@ release:
 
 verification:
   command: ./scripts/verify.sh
-  ios_tests_total: 73
-  ios_tests_passed: 73
+  ios_tests_total: 79
+  ios_tests_passed: 79
   backend_tests_total: 15
   backend_tests_passed: 15
   project_rules: 11
@@ -47,6 +47,12 @@ verification:
     - id: M-8
       what: VoiceOver 낭독 순서
       why: 접근성 레이블은 코드로 확인했지만 실제 낭독은 못 들어 봤다
+    - id: M-11
+      what: 담은 직후 확인 요청 알림
+      why: 실기기 공유 시트가 필요하다
+    - id: M-13
+      what: 미확인 초안 재알림
+      why: 1시간을 기다려야 한다
 
 current_sprint:
   id: sprint-2
@@ -90,9 +96,9 @@ epics:
     status: in_progress
     blocked_by: [D-5]
   - id: E5
-    name: 마감 알림
-    stories: 9
-    done: 9
+    name: 알림
+    stories: 12
+    done: 12
     status: completed
   - id: E6
     name: 캘린더
@@ -117,8 +123,8 @@ epics:
     status: completed
 
 progress:
-  stories_total: 66
-  stories_done: 60
+  stories_total: 69
+  stories_done: 63
   percent: 91
 
 completed_stories:
@@ -159,6 +165,19 @@ completed_stories:
   - id: S-9.4
     name: 알림 탭 → 해당 카드 라우팅
     completed_at: 2026-08-01
+  - id: S-5.10
+    name: 담은 직후 확인 요청 알림
+    plan: docs/plans/S-5.10-확인요청알림.md
+    completed_at: 2026-08-01
+    tests_added: 6
+    note: 분석이 메인 앱에서만 돌아, 담고 앱을 안 열면 아무 일도 일어나지 않았다
+  - id: S-5.11
+    name: 미확인 초안 재알림
+    completed_at: 2026-08-01
+  - id: S-5.12
+    name: 알림 권한 옵트인 줄
+    completed_at: 2026-08-01
+    note: 첫 저장까지 기다리면 첫 공유의 확인 알림을 놓친다
   - id: S-2.7
     name: 실재하는 기본 모델과 모델군별 파라미터 분기
     completed_at: 2026-08-01
@@ -214,13 +233,13 @@ release_blockers:
       title: 익명화 평가셋 50건
 
 risk_automation:
-  total_risks: 23
-  p0_risks: 7
-  p0_automated: 7
-  p1_risks: 11
+  total_risks: 26
+  p0_risks: 8
+  p0_automated: 8
+  p1_risks: 13
   p1_automated: 8
   p2_risks: 5
   p2_automated: 1
-  overall: 0.70
+  overall: 0.65
   target_r1: 0.80
   target_r2: 0.90

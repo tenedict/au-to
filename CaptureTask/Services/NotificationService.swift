@@ -114,6 +114,8 @@ struct LocalNotificationService: TaskReminderScheduling {
 final class ReminderTapRouter: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
     /// 눌린 할 일. 화면이 처리한 뒤 nil 로 되돌린다.
     @Published var requestedTaskID: UUID?
+    /// 확인 요청 알림을 눌렀다. 담긴 스크린샷을 확인하러 온 것이다.
+    @Published var requestedCaptureReview = false
 
     func install(into center: UNUserNotificationCenter = .current()) {
         center.delegate = self
@@ -123,20 +125,32 @@ final class ReminderTapRouter: NSObject, ObservableObject, UNUserNotificationCen
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        guard let raw = response.notification.request.content.userInfo["taskID"] as? String,
+        let request = response.notification.request
+
+        if CaptureNotice.isCaptureNotice(request.identifier) {
+            await MainActor.run { requestedCaptureReview = true }
+            return
+        }
+
+        guard let raw = request.content.userInfo["taskID"] as? String,
               let taskID = UUID(uuidString: raw) else {
             return
         }
         await MainActor.run { requestedTaskID = taskID }
     }
 
-    /// 앱을 보고 있는 동안에도 알림을 보여준다.
+    /// 앱을 보고 있는 동안에도 마감 알림은 보여준다.
     /// 기본 동작은 조용히 삼키는 것이라, 앱을 켜 둔 사용자는 마감을 그대로 놓친다.
+    ///
+    /// 다만 **확인 요청 알림은 앞에 있을 때 띄우지 않는다.** 앱이 이미 확인 화면을
+    /// 올려 주고 있으므로, 같은 말을 배너로 한 번 더 하면 잔소리가 된다.
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        [.banner, .sound, .list]
+        CaptureNotice.isCaptureNotice(notification.request.identifier)
+            ? []
+            : [.banner, .sound, .list]
     }
 }
 

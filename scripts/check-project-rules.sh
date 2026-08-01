@@ -60,7 +60,8 @@ for t in \
   "$TESTS/TaskStoreTests.swift:testDiscardingDraftRemovesItEverywhere" \
   "$TESTS/ReminderScheduleTests.swift:testPastFireTimesAreDropped" \
   "$TESTS/DueGroupingTests.swift:testTodayWithPassedExplicitTimeIsOverdue" \
-  "$TESTS/DueGroupingTests.swift:testGroupsAppearInUrgencyOrder"
+  "$TESTS/DueGroupingTests.swift:testGroupsAppearInUrgencyOrder" \
+  "$TESTS/CaptureNoticeTests.swift:testDueReminderIsNotMistakenForACaptureNotice"
 do
   f=${t%%:*}; fn=${t##*:}
   grep -q "func $fn" "$f" 2>/dev/null || \
@@ -109,11 +110,17 @@ fi
 # Extension 은 메모리와 실행 시간이 빡빡하다. 긴 네트워크 요청이나 EventKit 쓰기를 넣으면
 # 시스템이 중간에 죽인다 — 사용자는 담기가 실패한 줄도 모른다. (CLAUDE 규칙 5)
 # CaptureTask/Shared 도 Extension 타깃에 함께 들어가므로 같이 본다.
-hits=$(grep -rnE '^import (EventKit|Vision|UserNotifications)|URLSession|URLRequest' \
+#
+# `UserNotifications` 는 **일부러 뺐다.** 막는 기준은 "import 했는가"가 아니라
+# "얼마나 오래 걸리는가"다. 네트워크·EventKit·Vision 은 수백 밀리초에서 수 초가 걸리지만,
+# 로컬 알림 예약은 파일 쓰기 한 번 수준이라 같은 위험이 없다.
+# 그리고 그 알림이 없으면 담기만 하고 앱을 안 연 사용자에게 아무 일도 일어나지 않는다
+# — 분석은 메인 앱에서만 돌기 때문이다. (CaptureNotice)
+hits=$(grep -rnE '^import (EventKit|Vision)|URLSession|URLRequest' \
         --include='*.swift' "$SHARE" "$SRC/Shared" 2>/dev/null | strip_comments)
 if [ -n "$hits" ]; then
   report error "Share Extension 에 무거운 작업" "CLAUDE 규칙 5" \
-    "OCR·LLM·캘린더·알림은 메인 앱이 합니다. Extension 은 App Group 에 담기만 합니다."
+    "OCR·LLM·캘린더는 메인 앱이 합니다. Extension 은 담고 알림 한 번 거는 것까지입니다."
   echo "$hits" | sed 's/^/      /'
 fi
 
@@ -150,14 +157,23 @@ if [ -n "$hits" ]; then
   echo "$hits" | sed 's/^/      /'
 fi
 
-# ── 규칙 7 · 알림 예약은 서비스 한 곳에서만 ─────────────────
+# ── 규칙 7 · 알림 예약은 정해진 두 파일에서만 ───────────────
 # 화면이 직접 알림을 걸면 취소 지점이 갈라지고, 끝낸 일이 계속 울린다.
+#
+# 알림 종류가 둘이라 소유자도 둘이다. 그 이상으로 늘어나면 안 된다.
+#   Services/NotificationService.swift  마감 알림 (앱 전용)
+#   Shared/CaptureNotice.swift          확인 요청 (앱 + Extension 공용)
+#
+# CaptureNotice 가 Shared 에 있는 이유는 Share Extension 이 담은 직후 알려야 하기
+# 때문이다. Services/ 에 두면 Extension 타깃에 들어가지 않는다.
+# 다른 곳에서는 이 두 타입을 **불러 쓰기만** 한다 — 직접 예약하지 않는다.
 hits=$(grep -rn 'UNUserNotificationCenter\|UNNotificationRequest' \
-        --include='*.swift' "$SRC" 2>/dev/null \
-        | grep -v 'Services/NotificationService.swift' | strip_comments)
+        --include='*.swift' "$SRC" "$SHARE" 2>/dev/null \
+        | grep -v 'Services/NotificationService.swift' \
+        | grep -v 'Shared/CaptureNotice.swift' | strip_comments)
 if [ -n "$hits" ]; then
-  report error "서비스 밖에서 알림 예약" "SPEC N-1" \
-    "LocalNotificationService 를 거치세요. 시각 계산은 ReminderSchedule 입니다."
+  report error "정해진 곳 밖에서 알림 예약" "SPEC N-1" \
+    "마감은 LocalNotificationService, 확인 요청은 CaptureNotice 를 거치세요."
   echo "$hits" | sed 's/^/      /'
 fi
 

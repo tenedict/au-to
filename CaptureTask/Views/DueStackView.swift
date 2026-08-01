@@ -119,6 +119,23 @@ struct DueStackView: View {
                 showsChevron: false
             )
         }
+
+        // 첫 저장까지 기다리면 **첫 공유의 확인 알림을 놓친다** — 권한이 없으면
+        // Share Extension 이 건 알림이 조용히 사라진다. 그래서 여기서 먼저 권한을 권한다.
+        if store.reminderAuthorization == .notDetermined {
+            Button {
+                Task { await store.enableReminders() }
+            } label: {
+                NoticeRow(
+                    symbol: "bell.badge",
+                    title: "알림을 켤까요?",
+                    detail: "마감 전에 알려 드리고, 스크린샷을 담으면 확인을 요청해요.",
+                    tint: .accentColor,
+                    showsChevron: true
+                )
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     private var emptyState: some View {

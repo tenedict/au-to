@@ -93,20 +93,20 @@ BMAD 가 **무엇을 만들지**를 정한다면, Superpowers 는 **어떻게 �
 | — | [project-context.md](project-context.md) | 새 세션·새 에이전트가 먼저 읽는 5분 요약 |
 | 00 | [Product Brief](00-PRODUCT-BRIEF.md) | 왜 만드는가 · 누구를 위한 것인가 |
 | 01 | [PRD](01-PRD.md) | 제품 원칙 · MVP 범위 · 성공 기준 |
-| 02 | [기능 요구사항 정의서](02-SRS-기능요구사항.md) | FR 58건 + 불변 조건 12건 |
+| 02 | [기능 요구사항 정의서](02-SRS-기능요구사항.md) | FR 64건 + 불변 조건 14건 |
 | 03 | [비기능 요구사항 정의서](03-SRS-비기능요구사항.md) | 성능·프라이버시·접근성·유지보수 |
-| 04 | [기능 명세서](04-SRS-기능명세서.md) | P0~P3 우선순위 · 수용 기준 64건 |
+| 04 | [기능 명세서](04-SRS-기능명세서.md) | P0~P3 우선순위 · 수용 기준 78건 |
 | 05 | [IA](05-IA.md) | 사이트맵 · 내비게이션 · 용어 사전 |
 | 06 | [화면 설계서](06-화면설계서.md) | 화면 6개 · 디자인 시스템 |
 | 07 | [유저 플로우 · 유스케이스](07-유저플로우.md) | 플로우 4개 · 유스케이스 6건 · 상태 전이도 |
 | 08 | [와이어프레임 ↔ 구현](08-와이어프레임.md) | 화면↔코드 대응 · 남은 어긋남 5건 |
 | 09 | [SPEC](09-SPEC.md) | 도메인·묶음·알림·저장·API 계약 + 추적 매트릭스 |
 | 10 | [Architecture Spine](10-ARCHITECTURE-SPINE.md) | ADR 10건 · 모듈 구조 · 다음 과제 |
-| 11 | [Epics & Stories](11-EPICS-STORIES.md) | 에픽 9 · 스토리 66 |
+| 11 | [Epics & Stories](11-EPICS-STORIES.md) | 에픽 9 · 스토리 69 |
 | 12 | [Implementation Readiness](12-IMPLEMENTATION-READINESS.md) | PASS / CONCERNS / FAIL 판정 |
-| 13 | [Test Strategy](13-TEST-STRATEGY.md) | 위험 23건 · 자동화율 · 릴리스 게이트 |
+| 13 | [Test Strategy](13-TEST-STRATEGY.md) | 위험 26건 · 자동화율 · 릴리스 게이트 |
 | 14 | [Sprint](14-SPRINT.md) | 스프린트 계획 · 완료 정의 |
-| 15 | [Retrospective](15-RETROSPECTIVE.md) | Sprint 1~2 회고 · 규칙으로 승격한 것 8건 |
+| 15 | [Retrospective](15-RETROSPECTIVE.md) | Sprint 1~2 회고 · 규칙으로 승격한 것 9건 |
 | 16 | [Engineering Playbook](16-ENGINEERING-PLAYBOOK.md) | TDD · 디버깅 · 검증 · 리뷰 규율 |
 | — | [sprint-status.yaml](sprint-status.yaml) | **기계가 읽는 스프린트 상태 (숫자의 원본)** |
 | — | [plans/](plans/) | 스토리별 2~5분 태스크 계획 |

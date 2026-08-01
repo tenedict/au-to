@@ -10,8 +10,8 @@
 
 | 항목 | 값 |
 | --- | --- |
-| 단계 | R0 PASS · MVP 기능 완성 · 실기기 확인 대기 |
-| iOS 테스트 | 69 / 69 |
+| 단계 | R0 PASS · MVP 기능 + 접근성 완성 · 실기기 확인 대기 |
+| iOS 테스트 | 73 / 73 |
 | 백엔드 테스트 | 15 / 15 |
 | 프로젝트 규칙 | 11건 |
 | 빌드 경고 | 0 |
@@ -28,6 +28,7 @@
 - **온디바이스 Vision OCR** — 원본 이미지는 기기를 떠나지 않습니다
 - **OpenAI 문맥 분석** — 키는 백엔드에만 있습니다
 - **확인 화면** — AI 결과는 제안입니다. 여기를 지나지 않는 저장 경로는 없습니다
+- **접근성** — 큰 글자에서는 겹침 대신 목록으로, 모션 줄이기·대비 높이기를 존중합니다
 - **Apple 캘린더 연동** — 선택적 출력. 실패해도 할 일은 남습니다
 
 ---
@@ -146,7 +147,6 @@ python3 scripts/build_development_plan.py    # HTML · PDF 재생성
 | 실기기 공유 시트 확인 | Bundle ID · App Group 프로비저닝 |
 | 실제 OpenAI 응답 확인 | `.env` 에 키를 넣으면 됩니다 |
 | 중복 감지 · 검색 | 정책 미결정 |
-| Dynamic Type 큰 글자 | 카드 높이가 고정값 |
 | 백엔드 인증 · rate limit | 배포 전 필수 |
 
 자세한 판정은 [`docs/12-IMPLEMENTATION-READINESS.md`](docs/12-IMPLEMENTATION-READINESS.md).

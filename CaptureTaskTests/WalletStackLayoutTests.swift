@@ -64,4 +64,50 @@ final class WalletStackLayoutTests: XCTestCase {
         XCTAssertLessThan(standard.peekHeight, standard.collapsedHeight)
         XCTAssertGreaterThan(standard.expandedHeight, standard.collapsedHeight)
     }
+
+    // MARK: - Dynamic Type
+
+    /// 카드 높이가 고정값이면 글자를 키운 사용자에게 제목과 마감이 잘린다.
+    /// 배율은 세 값에 **함께** 적용되어야 한다.
+    func testScalingGrowsEveryDimension() {
+        let scaled = layout.scaled(by: 2)
+
+        XCTAssertEqual(scaled.collapsedHeight, 184)
+        XCTAssertEqual(scaled.peekHeight, 128)
+        XCTAssertEqual(scaled.expandedHeight, 496)
+    }
+
+    /// 겹침의 정의(`peek < collapsed`)가 배율과 무관하게 유지되어야 한다.
+    /// 하나만 키우면 겹침이 사라지거나 카드가 서로를 덮는다.
+    func testOverlapSurvivesEveryAccessibilityTextSize() {
+        // 접근성 글자 크기는 3배가 넘게 올라간다.
+        for factor in stride(from: 1.0, through: 3.5, by: 0.25) {
+            let scaled = layout.scaled(by: CGFloat(factor))
+
+            XCTAssertLessThan(scaled.peekHeight, scaled.collapsedHeight, "배율 \(factor)")
+            XCTAssertGreaterThan(scaled.expandedHeight, scaled.collapsedHeight, "배율 \(factor)")
+            // 펼친 카드와 다음 카드가 겹치면 안 된다.
+            XCTAssertEqual(
+                scaled.offset(forCardAt: 2, expandedIndex: 1),
+                scaled.offset(forCardAt: 1, expandedIndex: 1) + scaled.expandedHeight,
+                accuracy: 0.001,
+                "배율 \(factor)"
+            )
+        }
+    }
+
+    /// 글자를 키우면 스택 전체도 그만큼 커져야 마지막 카드가 잘리지 않는다.
+    func testTotalHeightGrowsWithTextSize() {
+        let standard = layout.totalHeight(cardCount: 4, expandedIndex: 1)
+        let large = layout.scaled(by: 2).totalHeight(cardCount: 4, expandedIndex: 1)
+
+        XCTAssertEqual(large, standard * 2, accuracy: 0.001)
+    }
+
+    /// 1 보다 작은 배율이 들어오면 카드가 사라진다. 배율은 언제나 1 이상으로 본다.
+    func testScalingNeverShrinksBelowTheBaseLayout() {
+        XCTAssertEqual(layout.scaled(by: 0.5), layout)
+        XCTAssertEqual(layout.scaled(by: 0), layout)
+        XCTAssertEqual(layout.scaled(by: -3), layout)
+    }
 }

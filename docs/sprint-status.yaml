@@ -19,13 +19,21 @@ release:
 
 verification:
   command: ./scripts/verify.sh
-  ios_tests_total: 69
-  ios_tests_passed: 69
+  ios_tests_total: 73
+  ios_tests_passed: 73
   backend_tests_total: 15
   backend_tests_passed: 15
   project_rules: 11
   build_warnings: 0
-  simulator_checked: [due_stack, month_calendar, review_sheet, manual_text]
+  simulator_checked:
+    [
+      due_stack,
+      month_calendar,
+      review_sheet,
+      manual_text,
+      accessibility_text_size,
+      increase_contrast,
+    ]
   not_verified:
     - id: M-1
       what: 공유 시트로 담기 → 앱 도착
@@ -33,15 +41,30 @@ verification:
     - id: B-2
       what: 실제 OpenAI 키로 백엔드 E2E
       why: 사용자가 키를 넣어야 함. 테스트 15건은 전부 대역으로 돈다
+    - id: M-4
+      what: 실제 알림 수신과 탭 라우팅
+      why: 실기기가 필요하다. 시뮬레이터는 알림을 눌러 들어오는 경로를 만들지 못한다
+    - id: M-8
+      what: VoiceOver 낭독 순서
+      why: 접근성 레이블은 코드로 확인했지만 실제 낭독은 못 들어 봤다
 
 current_sprint:
+  id: sprint-2
+  name: 접근성 마감
+  goal: R2 게이트의 접근성 차단 3건을 없앤다
+  status: completed
+  completed_at: 2026-08-01
+  note: 배율 적용만으로는 부족했다. 테스트 4건이 초록인 채로 화면은 잘려 있었고,
+    접근성 크기부터는 겹침 자체를 포기하고 목록으로 바꿨다.
+
+previous_sprint:
   id: sprint-1
   name: 하네스 이식과 MVP 완성
   goal: 검증 하네스를 세우고, 그 하네스로 죽어 있던 경로를 찾아 고친다
   status: completed
   completed_at: 2026-08-01
-  defects_found_by_harness: 10
-  defects_that_passed_build_and_tests: 10
+  defects_found_by_harness: 13
+  defects_that_passed_build_and_tests: 13
 
 epics:
   - id: E1
@@ -90,13 +113,13 @@ epics:
   - id: E9
     name: 접근성 마감 품질
     stories: 4
-    done: 0
-    status: pending
+    done: 4
+    status: completed
 
 progress:
   stories_total: 66
-  stories_done: 56
-  percent: 85
+  stories_done: 60
+  percent: 91
 
 completed_stories:
   - id: S-8.1
@@ -121,13 +144,28 @@ completed_stories:
     name: 이번 달 캘린더 뷰
     completed_at: 2026-08-01
     tests_added: 9
+  - id: S-9.1
+    name: 접근성 글자 크기 — 겹침 대신 목록으로 전환
+    plan: docs/plans/S-9-접근성.md
+    completed_at: 2026-08-01
+    tests_added: 4
+    note: 배율 테스트 4건이 초록인 채로 화면은 여전히 잘려 있었다. 눈으로 보고 나서야 찾았다
+  - id: S-9.2
+    name: 모션 줄이기 대응
+    completed_at: 2026-08-01
+  - id: S-9.3
+    name: 대비 높이기 대응 — 그림자 대신 테두리
+    completed_at: 2026-08-01
+  - id: S-9.4
+    name: 알림 탭 → 해당 카드 라우팅
+    completed_at: 2026-08-01
   - id: S-2.7
     name: 실재하는 기본 모델과 모델군별 파라미터 분기
     completed_at: 2026-08-01
     note: 기존 기본값 gpt-5.6-luna 는 존재하지 않는 이름이었다
 
 next_sprint:
-  id: sprint-2
+  id: sprint-3
   name: 실기기 수직 절단
   goal: 실제 iPhone 에서 공유 시트부터 알림까지 한 번 통과시킨다
   status: not_started
@@ -170,15 +208,6 @@ release_blockers:
     - id: B-2
       title: 실제 OpenAI 키로 백엔드 E2E 1회
   R2:
-    - id: S-9.1
-      title: Dynamic Type .xxxLarge 레이아웃
-      requirement: NFR-A11Y-06
-    - id: S-9.2
-      title: 모션 줄이기 대응
-      requirement: NFR-A11Y-07
-    - id: S-9.3
-      title: 대비 높이기 대응
-      requirement: NFR-A11Y-08
     - id: NFR-SEC-05
       title: 백엔드 사용자 인증과 rate limit
     - id: S-2.3
@@ -191,7 +220,7 @@ risk_automation:
   p1_risks: 11
   p1_automated: 8
   p2_risks: 5
-  p2_automated: 0
-  overall: 0.65
+  p2_automated: 1
+  overall: 0.70
   target_r1: 0.80
   target_r2: 0.90

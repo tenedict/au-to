@@ -6,15 +6,45 @@ import SwiftUI
 /// 하나뿐이다 — 여러 개가 동시에 펼쳐지면 "지금 뭘 보고 있는지" 가 사라진다.
 struct DueStackView: View {
     @ObservedObject var store: TaskStore
+    /// 펼친 카드. 알림을 눌러 들어온 경우 바깥에서 정해 주므로 바인딩이다.
+    @Binding var expandedTaskID: UUID?
     let onReviewDrafts: () -> Void
     let onAddText: () -> Void
 
-    @State private var expandedTaskID: UUID?
     @State private var collapsedBuckets: Set<DueBucket> = Set(
         DueBucket.allCases.filter(\.startsCollapsed)
     )
 
-    private let layout = WalletStackLayout.default
+    /// Dynamic Type 배율. 값 1 을 주면 현재 글자 크기에 맞는 배율이 들어온다.
+    /// 카드 높이가 고정값이면 글자를 키운 사용자에게 제목과 마감이 잘린다.
+    @ScaledMetric(relativeTo: .headline) private var typeScale: CGFloat = 1
+    /// 모션 줄이기를 켠 사용자에게는 카드가 튀지 않는다.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    /// 접근성 글자 크기에서는 **겹침을 포기한다.**
+    ///
+    /// 지갑 겹침은 접힌 카드의 윗부분만 보이는 것을 전제로 한다. 접근성 크기에서는
+    /// 제목 한 줄과 마감 한 줄만으로도 그 공간을 넘겨서, 배율을 아무리 키워도
+    /// 다음 카드가 마감 날짜를 덮는다. 실제로 배율만 적용했을 때
+    /// "2026년 7월 30일"이 두 줄로 넘쳐 아래가 잘렸다.
+    ///
+    /// 그래서 이 크기에서는 겹치지 않는 평범한 목록으로 바꾸고 높이를 내용에 맡긴다.
+    /// 멋보다 읽히는 것이 먼저다.
+    private var usesWalletStack: Bool { !dynamicTypeSize.isAccessibilitySize }
+
+    private var layout: WalletStackLayout {
+        WalletStackLayout.default.scaled(by: typeScale)
+    }
+
+    /// 펼침 애니메이션. 모션 줄이기에서는 즉시 바뀐다.
+    private var expandAnimation: Animation? {
+        reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.84)
+    }
+
+    private var collapseAnimation: Animation? {
+        reduceMotion ? nil : .snappy(duration: 0.24)
+    }
 
     var body: some View {
         ScrollView {
@@ -110,7 +140,7 @@ struct DueStackView: View {
         let isCollapsed = collapsedBuckets.contains(group.bucket)
         return VStack(alignment: .leading, spacing: 12) {
             Button {
-                withAnimation(.snappy(duration: 0.24)) {
+                withAnimation(collapseAnimation) {
                     if isCollapsed {
                         collapsedBuckets.remove(group.bucket)
                     } else {
@@ -131,22 +161,24 @@ struct DueStackView: View {
         }
     }
 
+    @ViewBuilder
     private func stack(for group: DueGroup) -> some View {
+        if usesWalletStack {
+            walletStack(for: group)
+        } else {
+            plainList(for: group)
+        }
+    }
+
+    private func walletStack(for group: DueGroup) -> some View {
         let expandedIndex = group.tasks.firstIndex { $0.id == expandedTaskID }
         return ZStack(alignment: .top) {
             ForEach(Array(group.tasks.enumerated()), id: \.element.id) { index, task in
-                TaskCard(
-                    task: task,
-                    bucket: group.bucket,
-                    isExpanded: index == expandedIndex,
-                    onTap: { toggleExpansion(of: task.id) },
-                    onToggleCompletion: { Task { await store.toggleCompletion(for: task.id) } },
-                    onDelete: { Task { await store.delete(task.id) } }
-                )
-                .frame(height: layout.height(forCardAt: index, expandedIndex: expandedIndex))
-                .offset(y: layout.offset(forCardAt: index, expandedIndex: expandedIndex))
-                // 아래 카드가 위 카드를 덮어야 지갑처럼 보인다.
-                .zIndex(Double(index))
+                card(task, in: group, isExpanded: index == expandedIndex)
+                    .frame(height: layout.height(forCardAt: index, expandedIndex: expandedIndex))
+                    .offset(y: layout.offset(forCardAt: index, expandedIndex: expandedIndex))
+                    // 아래 카드가 위 카드를 덮어야 지갑처럼 보인다.
+                    .zIndex(Double(index))
             }
         }
         .frame(
@@ -154,7 +186,29 @@ struct DueStackView: View {
             minHeight: layout.totalHeight(cardCount: group.count, expandedIndex: expandedIndex),
             alignment: .top
         )
-        .animation(.spring(response: 0.34, dampingFraction: 0.84), value: expandedTaskID)
+        .animation(expandAnimation, value: expandedTaskID)
+    }
+
+    /// 접근성 글자 크기용. 겹치지 않고 높이를 내용에 맡긴다.
+    private func plainList(for group: DueGroup) -> some View {
+        VStack(spacing: 10) {
+            ForEach(group.tasks) { task in
+                card(task, in: group, isExpanded: task.id == expandedTaskID)
+            }
+        }
+        .animation(expandAnimation, value: expandedTaskID)
+    }
+
+    private func card(_ task: AssistantTask, in group: DueGroup, isExpanded: Bool) -> TaskCard {
+        TaskCard(
+            task: task,
+            bucket: group.bucket,
+            isExpanded: isExpanded,
+            isStacked: usesWalletStack,
+            onTap: { toggleExpansion(of: task.id) },
+            onToggleCompletion: { Task { await store.toggleCompletion(for: task.id) } },
+            onDelete: { Task { await store.delete(task.id) } }
+        )
     }
 
     private func toggleExpansion(of taskID: UUID) {

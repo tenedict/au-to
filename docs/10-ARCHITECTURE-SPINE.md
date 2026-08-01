@@ -197,7 +197,7 @@ CaptureTask/
   Store/        상태 · 영속화 · 유스케이스 조율
   Views/        SwiftUI
 CaptureTaskShare/  담기 전용
-CaptureTaskTests/  69건
+CaptureTaskTests/  73건
 backend/           Node 22 · 외부 패키지 0 · 15건
 scripts/           verify · 규칙 검사 · 시뮬레이터 선택
 ```

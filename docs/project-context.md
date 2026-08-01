@@ -49,7 +49,7 @@
 | 저장 | Application Support / JSON (원자적 쓰기) + App Group 파일 상자 |
 | 백엔드 | Node 22 · `node:http` · 외부 패키지 0 |
 | 프로젝트 정의 | XcodeGen (`project.yml`) — `.xcodeproj` 는 **생성물, 미추적** |
-| 테스트 | XCTest 69건 · `node:test` 15건 |
+| 테스트 | XCTest 73건 · `node:test` 15건 |
 | 번들 ID | `com.example.capturetask` (D-1 미확정) |
 | App Group | `group.com.example.capturetask` |
 | 기본 언어 | 한국어 |
@@ -105,7 +105,7 @@ CaptureTask/
   Store/        상태·영속화·유스케이스 조율
   Views/        SwiftUI 6개
 CaptureTaskShare/   담기 전용
-CaptureTaskTests/   69건
+CaptureTaskTests/   73건
 backend/            src 4개 · test 2개
 scripts/            verify · 규칙 검사 · 시뮬레이터 선택
 docs/               BMAD 00~16 + sprint-status.yaml + plans/
@@ -142,6 +142,7 @@ Model 은 아무도 모른다.
 - Apple 캘린더 추가·삭제
 - 저장 손상 격리 · 구버전 파일 호환
 - 텍스트 붙여넣기로 분석 시험 · 오프라인 규칙 기반 모드
+- 접근성 — 큰 글자에서 목록으로 전환 · 모션 줄이기 · 대비 높이기 · 알림 탭 라우팅
 
 ## 지금 안 되는 것
 
@@ -150,7 +151,6 @@ Model 은 아무도 모른다.
 | 실기기 공유 시트 확인 | Bundle ID·App Group 프로비저닝 (D-1) |
 | 실제 OpenAI 응답 확인 | 사용자가 `.env` 에 키를 넣어야 한다 |
 | 중복 감지 | 무엇을 중복으로 볼지 미결정 (D-5) |
-| Dynamic Type 큰 글자 | 카드 높이가 고정값 (G-2) |
 | 백엔드 인증·rate limit | 배포 차단 (NFR-SEC-05) |
 | 온디바이스 LLM | 평가셋 50건 없음 (S-2.3) |
 
@@ -162,13 +162,14 @@ Model 은 아무도 모른다.
 2. **S-1.3** — 실기기 공유 E2E
 3. **B-2** — 실제 키로 백엔드 E2E 1회, 응답 모양 확인
 4. **S-2.3** — 익명화 평가셋 50건
-5. **S-9.1~3** — 접근성 3건 (R2 차단)
-6. **NFR-SEC-05** — 백엔드 인증·rate limit (배포 차단)
+5. **NFR-SEC-05** — 백엔드 인증·rate limit (배포 차단)
+
+접근성 4건(S-9.1~9.4)은 2026-08-01 에 끝냈다.
 
 ---
 
 ## 상태 숫자
 
-iOS 테스트 69 · 백엔드 테스트 15 · 프로젝트 규칙 11 · 빌드 경고 0 · 스토리 56/66
+iOS 테스트 73 · 백엔드 테스트 15 · 프로젝트 규칙 11 · 빌드 경고 0 · 스토리 60/66
 
 > 숫자의 원본은 [sprint-status.yaml](sprint-status.yaml) 이다.

@@ -40,6 +40,17 @@
 
 서버 JSON Schema가 맞더라도 앱은 `confidence`, 날짜 범위, 빈 제목을 다시 검증한다.
 
+### HTTP
+
+- `POST /v1/analyze-capture`
+- 요청: `recognized_text`, `locale`, `timezone`, `now`
+- 응답: 위 문맥 분석 출력 계약
+- 400: 잘못된 요청
+- 429: OpenAI rate limit
+- 502: OpenAI 또는 응답 검증 실패
+- iOS 기본 개발 주소: `http://127.0.0.1:8787`
+- 배포 주소는 `CAPTURETASK_API_BASE_URL` 빌드 설정/환경변수로 주입한다.
+
 ## 쓰기 규칙
 
 - 앱 할 일 저장과 캘린더 저장은 별도 결과다.

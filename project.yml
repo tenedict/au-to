@@ -21,6 +21,9 @@ targets:
       properties:
         CFBundleDisplayName: CaptureTask
         UILaunchScreen: {}
+        CAPTURETASK_API_BASE_URL: "$(CAPTURETASK_API_BASE_URL)"
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         NSCalendarsFullAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 접근이 필요해요."
         NSCalendarsWriteOnlyAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 쓰기 접근이 필요해요."
     entitlements:
@@ -28,6 +31,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask
+        CAPTURETASK_API_BASE_URL: "http://127.0.0.1:8787"
     dependencies:
       - target: CaptureTaskShare
         embed: true

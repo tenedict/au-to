@@ -25,9 +25,9 @@
 ## Sprint 2 — AI 품질
 
 - 평가셋 50건
-- 백엔드 인증/rate limit
-- Responses API Structured Outputs
-- 모호성 설명 UI
+- [x] Responses API Structured Outputs
+- [x] 모호성 설명 UI
+- [ ] 백엔드 사용자 인증/rate limit
 - 비용/지연 관측
 
 ## 미결정

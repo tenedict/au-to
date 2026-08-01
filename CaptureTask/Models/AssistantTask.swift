@@ -57,10 +57,12 @@ struct TaskDraft: Identifiable, Equatable, Sendable {
     var dueDate: Date?
     var hasExplicitTime: Bool
     var confidence: Double
+    var evidence: [String]
+    var ambiguities: [String]
     var sourceCaptureID: UUID?
 
     var needsDateConfirmation: Bool {
-        dueDate == nil || confidence < 0.80
+        dueDate == nil || confidence < 0.80 || !ambiguities.isEmpty
     }
 
     init(
@@ -70,6 +72,8 @@ struct TaskDraft: Identifiable, Equatable, Sendable {
         dueDate: Date? = nil,
         hasExplicitTime: Bool = false,
         confidence: Double,
+        evidence: [String] = [],
+        ambiguities: [String] = [],
         sourceCaptureID: UUID? = nil
     ) {
         self.id = id
@@ -78,6 +82,8 @@ struct TaskDraft: Identifiable, Equatable, Sendable {
         self.dueDate = dueDate
         self.hasExplicitTime = hasExplicitTime
         self.confidence = confidence
+        self.evidence = evidence
+        self.ambiguities = ambiguities
         self.sourceCaptureID = sourceCaptureID
     }
 

@@ -28,6 +28,17 @@ final class TaskDraftTests: XCTestCase {
         XCTAssertTrue(draft.needsDateConfirmation)
     }
 
+    func testAmbiguousDraftNeedsDateConfirmation() {
+        let draft = TaskDraft(
+            title: "예약 확인",
+            dueDate: Date(),
+            confidence: 0.95,
+            ambiguities: ["오전인지 오후인지 불명확"]
+        )
+
+        XCTAssertTrue(draft.needsDateConfirmation)
+    }
+
     func testDraftCreatesScreenshotTaskWhenCaptureIDExists() {
         let captureID = UUID()
         let draft = TaskDraft(

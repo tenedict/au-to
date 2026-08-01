@@ -13,7 +13,7 @@ final class TaskStore: ObservableObject {
 
     init(
         ocrService: any OCRService = VisionOCRService(),
-        understandingService: any ContextUnderstandingService = RuleBasedContextUnderstandingService()
+        understandingService: any ContextUnderstandingService = BackendContextUnderstandingService()
     ) {
         self.ocrService = ocrService
         self.understandingService = understandingService

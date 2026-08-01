@@ -13,6 +13,7 @@
 		4A39EDD7187ABD4B0066F629 /* TaskReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEC23692368DD075E568F80C /* TaskReviewView.swift */; };
 		6BAFA05F9EFF6DD64D949628 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824322993447DB505C93A830 /* TaskListView.swift */; };
 		6EA0B493C3A4855A5D363079 /* CaptureTaskApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47E953B3E81262ED637661D /* CaptureTaskApp.swift */; };
+		74AEB9EC4FA38933ABE99B17 /* BackendContextUnderstandingServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D51869BC9D54FF4EA5834C8 /* BackendContextUnderstandingServiceTests.swift */; };
 		943BFF00FC8B47BADA9AA45D /* ContextUnderstandingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB1BB083DDB1840C4FE1256E /* ContextUnderstandingService.swift */; };
 		A400E2B7CF5E2282EE0918A9 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9C765B629A67838B822C9D /* CalendarService.swift */; };
 		B2DE762DDC253D682E7E5524 /* VisionOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0D3BF8B08F2A858348DC64 /* VisionOCRService.swift */; };
@@ -20,6 +21,7 @@
 		C95C5E3C16C0FE728299E5A5 /* CaptureTaskShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D5F67C266603AF3CE8C05B96 /* CaptureTaskShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E32DD0FA62BA137BBACCF06A /* PendingCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB4F3886EE06DA5D9DC0B4D /* PendingCapture.swift */; };
 		F1AE0B5854F005A97AE96CEC /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 432E39F9187F126A9AD11A7A /* ShareViewController.swift */; };
+		F57029001CDA36F0EF22AC4C /* BackendContextUnderstandingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3299BAE9FF317D0C18EAEE4F /* BackendContextUnderstandingService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,11 +57,13 @@
 
 /* Begin PBXFileReference section */
 		26E247696C73522BC85B7250 /* CaptureTask.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CaptureTask.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3299BAE9FF317D0C18EAEE4F /* BackendContextUnderstandingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendContextUnderstandingService.swift; sourceTree = "<group>"; };
 		3AB4F3886EE06DA5D9DC0B4D /* PendingCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingCapture.swift; sourceTree = "<group>"; };
 		3D0D3BF8B08F2A858348DC64 /* VisionOCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionOCRService.swift; sourceTree = "<group>"; };
 		432E39F9187F126A9AD11A7A /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		51454C686BE1B44BB094FBDD /* TaskDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDraftTests.swift; sourceTree = "<group>"; };
 		5DF86F51C2B94D3604C29193 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		6D51869BC9D54FF4EA5834C8 /* BackendContextUnderstandingServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendContextUnderstandingServiceTests.swift; sourceTree = "<group>"; };
 		7CB644D640EF27423233B79F /* AssistantTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantTask.swift; sourceTree = "<group>"; };
 		824322993447DB505C93A830 /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListView.swift; sourceTree = "<group>"; };
 		8E7E2B51B91F4BF28F1A8F83 /* CaptureTaskTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = CaptureTaskTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -124,6 +128,7 @@
 		66F06A7AE983974CD28058B6 /* CaptureTaskTests */ = {
 			isa = PBXGroup;
 			children = (
+				6D51869BC9D54FF4EA5834C8 /* BackendContextUnderstandingServiceTests.swift */,
 				51454C686BE1B44BB094FBDD /* TaskDraftTests.swift */,
 			);
 			path = CaptureTaskTests;
@@ -132,6 +137,7 @@
 		78CBBB344CD00D62FECB8819 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				3299BAE9FF317D0C18EAEE4F /* BackendContextUnderstandingService.swift */,
 				FE9C765B629A67838B822C9D /* CalendarService.swift */,
 				CB1BB083DDB1840C4FE1256E /* ContextUnderstandingService.swift */,
 				3D0D3BF8B08F2A858348DC64 /* VisionOCRService.swift */,
@@ -282,6 +288,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B78CEAF438A78D3ED87DF614 /* AssistantTask.swift in Sources */,
+				F57029001CDA36F0EF22AC4C /* BackendContextUnderstandingService.swift in Sources */,
 				A400E2B7CF5E2282EE0918A9 /* CalendarService.swift in Sources */,
 				6EA0B493C3A4855A5D363079 /* CaptureTaskApp.swift in Sources */,
 				943BFF00FC8B47BADA9AA45D /* ContextUnderstandingService.swift in Sources */,
@@ -297,6 +304,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				74AEB9EC4FA38933ABE99B17 /* BackendContextUnderstandingServiceTests.swift in Sources */,
 				3AE1192737B2963D776B09A8 /* TaskDraftTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -408,6 +416,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CAPTURETASK_API_BASE_URL = "http://127.0.0.1:8787";
 				CODE_SIGN_ENTITLEMENTS = Config/CaptureTask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = CaptureTask/App/Info.plist;
@@ -425,6 +434,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CAPTURETASK_API_BASE_URL = "http://127.0.0.1:8787";
 				CODE_SIGN_ENTITLEMENTS = Config/CaptureTask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = CaptureTask/App/Info.plist;

@@ -45,7 +45,7 @@ CaptureTaskTests/
 
 ## 지금 되는 것
 
-- 텍스트를 붙여 넣어 규칙 기반 분석
+- 텍스트를 붙여 넣어 OpenAI backend 분석
 - 날짜 후보/신뢰도 확인
 - 앱 할 일 저장/완료/삭제
 - 선택한 할 일의 EventKit 저장
@@ -57,5 +57,5 @@ CaptureTaskTests/
 1. 실제 기기 서명과 App Group 식별자 확정
 2. Share Extension 실제 기기 E2E 검증
 3. OCR/문맥 평가용 익명화 스크린샷 50장 확보
-4. 백엔드 `/v1/analyze-capture`와 OpenAI Structured Outputs 어댑터
+4. 실제 OpenAI API 키로 E2E 응답 검증
 5. 중복 감지와 캘린더 수정/삭제 정책

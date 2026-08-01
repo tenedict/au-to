@@ -9,7 +9,7 @@
 - Share Extension 이미지 수집
 - App Group inbox
 - Apple Vision OCR 서비스
-- 규칙 기반 문맥 분석기
+- OpenAI Responses API 문맥 분석기
 - 사용자 확인 화면
 - EventKit 캘린더 저장
 - OpenAI/온디바이스 LLM 교체를 위한 서비스 프로토콜

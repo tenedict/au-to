@@ -74,6 +74,22 @@ struct TaskReviewView: View {
                         )
                     }
                 }
+
+                if !draft.evidence.isEmpty {
+                    Section("OpenAI가 찾은 근거") {
+                        ForEach(draft.evidence, id: \.self) { evidence in
+                            Label(evidence, systemImage: "quote.opening")
+                        }
+                    }
+                }
+
+                if !draft.ambiguities.isEmpty {
+                    Section("확인이 필요한 부분") {
+                        ForEach(draft.ambiguities, id: \.self) { ambiguity in
+                            Label(ambiguity, systemImage: "questionmark.circle")
+                        }
+                    }
+                }
             }
             .navigationTitle("할 일 확인")
             .toolbar {

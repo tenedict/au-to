@@ -6,10 +6,7 @@ struct CaptureTaskApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TaskListView(store: store)
-                .task {
-                    await store.importPendingCaptures()
-                }
+            RootView(store: store)
         }
     }
 }

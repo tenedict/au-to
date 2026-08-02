@@ -204,7 +204,7 @@
       <tr><th>문서명</th><td>CaptureTask 디자인 언어 기획서</td></tr>
       <tr><th>버전</th><td>1.0</td></tr>
       <tr><th>작성일</th><td>2026-08-03</td></tr>
-      <tr><th>문서 상태</th><td>제안 — 승인 후 구현 착수</td></tr>
+      <tr><th>문서 상태</th><td>승인 · <strong>구현 완료</strong> (2026-08-03)</td></tr>
       <tr><th>적용 범위</th><td>iOS 17.0+ · macOS 14.0+ · 두 플랫폼의 모든 화면</td></tr>
       <tr><th>선행 문서</th><td>디자인 연구 보고서 1.0 (Apple 지갑·미리 알림·캘린더·일기 분석)</td></tr>
       <tr><th>유지 대상</th><td><strong>물방울 개념</strong> · 제품 원칙 6항 · 마감 묶음 순서</td></tr>
@@ -987,14 +987,14 @@ enum DueDateText {
   <p>결함을 먼저 없애고, 그다음 토대를 옮기고, 마지막에 겉모습을 바꾼다.</p>
   <div class="tbl"><table>
     <thead><tr><th>단계</th><th>내용</th><th>검증</th></tr></thead>
-    <tr><td class="k">1</td><td><code>DueDateText</code> 신설 + 노출 계약 테스트 → <strong>카드 잘림 해소</strong> (#1 · #2)</td><td>순수 함수 테스트 · 시뮬레이터 확인</td></tr>
-    <tr><td class="k">2</td><td>날짜 형식 호출을 13곳에서 전부 교체 · 규칙 검사기에 <code>formatted(</code> 금지 추가</td><td>규칙 검사 · 전체 테스트</td></tr>
-    <tr><td class="k">3</td><td><code>core/swift/Design/</code> 신설 — 색 · 간격 · 반경 · 움직임 토큰 (#4 · #5 · #6)</td><td>빌드 · 눈으로 확인</td></tr>
-    <tr><td class="k">4</td><td>묶음 색 제거, 기호만 남김 (#3)</td><td>접근성 검토</td></tr>
-    <tr><td class="k">5</td><td>사이드바 요약 타일 · 툴바 캡슐 (#7 · #8)</td><td>macOS 실행 확인</td></tr>
+    <tr><td class="k">1</td><td><code>DueDateText</code> 신설 + 노출 계약 테스트 → <strong>카드 잘림 해소</strong> (#1 · #2)</td><td><span class="st on">완료</span> 테스트 16건 · 시뮬레이터 확인</td></tr>
+    <tr><td class="k">2</td><td>날짜 형식 호출을 13곳에서 전부 교체 · 규칙 검사기에 <code>formatted(</code> 금지 추가</td><td><span class="st on">완료</span> 규칙 12 · 일부러 어겨 확인</td></tr>
+    <tr><td class="k">3</td><td><code>core/swift/Design/</code> 신설 — 색 · 간격 · 반경 · 움직임 토큰 (#4 · #5 · #6)</td><td><span class="st on">완료</span> Palette · Space · Radius · Motion · CardMetrics</td></tr>
+    <tr><td class="k">4</td><td>묶음 색 제거, 기호만 남김 (#3)</td><td><span class="st on">완료</span> 두 플랫폼 · <code>accentColor</code> 0건</td></tr>
+    <tr><td class="k">5</td><td>사이드바 요약 타일 · 툴바 캡슐 (#7 · #8)</td><td><span class="st on">완료</span> 테스트 4건 · macOS 실행 확인</td></tr>
   </table></div>
-  <p>1단계만으로 개발 보고서 §17.3 의 미해소 결함이 닫힌다. 2~5단계는 그 뒤에 순서대로
-     진행해도 되고, 각 단계가 독립적으로 배포 가능하다.</p>
+  <p>다섯 단계를 순서대로 구현했고 단계마다 커밋을 나눴다. 개발 보고서 §17.3 의
+     미해소 결함(마감 표시 잘림)은 1단계에서 닫혔다.</p>
 
   <h3>14.3 바뀌지 않는 것</h3>
   <div class="tbl"><table>

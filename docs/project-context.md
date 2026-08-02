@@ -124,7 +124,7 @@ core/swift/       두 앱과 두 확장이 전부 쓴다
   Store/          상태·영속화·유스케이스 조율
 apps/ios/         App/ · Views/ SwiftUI 7개 · Resources/ · Share/ 담기 전용
 apps/macos/       App/ · Views/ · Windows/ · Resources/ · Share/
-tests/swift/      150건
+tests/swift/      176건
 server/           src 6개 · test 4개 · 46건
 config/apple/     entitlements 4개 · Secrets.xcconfig
 scripts/          verify · 규칙 검사 · 문서 링크 검사 · 시뮬레이터 선택
@@ -196,6 +196,6 @@ Model 은 아무도 모른다.
 
 ## 상태 숫자
 
-iOS 테스트 150 · 백엔드 테스트 46 · 프로젝트 규칙 13 · 문서 링크 167 · 빌드 경고 0 · 스토리 83/92
+iOS 테스트 176 · 백엔드 테스트 46 · 프로젝트 규칙 13 · 문서 링크 194 · 빌드 경고 0
 
 > 숫자의 원본은 [sprint-status.yaml](sprint-status.yaml) 이다.

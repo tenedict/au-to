@@ -257,7 +257,7 @@ apps/ios/
   Share/         담기 전용
 apps/macos/
   App/ Views/ Windows/ Resources/ Share/
-tests/swift/     150건
+tests/swift/     176건
 server/          Node 22 · 외부 패키지 0 · 46건
 config/apple/    entitlements · xcconfig
 scripts/         verify · 규칙 검사 · 문서 링크 검사 · 시뮬레이터 선택

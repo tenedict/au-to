@@ -1,12 +1,19 @@
 import SwiftUI
 
-/// 이번 달을 한눈에 보는 읽기 전용 격자.
+/// 이번 달을 한눈에 보는 격자.
 ///
-/// **여기서는 고치지 않는다.** 할 일의 원장은 홈의 마감 스택 하나뿐이고, 캘린더는
-/// 그것을 다른 각도에서 볼 뿐이다. 두 곳에서 고칠 수 있게 만들면 "어느 쪽이 진짜인가" 를
-/// 사용자도 코드도 답하지 못하게 된다.
+/// **캘린더는 원장이 아니다.** 할 일의 원장은 홈의 마감 스택 하나뿐이고, 여기는
+/// 그것을 날짜라는 각도에서 볼 뿐이다. 다만 "보기만 하는 화면" 과 "고칠 수 없는
+/// 화면" 은 다른 말이다 — 날짜를 눌러 일정을 찾은 사용자가 거기서 고칠 수 없으면
+/// 홈에서 같은 것을 **다시 찾아야** 한다.
+///
+/// 그래서 여기서도 고칠 수 있게 하되, 고치는 문은 홈과 **같은 하나**를 쓴다
+/// (`TaskEditorSheet`). 원장이 둘이 되는 것은 화면이 둘일 때가 아니라
+/// 저장 경로가 둘일 때다.
 struct MonthCalendarView: View {
     @ObservedObject var store: TaskStore
+    /// 일정을 눌렀을 때 열 것. 홈과 같은 편집기로 간다.
+    let onOpen: (AssistantTask) -> Void
 
     @State private var visibleMonth: Date = .now
     @State private var selectedDay: Date?
@@ -137,14 +144,16 @@ struct MonthCalendarView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(dayTasks) { task in
-                    DayTaskRow(task: task)
+                    Button { onOpen(task) } label: { DayTaskRow(task: task) }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("눌러서 자세히 보고 고쳐요")
                 }
-            }
 
-            Text("여기서는 보기만 해요. 고치려면 '할 일' 탭에서 카드를 눌러 주세요.")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .padding(.top, 2)
+                Text("눌러서 고칠 수 있어요.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 2)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 22)

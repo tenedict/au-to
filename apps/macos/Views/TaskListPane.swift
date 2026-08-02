@@ -8,6 +8,8 @@ struct TaskListPane: View {
     @ObservedObject var store: TaskStore
     let scope: TaskScope
     let onPickFiles: () -> Void
+    /// 줄을 눌렀을 때 열 것. 자세히 보기와 고치기는 한 화면이다.
+    let onOpen: (AssistantTask) -> Void
 
     @State private var selection: UUID?
 
@@ -26,7 +28,11 @@ struct TaskListPane: View {
                             Task { await store.toggleCompletion(for: task.id) }
                         }
                         .tag(task.id)
+                        // 한 번 눌러 고른 것과 두 번 눌러 여는 것을 나눈다.
+                        // 한 번에 열면 화살표로 목록을 훑는 것만으로 창이 계속 뜬다.
+                        .onTapGesture(count: 2) { onOpen(task) }
                         .contextMenu {
+                            Button("자세히 보기·고치기") { onOpen(task) }
                             Button(task.isCompleted ? "완료 취소" : "완료로 표시") {
                                 Task { await store.toggleCompletion(for: task.id) }
                             }
@@ -39,9 +45,93 @@ struct TaskListPane: View {
                 // 줄무늬(alternatingRowBackgrounds)는 쓰지 않는다. 내용이 짧으면
                 // 아래로 빈 줄이 계속 그려져서 없는 할 일이 있는 것처럼 보인다.
                 .listStyle(.inset)
+                // 고른 줄을 Return 으로도 열 수 있어야 한다. 포인터만 쓸 수 있는
+                // 조작은 키보드 사용자에게 없는 기능과 같다.
+                .onKeyPress(.return) {
+                    guard let selected = tasks.first(where: { $0.id == selection })
+                    else { return .ignored }
+                    onOpen(selected)
+                    return .handled
+                }
             }
         }
         .frame(minWidth: 380)
+    }
+}
+
+/// 확인이 필요한 초안 목록.
+///
+/// 날짜가 모호해 바로 등록하지 못한 것들이다. **여기 쌓이는 것을 사용자가 볼 수
+/// 있어야 한다** — 예전에는 이 목록을 보여주는 화면이 없어서, 모호한 캡처는
+/// 등록도 안 되고 어디에도 보이지 않은 채 사라진 것처럼 보였다.
+struct ReviewPane: View {
+    @ObservedObject var store: TaskStore
+    let onOpen: (TaskDraft) -> Void
+
+    var body: some View {
+        Group {
+            if store.pendingDrafts.isEmpty {
+                VStack(spacing: Space.gap3) {
+                    Image(systemName: "checkmark.circle")
+                        .font(.system(size: 42))
+                        .foregroundStyle(.tertiary)
+                    Text("확인할 게 없어요")
+                        .font(.title3.weight(.semibold))
+                    Text("담은 스크린샷은 전부 등록됐어요.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(store.pendingDrafts) { draft in
+                        DraftRow(draft: draft)
+                            .contentShape(.rect)
+                            .onTapGesture { onOpen(draft) }
+                            .contextMenu {
+                                Button("확인하고 등록") { onOpen(draft) }
+                                Button("버리기", role: .destructive) { store.discard(draft) }
+                            }
+                    }
+                }
+                .listStyle(.inset)
+            }
+        }
+        .frame(minWidth: 380)
+    }
+}
+
+/// 확인을 기다리는 초안 한 줄. **왜 확인이 필요한지를 함께 적는다** —
+/// 이유 없이 "확인해 주세요" 만 있으면 무엇을 고쳐야 할지 알 수 없다.
+private struct DraftRow: View {
+    let draft: TaskDraft
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Image(systemName: "questionmark.circle")
+                .foregroundStyle(Palette.water)
+                .imageScale(.large)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(draft.title).lineLimit(1)
+                Text(reason)
+                    .font(.caption)
+                    .foregroundStyle(Palette.ink3)
+                    .lineLimit(2)
+            }
+            Spacer(minLength: 6)
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("눌러서 고치고 등록해요")
+    }
+
+    /// 판정은 화면이 다시 하지 않는다. `AutoFilePolicy` 가 등록을 막은 그 이유를 그대로 쓴다.
+    private var reason: String {
+        if case .askFirst(let reason) = AutoFilePolicy.decide(for: draft) { return reason }
+        return "확인해 주세요."
     }
 }
 

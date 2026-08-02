@@ -2,14 +2,21 @@ import SwiftUI
 
 /// 한 달을 한눈에 보는 격자와, 고른 날의 일정.
 ///
-/// **여기서는 고치지 않는다.** 할 일의 원장은 앱 하나뿐이고 캘린더는 그것을 다른
-/// 각도에서 볼 뿐이다. 두 곳에서 고칠 수 있게 만들면 "어느 쪽이 진짜인가" 를
-/// 사용자도 코드도 답하지 못하게 된다.
+/// **캘린더는 여전히 원장이 아니다.** 할 일의 원장은 앱 하나뿐이고 여기는 그것을
+/// 날짜라는 각도에서 볼 뿐이다. 다만 "보기만 하는 화면" 과 "고칠 수 없는 화면" 은
+/// 다른 말이다 — 날짜를 눌러 일정을 찾은 사용자가 거기서 고칠 수 없으면,
+/// 왼쪽 목록에서 같은 것을 **다시 찾아야** 한다.
+///
+/// 그래서 여기서도 고칠 수 있게 하되, 고치는 문은 목록과 **같은 하나**를 쓴다
+/// (`TaskEditorSheet`). 원장이 둘이 되는 것은 화면이 둘일 때가 아니라
+/// 저장 경로가 둘일 때다.
 ///
 /// 날짜 계산은 하나도 하지 않는다. 격자는 `MonthGridBuilder`, 날짜별 묶기는
 /// `store.tasksByDay()` 가 만든다 — iOS 캘린더와 같은 함수다.
 struct MonthCalendarPane: View {
     @ObservedObject var store: TaskStore
+    /// 일정을 눌렀을 때 열 것. 목록 화면과 같은 편집기로 간다.
+    let onOpen: (AssistantTask) -> Void
 
     @State private var visibleMonth: Date = .now
     @State private var selectedDay: Date = Calendar.current.startOfDay(for: .now)
@@ -137,10 +144,12 @@ struct MonthCalendarPane: View {
                 Spacer(minLength: 12)
                 // 안내는 머리글 줄에 둔다. 목록 아래에 두면 일정이 많을 때 밀려
                 // 내려가서, 정작 읽어야 할 사람이 못 본다.
-                Text("보기만 해요 · 고치기는 왼쪽에서")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
+                if !dayTasks.isEmpty {
+                    Text("눌러서 고칠 수 있어요")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
             }
             .padding(.horizontal, 20)
             .padding(.top, 14)
@@ -155,7 +164,9 @@ struct MonthCalendarPane: View {
             } else {
                 VStack(spacing: 6) {
                     ForEach(dayTasks) { task in
-                        DayTaskRow(task: task)
+                        Button { onOpen(task) } label: { DayTaskRow(task: task) }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("눌러서 자세히 보고 고쳐요")
                     }
                 }
                 .padding(.horizontal, 16)

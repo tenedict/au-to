@@ -16,6 +16,7 @@ struct TaskCard: View {
     let isStacked: Bool
     let onTap: () -> Void
     let onToggleCompletion: () -> Void
+    let onEdit: () -> Void
     let onDelete: () -> Void
 
     /// 대비 높이기를 켠 사용자에게는 카드 경계를 그림자 대신 선으로 준다.
@@ -35,29 +36,20 @@ struct TaskCard: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // 카드 가장자리의 색 띠는 없앴다.
+        //
+        // 묶음마다 색을 주지 않기로 한 뒤(CLAUDE 규칙 16) 이 띠는 대부분의 카드에서
+        // 무채색이 되었고, 남은 것은 **모서리에 붙은 얇은 회색 선** 하나였다.
+        // 아무 정보도 주지 않으면서 카드가 잘린 것처럼 보이게 만들었다.
+        // 급함은 순서가, 묶음은 머리글의 기호와 글자가 이미 말하고 있다.
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
                 .fill(Color(.secondarySystemGroupedBackground))
-                .overlay(alignment: .leading) {
-                    // 묶음을 색으로만 구분하지 않는다. 머리글의 기호·글자가 같은 말을 한다.
-                    Rectangle()
-                        .fill(bucket.tint)
-                        .frame(width: 4)
-                        .clipShape(
-                            UnevenRoundedRectangle(
-                                topLeadingRadius: 20,
-                                bottomLeadingRadius: 20,
-                                bottomTrailingRadius: 0,
-                                topTrailingRadius: 0,
-                                style: .continuous
-                            )
-                        )
-                }
         )
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
         .overlay {
             if wantsHighContrast {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
                     .strokeBorder(Color.primary.opacity(isExpanded ? 0.55 : 0.35), lineWidth: 1)
             }
         }
@@ -170,6 +162,14 @@ struct TaskCard: View {
                     Tag(text: "신뢰도 \(Int((task.confidence * 100).rounded()))%", symbol: "gauge")
                 }
                 Spacer(minLength: 0)
+                // 고치기가 삭제보다 먼저다. 훨씬 자주 쓰는 쪽이 손에 가까워야 하고,
+                // 되돌릴 수 없는 것을 마지막에 두면 잘못 누를 일이 줄어든다.
+                Button(action: onEdit) {
+                    Label("고치기", systemImage: "pencil")
+                        .font(.caption.weight(.semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Palette.water)
                 Button(role: .destructive, action: onDelete) {
                     Label("삭제", systemImage: "trash")
                         .font(.caption.weight(.semibold))

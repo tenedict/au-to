@@ -10,7 +10,8 @@ struct RootView: View {
     @ObservedObject var reminderTaps: ReminderTapRouter
     @Environment(\.scenePhase) private var scenePhase
 
-    @State private var reviewDraft: TaskDraft?
+    /// 지금 열려 있는 편집기. 저장된 할 일과 초안이 같은 화면을 쓴다.
+    @State private var editing: EditableItem?
     @State private var showsManualCapture = false
     @State private var showsSettings = false
     @State private var pickedPhotos: [PhotosPickerItem] = []
@@ -64,6 +65,7 @@ struct RootView: View {
                     store: store,
                     expandedTaskID: $expandedTaskID,
                     onReviewDrafts: presentNextDraft,
+                    onEditTask: { editing = .task($0) },
                     onAddText: { showsManualCapture = true },
                     onPickPhotos: { isPickingPhotos = true },
                     onOpenSettings: { showsSettings = true }
@@ -73,7 +75,7 @@ struct RootView: View {
             .tag(Tab.tasks)
 
             NavigationStack {
-                MonthCalendarView(store: store)
+                MonthCalendarView(store: store, onOpen: { editing = .task($0) })
             }
             .tabItem { Label("캘린더", systemImage: "calendar") }
             .tag(Tab.calendar)
@@ -97,8 +99,10 @@ struct RootView: View {
             }
         }
         .onChange(of: store.pendingDrafts) { _, drafts in
-            guard reviewDraft == nil else { return }
-            reviewDraft = drafts.first { !deferredDraftIDs.contains($0.id) }
+            guard editing == nil else { return }
+            guard let next = drafts.first(where: { !deferredDraftIDs.contains($0.id) })
+            else { return }
+            editing = .draft(next)
         }
         .onChange(of: reminderTaps.requestedCaptureReview) { _, requested in
             guard requested else { return }
@@ -137,22 +141,11 @@ struct RootView: View {
                 Task { await store.analyzeManualText(text) }
             }
         }
-        .sheet(item: $reviewDraft, onDismiss: presentNextDraftIfAny) { draft in
-            TaskReviewView(
-                draft: draft,
-                reminderAuthorization: store.reminderAuthorization,
-                onSave: { task in
-                    Task { await store.save(task) }
-                },
-                onDiscard: {
-                    store.discard(draft)
-                },
-                onDefer: {
-                    deferredDraftIDs.insert(draft.id)
-                },
-                onCalendarSaved: { identifier, taskID in
-                    store.updateCalendarIdentifier(identifier, for: taskID)
-                }
+        .sheet(item: $editing, onDismiss: presentNextDraftIfAny) { item in
+            TaskEditorSheet(
+                item: item,
+                store: store,
+                onDefer: { deferredDraftIDs.insert(item.id) }
             )
         }
         .alert(
@@ -189,19 +182,23 @@ struct RootView: View {
     /// 사용자가 직접 "확인할 할 일" 을 눌렀을 때는 미뤄 둔 것까지 다시 보여준다.
     private func presentNextDraft() {
         deferredDraftIDs.removeAll()
-        reviewDraft = store.pendingDrafts.first
+        guard let first = store.pendingDrafts.first else { return }
+        editing = .draft(first)
     }
 
-    /// 한 건을 처리하면 다음 건을 이어서 띄운다. 여러 장을 한 번에 담은 사용자가
-    /// 매번 목록으로 돌아갔다 들어오지 않도록.
+    /// 한 건을 처리하면 다음 **초안**을 이어서 띄운다. 여러 장을 한 번에 담은
+    /// 사용자가 매번 목록으로 돌아갔다 들어오지 않도록.
+    ///
+    /// 저장된 할 일을 고치고 닫았을 때는 이어 붙이지 않는다 — 고치러 들어온
+    /// 사용자에게 확인 화면을 밀어 넣으면 자기가 무엇을 열었는지 잃는다.
     private func presentNextDraftIfAny() {
         guard let next = store.pendingDrafts.first(where: { !deferredDraftIDs.contains($0.id) })
         else { return }
         // 시트 전환이 겹치면 두 번째가 뜨지 않는다. 한 프레임 뒤로 미룬다.
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(350))
-            if reviewDraft == nil {
-                reviewDraft = next
+            if editing == nil {
+                editing = .draft(next)
             }
         }
     }

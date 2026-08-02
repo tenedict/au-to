@@ -9,6 +9,9 @@ struct DueStackView: View {
     /// 펼친 카드. 알림을 눌러 들어온 경우 바깥에서 정해 주므로 바인딩이다.
     @Binding var expandedTaskID: UUID?
     let onReviewDrafts: () -> Void
+    /// 카드에서 "고치기" 를 눌렀을 때. 편집기는 바깥이 띄운다 —
+    /// 스택 안에서 시트를 열면 카드가 사라질 때 시트도 함께 사라진다.
+    let onEditTask: (AssistantTask) -> Void
     let onAddText: () -> Void
     let onPickPhotos: () -> Void
     let onOpenSettings: () -> Void
@@ -246,6 +249,7 @@ struct DueStackView: View {
             isStacked: usesWalletStack,
             onTap: { toggleExpansion(of: task.id) },
             onToggleCompletion: { Task { await store.toggleCompletion(for: task.id) } },
+            onEdit: { onEditTask(task) },
             onDelete: { Task { await store.delete(task.id) } }
         )
     }

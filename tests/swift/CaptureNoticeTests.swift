@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 /// "확인해 주세요" 알림의 식별자 계약.
 ///

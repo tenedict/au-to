@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CaptureTask 전용 규칙 검사.
+# Whenly 전용 규칙 검사.
 #
 # 기성 린터가 모르는 것만 본다. 전부 문서에 근거가 있고, 전부 실제로
 # 한 번씩 사고를 낸 적이 있는 규칙이다.
@@ -89,7 +89,7 @@ if [ -z "$group_in_code" ]; then
   report error "App Group 식별자를 코드에서 찾지 못함" "SPEC C-1" \
     "$CORE/Shared/PendingCapture.swift 의 SharedInbox.appGroupIdentifier 를 확인하세요."
 else
-  for f in project.yml config/apple/CaptureTask.entitlements config/apple/CaptureTaskShare.entitlements; do
+  for f in project.yml config/apple/Whenly.entitlements config/apple/WhenlyShare.entitlements; do
     if [ ! -f "$f" ]; then
       report error "App Group 설정 파일 없음" "SPEC C-1" "$f 가 없습니다."
     elif ! grep -q "$group_in_code" "$f"; then
@@ -109,7 +109,7 @@ hits=$(grep -rnE '"sk-[A-Za-z0-9_-]|OPENAI_API_KEY|api\.openai\.com' \
         --include='*.swift' "${ALL_SWIFT[@]}" 2>/dev/null | strip_comments)
 if [ -n "$hits" ]; then
   report error "앱 코드에 OpenAI 키/직접 호출" "CLAUDE 규칙 3" \
-    "OpenAI 호출은 server/ 만 합니다. 앱은 CAPTURETASK_API_BASE_URL 로 백엔드를 부릅니다."
+    "OpenAI 호출은 server/ 만 합니다. 앱은 WHENLY_API_BASE_URL 로 백엔드를 부릅니다."
   echo "$hits" | sed 's/^/      /'
 fi
 
@@ -237,11 +237,11 @@ fi
 
 # 예제 파일에 실제 값이 들어간 채로 커밋되는 사고도 막는다.
 if [ -f config/apple/Secrets.xcconfig.example ]; then
-  hits=$(grep -nE '^[[:space:]]*CAPTURETASK_CLIENT_KEY[[:space:]]*=[[:space:]]*[^[:space:]]' \
+  hits=$(grep -nE '^[[:space:]]*WHENLY_CLIENT_KEY[[:space:]]*=[[:space:]]*[^[:space:]]' \
           config/apple/Secrets.xcconfig.example 2>/dev/null)
   if [ -n "$hits" ]; then
     report error "예제 파일에 실제 비밀" "NFR-SEC-05" \
-      "config/apple/Secrets.xcconfig.example 의 CAPTURETASK_CLIENT_KEY 는 비어 있어야 합니다."
+      "config/apple/Secrets.xcconfig.example 의 WHENLY_CLIENT_KEY 는 비어 있어야 합니다."
     echo "$hits" | sed 's/^/      /'
   fi
 fi

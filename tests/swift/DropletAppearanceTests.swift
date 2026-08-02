@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import CaptureTask
+@testable import Whenly
 
 /// 물방울이 상태마다 얼마나 커지는가.
 ///

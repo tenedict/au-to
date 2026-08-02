@@ -82,7 +82,7 @@ apps/ios/Views          apps/macos/Views
 
 1. `apps/visionos/` 에 `App/` `Views/` `Resources/` 를 만든다
 2. `project.yml` 에 타깃을 더하고 `sources` 에 그 폴더들과 **`core/swift`** 를 적는다
-3. `config/apple/CaptureTaskVision.entitlements` 를 더한다
+3. `config/apple/WhenlyVision.entitlements` 를 더한다
 4. `scripts/check-project-rules.sh` 맨 위 경로 묶음(`ALL_SWIFT`)에 새 폴더를 더한다
 5. `verify.sh` 에 그 타깃 빌드를 더한다 — 공유 코드를 고쳤을 때
    **여기가 먼저 깨지는데 빌드하지 않으면 아무도 모른 채 초록이 난다**
@@ -135,7 +135,7 @@ apps/ios/Views          apps/macos/Views
 
 | | 왜 |
 | --- | --- |
-| `CaptureTask.xcodeproj/` | `project.yml` 에서 만든다. 커밋하면 소스가 두 벌이 되고 pbxproj 안에서 충돌이 난다 |
+| `Whenly.xcodeproj/` | `project.yml` 에서 만든다. 커밋하면 소스가 두 벌이 되고 pbxproj 안에서 충돌이 난다 |
 | `build/` · `DerivedData/` | 사람마다 다르고 용량이 크다 |
 | `config/apple/Secrets.xcconfig` | 배포 주소와 공유 비밀. 되돌려도 히스토리에 남는다 |
 | `server/.env` | OpenAI 키 |

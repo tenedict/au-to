@@ -12,8 +12,8 @@
 검증 하네스를 세우자마자, **문서에는 있고 코드에는 없던 것**이 열 건 나왔다.
 전부 빌드와 테스트를 통과하던 상태였다.
 
-가장 컸던 것은 App Group 이었다. `config/apple/CaptureTask.entitlements` 와
-`CaptureTaskShare.entitlements` 가 둘 다 빈 `<dict/>` 였다.
+가장 컸던 것은 App Group 이었다. `config/apple/Whenly.entitlements` 와
+`WhenlyShare.entitlements` 가 둘 다 빈 `<dict/>` 였다.
 그래서 `containerURL(forSecurityApplicationGroupIdentifier:)` 이 언제나 nil 을 돌려주고,
 공유 시트로 담은 스크린샷은 앱에 **영원히** 도착하지 않았다.
 
@@ -64,7 +64,7 @@
 
 **규칙** — 품질이 낮은 경로로 **자동으로** 떨어지지 않는다.
 사용자는 AI 가 나빠졌다고 생각하고, 우리는 백엔드가 죽은 줄 모른다.
-대체 구현은 **명시적으로 골랐을 때만** 쓴다 (`CAPTURETASK_OFFLINE=1`).
+대체 구현은 **명시적으로 골랐을 때만** 쓴다 (`WHENLY_OFFLINE=1`).
 
 **같은 원리** — `verify.sh` 는 도구가 없으면 조용히 통과시키지 않고 무엇이 빠졌는지 적는다.
 

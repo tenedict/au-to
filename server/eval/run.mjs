@@ -90,7 +90,7 @@ for (const [index, testCase] of suite.cases.entries()) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(CLIENT_KEY ? { "X-CaptureTask-Key": CLIENT_KEY } : {}),
+        ...(CLIENT_KEY ? { "X-Whenly-Key": CLIENT_KEY } : {}),
       },
       body: JSON.stringify({
         recognized_text: testCase.text,

@@ -4,7 +4,7 @@
     python3 scripts/build-report.py
 
 `docs/report/template.html` 의 `{{IMG:이름}}` 자리에 `docs/report/assets/이름.png` 를
-base64 로 심어 `output/report/CaptureTask-Report.html` 을 만든다.
+base64 로 심어 `output/report/Whenly-Report.html` 을 만든다.
 
 **왜 심는가** — 보고서는 메일로 보내지고 다른 컴퓨터에서 열린다. 이미지를 바깥
 파일로 두면 링크가 깨진 채로 전달되고, 받은 사람은 그림이 없는 문서를 읽게 된다.
@@ -27,9 +27,9 @@ OUT_DIR = ROOT / "output" / "report"
 
 # 원본 → 생성물. 새 보고서를 더할 때 이 표에 한 줄만 넣는다.
 REPORTS = {
-    "template.html": "CaptureTask-Report.html",
-    "design-research.html": "CaptureTask-Design-Research.html",
-    "design-language.html": "CaptureTask-Design-Language.html",
+    "template.html": "Whenly-Report.html",
+    "design-research.html": "Whenly-Design-Research.html",
+    "design-language.html": "Whenly-Design-Language.html",
 }
 
 PLACEHOLDER = re.compile(r"\{\{IMG:([A-Za-z0-9._-]+)\}\}")

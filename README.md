@@ -1,4 +1,4 @@
-# CaptureTask
+# Whenly
 
 스크린샷을 iOS 공유 시트로 보내면 텍스트와 문맥을 분석해 할 일을 만들고,
 마감이 다가오면 알려 주는 개인 비서 앱입니다.
@@ -73,7 +73,7 @@ curl http://127.0.0.1:8787/health
 brew install xcodegen                                        # 최초 1회
 cp config/apple/Secrets.xcconfig.example config/apple/Secrets.xcconfig   # 최초 1회
 xcodegen generate                                            # .xcodeproj 는 생성물입니다
-open CaptureTask.xcodeproj
+open Whenly.xcodeproj
 ```
 
 `Secrets.xcconfig` 는 백엔드 주소와 공유 비밀이 들어가는 파일이라 커밋되지 않습니다.
@@ -83,7 +83,7 @@ open CaptureTask.xcodeproj
 또는 명령줄에서:
 
 ```bash
-xcodebuild -project CaptureTask.xcodeproj -scheme CaptureTask \
+xcodebuild -project Whenly.xcodeproj -scheme Whenly \
   -sdk iphonesimulator -destination "id=$(./scripts/select-simulator.sh)" \
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
 ```
@@ -91,8 +91,8 @@ xcodebuild -project CaptureTask.xcodeproj -scheme CaptureTask \
 ### 3. 백엔드 없이 눌러 보기
 
 ```bash
-SIMCTL_CHILD_CAPTURETASK_OFFLINE=1 \
-  xcrun simctl launch --terminate-running-process booted com.example.capturetask
+SIMCTL_CHILD_WHENLY_OFFLINE=1 \
+  xcrun simctl launch --terminate-running-process booted com.example.whenly
 ```
 
 규칙 기반 분석기를 씁니다. **백엔드가 죽었다고 자동으로 여기로 떨어지지는 않습니다** —
@@ -135,7 +135,7 @@ brew install lefthook && lefthook install
 2. 같은 파일의 `com.apple.security.application-groups` 값을 개발자 계정에 등록합니다
 3. `core/swift/Shared/PendingCapture.swift` 의 `appGroupIdentifier` 도 같은 값으로 맞춥니다
 4. `./scripts/check-project-rules.sh` 로 네 곳이 일치하는지 확인합니다
-5. `CAPTURETASK_API_BASE_URL` 을 맥의 LAN 주소로 바꿉니다 (`http://192.168.x.x:8787`)
+5. `WHENLY_API_BASE_URL` 을 맥의 LAN 주소로 바꿉니다 (`http://192.168.x.x:8787`)
 
 > 3번을 빠뜨리면 담기는 성공하고 **도착만 실패합니다.** 규칙 1이 그것을 막습니다.
 
@@ -151,11 +151,11 @@ brew install lefthook && lefthook install
 | [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/platform/17-ONDEVICE-LLM-RESEARCH.md) | 온디바이스 LLM 비교 분석 |
 | [`docs/project-context.md`](docs/project-context.md) | 5분 요약 — 새 세션은 여기부터 |
 | [`CLAUDE.md`](CLAUDE.md) | 작업 규칙 (사람·AI 공용) |
-| [**개발 보고서**](output/report/CaptureTask-Report.html) | 기획→PRD→SRS→플로우→기술→검증을 순서대로 · **스크린샷 포함** · 한 파일 |
-| [**디자인 연구 보고서**](output/report/CaptureTask-Design-Research.html) | Apple 지갑·미리 알림·캘린더·일기를 실제로 실행해 분석 · 적용 권고 |
-| [**디자인 언어 기획서**](output/report/CaptureTask-Design-Language.html) | 물방울에서 파생한 색·글자·간격·부품 규격 · 이행 계획 |
-| [통합 HTML 기획서](docs/CaptureTask-Development-Plan.html) | 제품·UX·아키텍처·비용·배포를 한 문서로 |
-| [PDF](output/pdf/CaptureTask-Development-Plan.pdf) | 공유·인쇄용 A4 |
+| [**개발 보고서**](output/report/Whenly-Report.html) | 기획→PRD→SRS→플로우→기술→검증을 순서대로 · **스크린샷 포함** · 한 파일 |
+| [**디자인 연구 보고서**](output/report/Whenly-Design-Research.html) | Apple 지갑·미리 알림·캘린더·일기를 실제로 실행해 분석 · 적용 권고 |
+| [**디자인 언어 기획서**](output/report/Whenly-Design-Language.html) | 물방울에서 파생한 색·글자·간격·부품 규격 · 이행 계획 |
+| [통합 HTML 기획서](docs/Whenly-Development-Plan.html) | 제품·UX·아키텍처·비용·배포를 한 문서로 |
+| [PDF](output/pdf/Whenly-Development-Plan.pdf) | 공유·인쇄용 A4 |
 
 ```bash
 python3 scripts/build-report.py              # 개발 보고서 재생성 (의존성 없음)

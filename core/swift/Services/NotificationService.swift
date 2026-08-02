@@ -30,7 +30,7 @@ enum ReminderAuthorizationState: Equatable, Sendable {
         case .authorized:
             return nil
         case .denied:
-            return "알림이 꺼져 있어요. 설정 > 알림 > CaptureTask에서 켜 주세요."
+            return "알림이 꺼져 있어요. 설정 > 알림 > Whenly에서 켜 주세요."
         }
     }
 }

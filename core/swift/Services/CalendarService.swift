@@ -112,7 +112,7 @@ enum CalendarServiceError: LocalizedError {
         case .missingEvent:
             return "캘린더에서 이 일정을 찾지 못했어요. 캘린더 앱에서 지운 것 같아요."
         case .accessDenied:
-            return "캘린더 접근이 꺼져 있어요. 설정 > CaptureTask에서 접근을 허용해 주세요."
+            return "캘린더 접근이 꺼져 있어요. 설정 > Whenly에서 접근을 허용해 주세요."
         case .missingCalendar:
             return "기본 캘린더를 찾지 못했어요. 캘린더 앱에서 기본 캘린더를 지정해 주세요."
         case .missingIdentifier:

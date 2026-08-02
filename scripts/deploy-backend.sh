@@ -11,10 +11,10 @@ cd "$(dirname "$0")/.."
 
 RED=$'\033[31m'; GRN=$'\033[32m'; YEL=$'\033[33m'; BLD=$'\033[1m'; DIM=$'\033[2m'; OFF=$'\033[0m'
 
-SERVICE="${CAPTURETASK_SERVICE:-capturetask-backend}"
-REGION="${CAPTURETASK_REGION:-asia-northeast3}"   # 서울
+SERVICE="${WHENLY_SERVICE:-whenly-backend}"
+REGION="${WHENLY_REGION:-asia-northeast3}"   # 서울
 # 인스턴스가 늘면 하루 한도가 인스턴스 수만큼 곱해진다. 금액 상한을 확정하려면 여기를 고정한다.
-MAX_INSTANCES="${CAPTURETASK_MAX_INSTANCES:-2}"
+MAX_INSTANCES="${WHENLY_MAX_INSTANCES:-2}"
 
 step() { printf '\n%s▸ %s%s\n' "$BLD" "$1" "$OFF"; }
 ok()   { printf '%s  ✓ %s%s\n' "$GRN" "$1" "$OFF"; }
@@ -29,7 +29,7 @@ ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format='value(account)' 2>/d
 [ -n "$ACCOUNT" ] || die "gcloud 로그인이 필요합니다" "  gcloud auth login"
 ok "계정 $ACCOUNT"
 
-PROJECT="${CAPTURETASK_PROJECT:-$(gcloud config get-value project 2>/dev/null)}"
+PROJECT="${WHENLY_PROJECT:-$(gcloud config get-value project 2>/dev/null)}"
 [ -n "$PROJECT" ] && [ "$PROJECT" != "(unset)" ] || \
   die "프로젝트가 정해져 있지 않습니다" "  gcloud config set project <PROJECT_ID>"
 ok "프로젝트 $PROJECT"
@@ -41,7 +41,7 @@ ok "인증 유효"
 
 # ── 비밀 ────────────────────────────────────────────────────
 step "비밀"
-for secret in OPENAI_API_KEY CAPTURETASK_CLIENT_KEY; do
+for secret in OPENAI_API_KEY WHENLY_CLIENT_KEY; do
   if gcloud secrets describe "$secret" --project "$PROJECT" >/dev/null 2>&1; then
     ok "$secret"
   else
@@ -55,10 +55,10 @@ for secret in OPENAI_API_KEY CAPTURETASK_CLIENT_KEY; do
 
     # 앱과 서버가 나눠 갖는 공유 비밀 (앱 번들에도 들어갑니다)
     printf '%s' "\$(openssl rand -base64 32)" | \\
-      gcloud secrets create CAPTURETASK_CLIENT_KEY --data-file=- --project $PROJECT
+      gcloud secrets create WHENLY_CLIENT_KEY --data-file=- --project $PROJECT
 
     # 만든 값 확인 — config/apple/Secrets.xcconfig 에 같은 값을 넣어야 합니다
-    gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY --project $PROJECT
+    gcloud secrets versions access latest --secret WHENLY_CLIENT_KEY --project $PROJECT
 
 EOF
     exit 1
@@ -85,7 +85,7 @@ done
 step "비밀 읽기 권한"
 PROJECT_NUMBER=$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')
 RUNTIME_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
-for secret in OPENAI_API_KEY CAPTURETASK_CLIENT_KEY; do
+for secret in OPENAI_API_KEY WHENLY_CLIENT_KEY; do
   gcloud secrets add-iam-policy-binding "$secret" \
     --member="serviceAccount:$RUNTIME_SA" \
     --role="roles/secretmanager.secretAccessor" \
@@ -106,12 +106,12 @@ gcloud run deploy "$SERVICE" \
   --memory 512Mi \
   --cpu 1 \
   --timeout 30s \
-  --set-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest,CAPTURETASK_CLIENT_KEY=CAPTURETASK_CLIENT_KEY:latest" \
+  --set-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest,WHENLY_CLIENT_KEY=WHENLY_CLIENT_KEY:latest" \
   --set-env-vars "HOST=0.0.0.0" \
   || die "배포 실패"
 
 # `--allow-unauthenticated` 는 "구글 IAM 인증을 요구하지 않는다"는 뜻이다.
-# 우리 인증은 그 위에서 X-CaptureTask-Key 헤더로 한다. IAM 을 켜면 앱이 구글
+# 우리 인증은 그 위에서 X-Whenly-Key 헤더로 한다. IAM 을 켜면 앱이 구글
 # 토큰을 들고 다녀야 해서 이 제품에는 맞지 않는다.
 
 URL=$(gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" \
@@ -128,7 +128,7 @@ if [ "$NOKEY" = "401" ]; then
   ok "키 없는 요청 401 (인증이 실제로 켜져 있습니다)"
 else
   die "키 없는 요청이 $NOKEY 를 돌려줬습니다 — 인증이 걸려 있지 않습니다!" \
-      "  CAPTURETASK_CLIENT_KEY 가 서비스에 주입됐는지 확인하세요."
+      "  WHENLY_CLIENT_KEY 가 서비스에 주입됐는지 확인하세요."
 fi
 
 printf '\n%s%s배포 완료%s\n' "$GRN" "$BLD" "$OFF"
@@ -138,10 +138,10 @@ ${BLD}앱에 연결하기${OFF}
   1. cp config/apple/Secrets.xcconfig.example config/apple/Secrets.xcconfig   (없으면)
   2. config/apple/Secrets.xcconfig 를 열어 채웁니다
 
-       CAPTURETASK_HOST = ${URL#https://}
-       CAPTURETASK_CLIENT_KEY = <아래 명령의 출력>
+       WHENLY_HOST = ${URL#https://}
+       WHENLY_CLIENT_KEY = <아래 명령의 출력>
 
-     ${DIM}gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY --project $PROJECT${OFF}
+     ${DIM}gcloud secrets versions access latest --secret WHENLY_CLIENT_KEY --project $PROJECT${OFF}
 
   3. xcodegen generate && 빌드
 

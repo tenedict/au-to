@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 /// 알림 시각 계약.
 ///

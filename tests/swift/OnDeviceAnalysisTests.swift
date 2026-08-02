@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 #if canImport(FoundationModels)
 import FoundationModels

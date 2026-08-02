@@ -137,7 +137,7 @@ final class ShareViewController: UIViewController {
     private func summary(filed: [FiledCapture], needsReview: Bool) -> String {
         switch (filed.count, needsReview) {
         case (0, true):
-            return "확인이 필요해요. CaptureTask에서 봐 주세요."
+            return "확인이 필요해요. Whenly에서 봐 주세요."
         case (0, false):
             return "할 일로 만들 내용을 찾지 못했어요."
         case (let count, false):
@@ -171,7 +171,7 @@ final class ShareViewController: UIViewController {
         statusLabel.text = message
         extensionContext?.cancelRequest(
             withError: NSError(
-                domain: "CaptureTaskShare",
+                domain: "WhenlyShare",
                 code: 1,
                 userInfo: [NSLocalizedDescriptionKey: message]
             )

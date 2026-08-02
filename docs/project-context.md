@@ -1,4 +1,4 @@
-# CaptureTask — Project Context
+# Whenly — Project Context
 
 > BMAD 보조 도구 `bmad-generate-project-context` 대응 산출물.
 > **AI 에이전트가 이 프로젝트에서 일관된 판단을 하기 위해 읽는 문서.** 사람에게는 요약본으로도 쓰인다.
@@ -8,7 +8,7 @@
 
 ## 무엇을 만드는가
 
-**CaptureTask** — iPhone 스크린샷을 공유 시트로 보내면 할 일이 되고, 마감이 다가오면 알려 주는 개인 비서 앱.
+**Whenly** — iPhone 스크린샷을 공유 시트로 보내면 할 일이 되고, 마감이 다가오면 알려 주는 개인 비서 앱.
 
 ```
 1. Share Extension 이 원본을 App Group 상자에 담는다
@@ -50,8 +50,8 @@
 | 백엔드 | Node 22 · `node:http` · 외부 패키지 0 |
 | 프로젝트 정의 | XcodeGen (`project.yml`) — `.xcodeproj` 는 **생성물, 미추적** |
 | 테스트 | XCTest 150건 · `node:test` 46건 |
-| 번들 ID | `com.example.capturetask` (D-1 미확정) |
-| App Group | `group.com.example.capturetask` |
+| 번들 ID | `com.example.whenly` (D-1 미확정) |
+| App Group | `group.com.example.whenly` |
 | 기본 언어 | 한국어 |
 
 ---
@@ -76,13 +76,13 @@ set -a; source .env; set +a; npm start
 
 | 환경 변수 (DEBUG 전용) | 뜻 |
 | --- | --- |
-| `CAPTURETASK_OFFLINE=1` | 백엔드 없이 규칙 기반 분석기 사용 |
-| `CAPTURETASK_TAB=0\|1` | 시작 탭 (할 일 / 캘린더) |
-| `CAPTURETASK_SHEET=settings\|text` | 시작하자마자 열 시트 |
-| `CAPTURETASK_OPEN_LIST=1` | (macOS) 시작하자마자 대시보드 창을 연다 |
-| `CAPTURETASK_FILE=<경로>` | (macOS) 그 이미지를 곧바로 처리한다 |
-| `CAPTURETASK_API_BASE_URL` | 백엔드 주소 (기본 `http://127.0.0.1:8787`) |
-| `CAPTURETASK_SIMULATOR_ID` | 시뮬레이터 고정 |
+| `WHENLY_OFFLINE=1` | 백엔드 없이 규칙 기반 분석기 사용 |
+| `WHENLY_TAB=0\|1` | 시작 탭 (할 일 / 캘린더) |
+| `WHENLY_SHEET=settings\|text` | 시작하자마자 열 시트 |
+| `WHENLY_OPEN_LIST=1` | (macOS) 시작하자마자 대시보드 창을 연다 |
+| `WHENLY_FILE=<경로>` | (macOS) 그 이미지를 곧바로 처리한다 |
+| `WHENLY_API_BASE_URL` | 백엔드 주소 (기본 `http://127.0.0.1:8787`) |
+| `WHENLY_SIMULATOR_ID` | 시뮬레이터 고정 |
 
 시뮬레이터에서는 `SIMCTL_CHILD_` 접두사를 붙인다.
 

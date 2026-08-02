@@ -70,7 +70,7 @@ jobs:
       - name: 시뮬레이터 확인
         run: |
           xcrun simctl list devices available | grep iPhone | head -5
-          echo "CAPTURETASK_SIMULATOR_ID=$(./scripts/select-simulator.sh)" >> "$GITHUB_ENV"
+          echo "WHENLY_SIMULATOR_ID=$(./scripts/select-simulator.sh)" >> "$GITHUB_ENV"
 
       - name: 검증
         run: ./scripts/verify.sh

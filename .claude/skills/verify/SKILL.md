@@ -1,6 +1,6 @@
 ---
 name: verify
-description: CaptureTask 작업을 완료했다고 보고하기 전에 실행하는 검증. 프로젝트 규칙·포맷·린트·백엔드 테스트·iOS 전체 테스트를 한 번에 돌리고, 실패하면 무엇이 왜 실패했는지 정리한다. 코드를 고친 뒤, 커밋 전, "다 됐다"고 말하기 전에 쓴다.
+description: Whenly 작업을 완료했다고 보고하기 전에 실행하는 검증. 프로젝트 규칙·포맷·린트·백엔드 테스트·iOS 전체 테스트를 한 번에 돌리고, 실패하면 무엇이 왜 실패했는지 정리한다. 코드를 고친 뒤, 커밋 전, "다 됐다"고 말하기 전에 쓴다.
 ---
 
 # 검증
@@ -60,22 +60,22 @@ description: CaptureTask 작업을 완료했다고 보고하기 전에 실행하
 ```bash
 # 서명해서 빌드한다 — CODE_SIGNING_ALLOWED=NO 로 빌드하면 entitlements 가 안 박혀
 # App Group 이 언제나 nil 이고, 앱이 "공유 시트로 담기를 쓸 수 없어요" 를 띄운다.
-xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTask -sdk iphonesimulator \
+xcodebuild build -project Whenly.xcodeproj -scheme Whenly -sdk iphonesimulator \
   -destination "id=$(./scripts/select-simulator.sh)" -derivedDataPath /tmp/ct-signed
 
-xcrun simctl install booted /tmp/ct-signed/Build/Products/Debug-iphonesimulator/CaptureTask.app
+xcrun simctl install booted /tmp/ct-signed/Build/Products/Debug-iphonesimulator/Whenly.app
 
 # 백엔드 없이 전체 흐름 (규칙 기반 분석기) · 캘린더 탭으로 시작
-SIMCTL_CHILD_CAPTURETASK_OFFLINE=1 SIMCTL_CHILD_CAPTURETASK_TAB=1 \
-  xcrun simctl launch --terminate-running-process booted com.example.capturetask
+SIMCTL_CHILD_WHENLY_OFFLINE=1 SIMCTL_CHILD_WHENLY_TAB=1 \
+  xcrun simctl launch --terminate-running-process booted com.example.whenly
 ```
 
 | DEBUG 환경 변수 | 값 |
 | --- | --- |
-| `CAPTURETASK_OFFLINE` | `1` — 백엔드 없이 규칙 기반 분석기 |
-| `CAPTURETASK_TAB` | `0` 할 일 · `1` 캘린더 |
-| `CAPTURETASK_SHEET` | `settings` 설정 · `text` 텍스트 분석 |
-| `CAPTURETASK_API_BASE_URL` | 백엔드 주소 |
+| `WHENLY_OFFLINE` | `1` — 백엔드 없이 규칙 기반 분석기 |
+| `WHENLY_TAB` | `0` 할 일 · `1` 캘린더 |
+| `WHENLY_SHEET` | `settings` 설정 · `text` 텍스트 분석 |
+| `WHENLY_API_BASE_URL` | 백엔드 주소 |
 
 | 확인할 것 | 어떻게 |
 | --- | --- |

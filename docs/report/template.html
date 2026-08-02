@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CaptureTask 개발 보고서</title>
+<title>Whenly 개발 보고서</title>
 <style>
   /* ─────────────────────────────────────────────────────────────
-     CaptureTask 개발 보고서
+     Whenly 개발 보고서
      서체 SF Pro (한글은 SF Pro 가 덮지 않으므로 Apple SD Gothic Neo 로 이어 받는다)
      색   흑백 전용 — 강조는 색이 아니라 굵기·괘선·여백으로만 한다
      인쇄 A4 세로. 어떤 요소도 잘리지 않는다
@@ -193,18 +193,18 @@
 
 <!-- ══════════════════════ 표지 ══════════════════════ -->
 <header class="cover">
-  <div class="org">CaptureTask</div>
+  <div class="org">Whenly</div>
   <h1>개발 보고서</h1>
   <p class="sub">스크린샷 한 장을 공유하면 할 일이 되고, 마감이 다가오면 알려 주는
      iOS · macOS 개인 비서 애플리케이션</p>
 
   <div class="docinfo">
     <table>
-      <tr><th>문서명</th><td>CaptureTask 개발 보고서</td></tr>
+      <tr><th>문서명</th><td>Whenly 개발 보고서</td></tr>
       <tr><th>버전</th><td>1.0</td></tr>
       <tr><th>작성일</th><td>2026-08-02</td></tr>
       <tr><th>문서 상태</th><td>확정</td></tr>
-      <tr><th>대상</th><td>CaptureTask · iOS 17.0+ · macOS 14.0+ · 분석 백엔드 (Node 22)</td></tr>
+      <tr><th>대상</th><td>Whenly · iOS 17.0+ · macOS 14.0+ · 분석 백엔드 (Node 22)</td></tr>
       <tr><th>릴리스 단계</th><td>R0 통과 · R1 조건부 · R2 미달</td></tr>
       <tr><th>범위</th><td>제품 기획, 요구사항 명세(기능·비기능), 기능 명세, 정보 구조,
         유저 플로우, 시스템 아키텍처, API 명세, 데이터 모델, 알림 명세, 품질 보증,
@@ -250,7 +250,7 @@
   <h2>제품 개요</h2>
 
   <h3>1.1 제품 정의</h3>
-  <p>CaptureTask 는 사용자가 스크린샷을 공유하면 그 안의 텍스트를 인식하고 문맥을
+  <p>Whenly 는 사용자가 스크린샷을 공유하면 그 안의 텍스트를 인식하고 문맥을
      해석하여 <strong>제목과 마감이 있는 할 일</strong>로 변환하고, 마감 전에 알림을
      제공하는 개인 비서 애플리케이션이다. iOS 와 macOS 를 대상으로 하며, 문맥 해석을
      담당하는 분석 백엔드를 포함한다.</p>
@@ -544,7 +544,7 @@
   <div class="tbl"><table>
     <thead><tr><th>ID</th><th>기능</th><th>핵심 수용 기준</th></tr></thead>
     <tr><td class="k">F-11</td><td>텍스트 직접 입력 분석</td><td>스크린샷 없이 분석 품질만 확인하는 경로</td></tr>
-    <tr><td class="k">F-12</td><td>백엔드 없이 흐름 확인</td><td><code>CAPTURETASK_OFFLINE=1</code> · 규칙 기반 분석기 사용</td></tr>
+    <tr><td class="k">F-12</td><td>백엔드 없이 흐름 확인</td><td><code>WHENLY_OFFLINE=1</code> · 규칙 기반 분석기 사용</td></tr>
   </table></div>
 </section>
 
@@ -829,7 +829,7 @@ project.yml      XcodeGen 정의 — .xcodeproj 는 생성물이다</pre>
   <h3>11.5 생성물</h3>
   <div class="tbl"><table>
     <thead><tr><th>대상</th><th>정책</th></tr></thead>
-    <tr><td class="k"><code>CaptureTask.xcodeproj/</code></td><td>미커밋. <code>project.yml</code> 에서 생성한다</td></tr>
+    <tr><td class="k"><code>Whenly.xcodeproj/</code></td><td>미커밋. <code>project.yml</code> 에서 생성한다</td></tr>
     <tr><td class="k"><code>build/</code> · <code>DerivedData/</code></td><td>미커밋</td></tr>
     <tr><td class="k"><code>config/apple/Secrets.xcconfig</code></td><td>미커밋. 배포 주소와 공유 비밀을 포함한다</td></tr>
     <tr><td class="k"><code>server/.env</code></td><td>미커밋. OpenAI 키를 포함한다</td></tr>
@@ -853,7 +853,7 @@ project.yml      XcodeGen 정의 — .xcodeproj 는 생성물이다</pre>
   <h3>12.2 요청</h3>
 <pre>POST /v1/analyze-capture
 Content-Type: application/json
-X-CaptureTask-Key: &lt;공유 비밀&gt;
+X-Whenly-Key: &lt;공유 비밀&gt;
 
 {
   "recognized_text": "8월 12일 오후 3시 정기검진 예약이 확정되었습니다.",
@@ -916,7 +916,7 @@ X-CaptureTask-Key: &lt;공유 비밀&gt;
   <h3>12.5 인증 및 요청 한도</h3>
   <div class="tbl"><table>
     <thead><tr><th>항목</th><th>값</th></tr></thead>
-    <tr><td class="k">헤더</td><td><code>X-CaptureTask-Key</code> · 최소 24자 · <code>timingSafeEqual</code> 비교</td></tr>
+    <tr><td class="k">헤더</td><td><code>X-Whenly-Key</code> · 최소 24자 · <code>timingSafeEqual</code> 비교</td></tr>
     <tr><td class="k">검증 시점</td><td>본문 수신 전 (미인증 요청으로 메모리를 소비하지 않는다)</td></tr>
     <tr><td class="k">로컬 예외</td><td>루프백 바인딩 시에만 키 없이 기동 가능. 그 외에는 기동 거부</td></tr>
     <tr><td class="k">기동 거부 조건</td><td>비루프백+키 부재 · 키 24자 미만 · 키가 <code>sk-</code> 로 시작</td></tr>
@@ -946,7 +946,7 @@ X-CaptureTask-Key: &lt;공유 비밀&gt;
   <h3>13.2 저장 위치</h3>
   <div class="tbl"><table>
     <thead><tr><th>대상</th><th>위치</th><th>형식</th></tr></thead>
-    <tr><td class="k">할 일</td><td>App Group 컨테이너 <code>CaptureTask/tasks.json</code></td><td>JSON · 원자적 쓰기</td></tr>
+    <tr><td class="k">할 일</td><td>App Group 컨테이너 <code>Whenly/tasks.json</code></td><td>JSON · 원자적 쓰기</td></tr>
     <tr><td class="k">미확인 초안</td><td>동일 위치 <code>drafts.json</code></td><td>JSON · 원자적 쓰기</td></tr>
     <tr><td class="k">캡처 이미지</td><td>App Group <code>Inbox/</code></td><td>원본 바이트</td></tr>
     <tr><td class="k">설정 (분석 엔진)</td><td><code>UserDefaults</code></td><td>—</td></tr>
@@ -1432,7 +1432,7 @@ confidence 최소   0.60  ·   0.80  ·   0.60</pre>
      전부 실제 화면 캡처로 합성하지 않았다.</p>
 </section>
 
-<p class="foot">CaptureTask 개발 보고서 · 버전 1.0 · 2026-08-02<br>
+<p class="foot">Whenly 개발 보고서 · 버전 1.0 · 2026-08-02<br>
 iOS 테스트 130 · 백엔드 테스트 46 · 프로젝트 규칙 12 · 문서 링크 147 · 빌드 경고 0<br>
 수치의 원본은 <code>./scripts/verify.sh</code> 의 출력이다. 본 문서와 상이한 경우 그쪽이 정본이다.</p>
 

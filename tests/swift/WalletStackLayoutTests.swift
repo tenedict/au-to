@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 /// 지갑 스택의 세로 배치.
 ///

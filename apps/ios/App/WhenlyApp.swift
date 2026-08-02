@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct CaptureTaskApp: App {
+struct WhenlyApp: App {
     @StateObject private var store = TaskStore()
     @StateObject private var reminderTaps = ReminderTapRouter()
     /// 읽기를 들고 있는 줄. 화면이 아니라 앱이 소유한다 —

@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import CaptureTask
+@testable import Whenly
 
 /// 마감을 글자로 옮기는 규칙.
 ///

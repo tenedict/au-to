@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import CaptureTask
+@testable import Whenly
 
 /// 위젯이 무엇을 보여주고 언제 다시 그리는가.
 ///

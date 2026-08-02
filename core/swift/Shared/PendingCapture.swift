@@ -31,7 +31,7 @@ struct PendingCapture: Codable, Identifiable, Sendable {
 enum SharedInbox {
     /// `Config/*.entitlements` 두 파일과 반드시 같은 값이어야 한다.
     /// 프로젝트 규칙 1 이 세 곳을 대조한다.
-    static let appGroupIdentifier = "group.com.example.capturetask"
+    static let appGroupIdentifier = "group.com.example.whenly"
 
     /// 상자를 쓸 수 있는지. 화면이 "왜 안 되는지" 말할 수 있어야 한다.
     enum Availability: Equatable, Sendable {

@@ -1,10 +1,10 @@
-# CaptureTask — Sprint Status
+# Whenly — Sprint Status
 # BMAD Phase 4 · bmad-sprint-planning 산출물
 # 사람이 읽는 쪽: 14-SPRINT.md
 #
 # 이 파일이 진행 숫자의 원본이다. 문서에 손으로 적은 숫자와 어긋나면 이쪽이 맞다.
 
-project: capturetask
+project: whenly
 platform: ios
 scale_level: 2 # 단일 플랫폼 · 단일 팀 · 작은 백엔드 하나
 updated: 2026-08-03
@@ -21,15 +21,15 @@ deployment:
   backend:
     platform: cloud-run
     region: asia-northeast3 # 서울
-    project: capturetask-260801
+    project: whenly-260801
     deployed_at: 2026-08-01
-    auth: shared-secret # X-CaptureTask-Key
+    auth: shared-secret # X-Whenly-Key
     limits: { per_minute_per_ip: 10, per_day_per_instance: 500, max_instances: 2 }
     verified:
       - health 200
       - 키 없는 요청 401
       - 분당 한도 초과 시 429
-      - 앱에서 실제 호출 200 (CaptureTask/1 CFNetwork)
+      - 앱에서 실제 호출 200 (Whenly/1 CFNetwork)
     latency_observed_seconds: 4.4
 
 verification:

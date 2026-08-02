@@ -14,7 +14,7 @@ import WidgetKit
 /// | 대형 (4×4) | 요약 줄 + 여섯 건 |
 /// | 특대 (8×4, iPad) | 요약 줄 + 여덟 건을 두 단으로 |
 struct NextTaskWidget: Widget {
-    static let kind = "CaptureTaskNextTask"
+    static let kind = "WhenlyNextTask"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: Self.kind, provider: SnapshotProvider()) { entry in

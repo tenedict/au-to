@@ -35,7 +35,7 @@ final class TaskStore: ObservableObject {
     private let defaults: UserDefaults
     private let now: () -> Date
 
-    private static let engineDefaultsKey = "CaptureTask.analysisEngine"
+    private static let engineDefaultsKey = "Whenly.analysisEngine"
 
     init(
         ocrService: any OCRService = VisionOCRService(),

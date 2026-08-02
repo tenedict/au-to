@@ -24,7 +24,7 @@ const port = Number.parseInt(process.env.PORT ?? "8787", 10);
 
 let clientKey;
 try {
-  clientKey = resolveClientKey({ key: process.env.CAPTURETASK_CLIENT_KEY, host });
+  clientKey = resolveClientKey({ key: process.env.WHENLY_CLIENT_KEY, host });
 } catch (error) {
   if (error instanceof ClientKeyError) {
     console.error(error.message);
@@ -35,10 +35,10 @@ try {
 
 const limits = {
   perMinutePerClient: numberFromEnv(
-    "CAPTURETASK_RATE_PER_MINUTE",
+    "WHENLY_RATE_PER_MINUTE",
     DEFAULT_LIMITS.perMinutePerClient
   ),
-  perDayTotal: numberFromEnv("CAPTURETASK_RATE_PER_DAY", DEFAULT_LIMITS.perDayTotal),
+  perDayTotal: numberFromEnv("WHENLY_RATE_PER_DAY", DEFAULT_LIMITS.perDayTotal),
 };
 
 const client = new OpenAIClient({ apiKey, model });
@@ -49,12 +49,12 @@ const app = createApp({
 });
 
 app.listen(port, host, () => {
-  console.log(`CaptureTask backend listening on http://${host}:${port}`);
+  console.log(`Whenly backend listening on http://${host}:${port}`);
   console.log(`OpenAI model: ${model}`);
   console.log(
     clientKey
-      ? "인증: X-CaptureTask-Key 필요"
-      : "인증: 없음 (루프백 전용). 외부에 노출하려면 CAPTURETASK_CLIENT_KEY 를 설정하세요."
+      ? "인증: X-Whenly-Key 필요"
+      : "인증: 없음 (루프백 전용). 외부에 노출하려면 WHENLY_CLIENT_KEY 를 설정하세요."
   );
   console.log(
     `한도: IP 당 분당 ${limits.perMinutePerClient}회 · 인스턴스 당 하루 ${limits.perDayTotal}회`

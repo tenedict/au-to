@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 /// 분석 엔진 선택 계약.
 ///
@@ -122,7 +122,7 @@ final class AnalysisEngineTests: XCTestCase {
         XCTAssertEqual(
             ContextUnderstanding.defaultEngine(
                 stored: .backend,
-                environment: ["CAPTURETASK_OFFLINE": "1"]
+                environment: ["WHENLY_OFFLINE": "1"]
             ),
             .ruleBased
         )

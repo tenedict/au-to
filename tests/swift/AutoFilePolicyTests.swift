@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 /// 확인 없이 캘린더에 넣어도 되는지 판정.
 ///

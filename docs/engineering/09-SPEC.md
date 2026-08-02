@@ -55,7 +55,7 @@
 ### C-4 · App Group 식별자
 
 ```
-group.com.example.capturetask
+group.com.example.whenly
 ```
 
 이 문자열이 **네 곳**에서 같아야 한다.
@@ -63,8 +63,8 @@ group.com.example.capturetask
 | 어디 | 왜 |
 | --- | --- |
 | `core/swift/Shared/PendingCapture.swift` | 두 프로세스가 컨테이너를 찾는 키 |
-| `project.yml` → `CaptureTask` 의 `entitlements.properties` | 생성물의 원본 |
-| `project.yml` → `CaptureTaskShare` 의 `entitlements.properties` | 〃 |
+| `project.yml` → `Whenly` 의 `entitlements.properties` | 생성물의 원본 |
+| `project.yml` → `WhenlyShare` 의 `entitlements.properties` | 〃 |
 | `config/apple/*.entitlements` (생성물) | 실제 서명에 들어가는 값 |
 
 **C-4.1 · `project.yml` 에 `entitlements.properties` 로 적는다.**
@@ -194,7 +194,7 @@ group.com.example.capturetask
 
 | | 계약 |
 | --- | --- |
-| 위치 | `Application Support/CaptureTask/` |
+| 위치 | `Application Support/Whenly/` |
 | 파일 | `tasks.json` · `drafts.json` |
 | 쓰기 | 원자적 (`.atomic`) |
 | 날짜 쓰기 | ISO 8601 + **소수점(밀리초)** |
@@ -289,11 +289,11 @@ group.com.example.capturetask
 
 ### H-3 · 클라이언트 인증
 
-앱이 `X-CaptureTask-Key` 헤더에 공유 비밀을 실어 보낸다.
+앱이 `X-Whenly-Key` 헤더에 공유 비밀을 실어 보낸다.
 
 | | |
 | --- | --- |
-| 헤더 | `X-CaptureTask-Key` |
+| 헤더 | `X-Whenly-Key` |
 | 최소 길이 | 24자 |
 | 비교 | `timingSafeEqual` — 길이가 다르면 먼저 거른다 |
 | 없거나 틀림 | **401** `unauthorized` |
@@ -363,7 +363,7 @@ iOS URLRequest.timeoutInterval   20초
 | | |
 | --- | --- |
 | iOS 개발 기본 | `http://127.0.0.1:8787` |
-| 주입 | `CAPTURETASK_API_BASE_URL` (빌드 설정 → Info.plist, 또는 환경변수) |
+| 주입 | `WHENLY_API_BASE_URL` (빌드 설정 → Info.plist, 또는 환경변수) |
 | 우선순위 | 환경변수 → Info.plist → 기본값 |
 
 ---

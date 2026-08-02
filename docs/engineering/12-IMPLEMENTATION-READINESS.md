@@ -72,7 +72,7 @@ Cloud Run(서울)에 배포하고 실제 키로 불렀다. **응답 파싱 가�
 
 시뮬레이터에서 App Group 상자에 캡처를 직접 넣어 **전체 경로도 한 번 돌렸다** —
 이미지 → Vision OCR → 배포 서버 → OpenAI → 확인 화면. 서버 로그에
-`CaptureTask/1 CFNetwork` User-Agent 로 200 이 찍혔다.
+`Whenly/1 CFNetwork` User-Agent 로 200 이 찍혔다.
 
 | 확인한 것 | 결과 |
 | --- | --- |

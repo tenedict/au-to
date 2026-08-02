@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 /// 홈 화면의 순서를 고정한다.
 ///

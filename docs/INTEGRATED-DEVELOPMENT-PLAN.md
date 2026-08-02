@@ -1,4 +1,4 @@
-# CaptureTask 통합 개발 기획서
+# Whenly 통합 개발 기획서
 
 > 스크린샷 한 장을 검토 가능한 할 일과 캘린더 일정으로 바꾸는 iOS 개인 비서
 
@@ -14,7 +14,7 @@
 
 ## 1. 한눈에 보는 결론
 
-CaptureTask는 사용자가 메시지, 공지, 예약 화면을 캡처한 뒤 iOS 공유 시트에서 앱을 선택하면
+Whenly는 사용자가 메시지, 공지, 예약 화면을 캡처한 뒤 iOS 공유 시트에서 앱을 선택하면
 로컬 OCR과 문맥 분석으로 할 일 후보를 만들고, 사용자가 확인한 결과를 앱의 할 일 목록과
 선택적으로 Apple 캘린더에 저장하는 개인 비서다.
 
@@ -119,7 +119,7 @@ iOS 테스트 9개가 통과한 상태다. 다만 실제 서명과 App Group ent
 ### 5.1 정상 흐름
 
 1. 사용자가 iPhone에서 일정이나 요청 화면을 캡처한다.
-2. 사진 또는 스크린샷 화면에서 공유 버튼을 누르고 CaptureTask를 선택한다.
+2. 사진 또는 스크린샷 화면에서 공유 버튼을 누르고 Whenly를 선택한다.
 3. Share Extension이 이미지와 캡처 ID, 생성 시각을 App Group inbox에 저장한다.
 4. 사용자가 메인 앱을 열면 가장 오래된 미처리 캡처를 가져온다.
 5. Vision이 기기에서 텍스트를 인식한다.
@@ -223,12 +223,12 @@ iOS 테스트 9개가 통과한 상태다. 다만 실제 서명과 App Group ent
 
 ```text
 iOS Share Sheet
-  → CaptureTask Share Extension
+  → Whenly Share Extension
   → App Group inbox (image + metadata)
   → Main App TaskStore
   → Vision OCR on device
   → BackendContextUnderstandingService
-  → CaptureTask Backend
+  → Whenly Backend
   → OpenAI Responses API
   → TaskDraft review
   → Local TaskRepository
@@ -256,7 +256,7 @@ Share Extension → App Group inbox → Main app import
 | AppGroupInbox | 대기 캡처 목록, 읽기, 처리 완료 | 불완전 항목 격리, 성공 전 삭제 금지 |
 | VisionOCRService | 이미지에서 텍스트 추출 | 재시도 또는 수동 입력 |
 | BackendContextUnderstandingService | 백엔드 호출과 응답 디코딩 | 캡처 유지, 분석 오류 노출 |
-| CaptureTask Backend | 인증 경계, 프롬프트, 스키마, OpenAI 호출 | 표준 오류와 request ID 반환 |
+| Whenly Backend | 인증 경계, 프롬프트, 스키마, OpenAI 호출 | 표준 오류와 request ID 반환 |
 | TaskStore | 상태 전이와 저장 순서 조정 | 부분 성공을 명확히 기록 |
 | LocalTaskRepository | 앱 할 일 영속화 | 저장 실패 시 inbox 유지 |
 | EventKitCalendarService | 권한과 일정 생성 | 앱 할 일 보존, 캘린더 재시도 |
@@ -624,7 +624,7 @@ MVP 권장안은 "생성만 연결하고 이후 수정/삭제는 사용자에게
 
 | ID | 질문 | 권장 기본안 | 결정 시점 |
 | --- | --- | --- | --- |
-| D-01 | 최종 앱 이름과 Bundle ID | CaptureTask, 역도메인 ID 확정 | 실기기 빌드 전 |
+| D-01 | 최종 앱 이름과 Bundle ID | Whenly, 역도메인 ID 확정 | 실기기 빌드 전 |
 | D-02 | 분석 완료 후 원본 이미지 보존 | 즉시 삭제 기본, 보존 선택 제공 | M1 |
 | D-03 | 캘린더 수정/삭제 연동 | 작업마다 사용자에게 선택 | M2 |
 | D-04 | OCR이 낮은 품질일 때 이미지 전송 | 기본 금지, 명시 동의 후 별도 분석 | M3 이후 |
@@ -692,13 +692,13 @@ npm test
 
 ```bash
 xcodegen generate
-xcodebuild -project CaptureTask.xcodeproj -scheme CaptureTask \
+xcodebuild -project Whenly.xcodeproj -scheme Whenly \
   -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
 ```
 
 ```bash
-xcodebuild test -project CaptureTask.xcodeproj -scheme CaptureTask \
+xcodebuild test -project Whenly.xcodeproj -scheme Whenly \
   -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO
 ```
@@ -710,15 +710,15 @@ python3 -m pip install -r requirements-docs.txt
 python3 scripts/build_development_plan.py
 ```
 
-생성물은 `docs/CaptureTask-Development-Plan.html`과
-`output/pdf/CaptureTask-Development-Plan.pdf`다.
+생성물은 `docs/Whenly-Development-Plan.html`과
+`output/pdf/Whenly-Development-Plan.pdf`다.
 
 ## 24. 현재 화면
 
 현재 R0 목록 화면은 기본 SwiftUI 디자인으로 구현되어 있다. 이후 UI 작업은 이 단순함을 유지하면서
 대기 캡처, 분석 단계, 확인 필요 상태, 오류 복구 행동을 같은 시각 언어로 확장한다.
 
-![CaptureTask R0 목록 화면](assets/capturetask-r0-home.png)
+![Whenly R0 목록 화면](assets/whenly-r0-home.png)
 
 ## 25. 참고 문서와 변경 관리
 

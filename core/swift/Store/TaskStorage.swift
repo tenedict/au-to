@@ -7,7 +7,7 @@ import Foundation
 struct TaskStorage: Sendable {
     let directory: URL
 
-    static let defaultDirectoryName = "CaptureTask"
+    static let defaultDirectoryName = "Whenly"
 
     init(directory: URL) {
         self.directory = directory
@@ -67,30 +67,56 @@ struct TaskStorage: Sendable {
         }
     }
 
-    /// 예전 위치(Application Support)에 있던 것을 App Group 으로 옮긴다.
+    /// 앱 이름이 CaptureTask 였을 때 쓰던 폴더 이름.
     ///
-    /// 저장 위치를 바꾸면서 이걸 하지 않으면 **사용자의 할 일이 통째로 사라진 것처럼 보인다.**
-    /// 새 위치에 이미 파일이 있으면 건드리지 않는다 — 옮기다 덮어쓰는 것이 더 나쁘다.
+    /// 이름을 Whenly 로 바꾸면서 저장 폴더 이름도 함께 바뀌었다. 이 줄이 없으면
+    /// 그 빌드를 쓰던 사람은 **할 일이 통째로 사라진 것을 본다** — 파일은 그대로
+    /// 있는데 아무도 그 자리를 보지 않을 뿐이다.
+    ///
+    /// 일괄 치환으로는 절대 지워지면 안 되는 문자열이다. 여기 적힌 "CaptureTask" 는
+    /// 제품 이름이 아니라 **디스크에 이미 존재하는 폴더 이름**이다.
+    static let legacyDirectoryNames = ["CaptureTask"]
+
+    /// 예전 자리에 있던 것을 지금 자리로 옮긴다.
+    ///
+    /// 옮겨야 할 자리가 둘이다.
+    ///   · 예전 **위치** — Application Support (App Group 으로 옮기기 전)
+    ///   · 예전 **이름** — CaptureTask (Whenly 로 바꾸기 전)
+    ///
+    /// 새 자리에 이미 파일이 있으면 건드리지 않는다 — 옮기다 덮어쓰는 것이 더 나쁘다.
+    /// 그래서 옛 후보를 훑되 먼저 찾은 것 하나만 가져온다.
     func adoptLegacyStoreIfNeeded() throws {
-        guard let base = FileManager.default.urls(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask
-        ).first else { return }
+        for legacy in legacyCandidates() {
+            guard legacy.path != directory.path,
+                  FileManager.default.fileExists(atPath: legacy.path) else { continue }
 
-        let legacy = base.appendingPathComponent(Self.defaultDirectoryName)
-        guard legacy.path != directory.path,
-              FileManager.default.fileExists(atPath: legacy.path) else { return }
-
-        try FileManager.default.createDirectory(
-            at: directory, withIntermediateDirectories: true
-        )
-        for name in ["tasks.json", "drafts.json"] {
-            let from = legacy.appendingPathComponent(name)
-            let to = directory.appendingPathComponent(name)
-            guard FileManager.default.fileExists(atPath: from.path),
-                  !FileManager.default.fileExists(atPath: to.path) else { continue }
-            try FileManager.default.moveItem(at: from, to: to)
+            try FileManager.default.createDirectory(
+                at: directory, withIntermediateDirectories: true
+            )
+            for name in ["tasks.json", "drafts.json"] {
+                let from = legacy.appendingPathComponent(name)
+                let to = directory.appendingPathComponent(name)
+                guard FileManager.default.fileExists(atPath: from.path),
+                      !FileManager.default.fileExists(atPath: to.path) else { continue }
+                try FileManager.default.moveItem(at: from, to: to)
+            }
         }
+    }
+
+    /// 옛 이름과 옛 위치를 곱한 자리 전부. 가까운 것부터 본다.
+    private func legacyCandidates() -> [URL] {
+        var candidates: [URL] = []
+        // 지금과 같은 컨테이너에서 이름만 옛것.
+        let container = directory.deletingLastPathComponent()
+        candidates += Self.legacyDirectoryNames.map(container.appendingPathComponent)
+        // 옛 위치(Application Support) — 이름은 지금 것과 옛것 둘 다.
+        if let base = FileManager.default.urls(
+            for: .applicationSupportDirectory, in: .userDomainMask
+        ).first {
+            candidates.append(base.appendingPathComponent(Self.defaultDirectoryName))
+            candidates += Self.legacyDirectoryNames.map(base.appendingPathComponent)
+        }
+        return candidates
     }
 
     // MARK: - 할 일
@@ -121,7 +147,7 @@ struct TaskStorage: Sendable {
     private func load<T: Decodable>(_ type: T.Type, from url: URL) throws -> T {
         guard FileManager.default.fileExists(atPath: url.path) else {
             // 처음 실행이다. 빈 것과 깨진 것을 구분해야 하므로 여기서만 빈 값을 만든다.
-            return try JSONDecoder.captureTask.decode(type, from: Data("[]".utf8))
+            return try JSONDecoder.whenly.decode(type, from: Data("[]".utf8))
         }
 
         let data: Data
@@ -132,7 +158,7 @@ struct TaskStorage: Sendable {
         }
 
         do {
-            return try JSONDecoder.captureTask.decode(type, from: data)
+            return try JSONDecoder.whenly.decode(type, from: data)
         } catch {
             let quarantined = try quarantine(url)
             throw TaskStorageError.quarantined(url.lastPathComponent, quarantined.lastPathComponent)
@@ -144,7 +170,7 @@ struct TaskStorage: Sendable {
             at: directory,
             withIntermediateDirectories: true
         )
-        let data = try JSONEncoder.captureTask.encode(value)
+        let data = try JSONEncoder.whenly.encode(value)
         // 원자적 쓰기. 중간에 죽어도 반쪽 파일이 남지 않는다.
         try data.write(to: url, options: .atomic)
     }
@@ -183,7 +209,7 @@ enum TaskStorageError: LocalizedError {
 /// **초 미만까지 적는다.** `ISO8601DateFormatter` 의 기본값은 소수점을 버리는데,
 /// 그러면 저장했다 읽은 할 일이 원본과 달라진다. 같은 초에 만든 두 할 일의 순서가
 /// 재실행 뒤에 뒤집히고, "왜 순서가 바뀌었지"는 아무도 추적하지 못한다.
-enum CaptureTaskDateFormat {
+enum WhenlyDateFormat {
     static let writing: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -204,12 +230,12 @@ extension JSONDecoder {
     /// 문자열과 숫자를 모두 받는 이유는 R0 초기 빌드가 `Date` 를 기본 전략(숫자)으로
     /// 저장했기 때문이다. 읽기만 관대하게 두면 그때 만든 할 일을 잃지 않는다.
     /// 쓰기는 언제나 소수점을 포함한 ISO 8601 한 가지다.
-    static var captureTask: JSONDecoder {
+    static var whenly: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             if let text = try? container.decode(String.self) {
-                guard let date = CaptureTaskDateFormat.date(from: text) else {
+                guard let date = WhenlyDateFormat.date(from: text) else {
                     throw DecodingError.dataCorruptedError(
                         in: container,
                         debugDescription: "ISO 8601 날짜가 아닙니다: \(text)"
@@ -224,11 +250,11 @@ extension JSONDecoder {
 }
 
 extension JSONEncoder {
-    static var captureTask: JSONEncoder {
+    static var whenly: JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .custom { date, encoder in
             var container = encoder.singleValueContainer()
-            try container.encode(CaptureTaskDateFormat.writing.string(from: date))
+            try container.encode(WhenlyDateFormat.writing.string(from: date))
         }
         return encoder
     }

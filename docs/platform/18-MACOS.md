@@ -230,10 +230,10 @@ SwiftUI 의 `Window`/`WindowGroup` 으로는 이 조합을 만들 수 없다.
 화면 확인을 자동화할 수 없었다.
 
 ```bash
-open -n --env CAPTURETASK_OPEN_LIST=1 <CaptureTask.app>   # DEBUG 빌드에서만
+open -n --env WHENLY_OPEN_LIST=1 <Whenly.app>   # DEBUG 빌드에서만
 ```
 
-iOS 의 `CAPTURETASK_TAB` · `CAPTURETASK_SHEET` 와 같은 갈고리다.
+iOS 의 `WHENLY_TAB` · `WHENLY_SHEET` 와 같은 갈고리다.
 
 ---
 
@@ -384,12 +384,12 @@ confidence < 0.80          →  물어본다
 | `files.user-selected.read-only` | **사용자가 고르거나 끌어다 놓은 파일만** 읽는다 |
 | `personal-information.calendars` | 캘린더에 넣는다 |
 
-**샌드박스가 실제로 막는 것을 확인했다.** 검증하려고 `CAPTURETASK_FILE` 로 임의 경로를
+**샌드박스가 실제로 막는 것을 확인했다.** 검증하려고 `WHENLY_FILE` 로 임의 경로를
 넘겼더니 `Operation not permitted (Code=257)` 이 났다. 하드코딩한 경로는 "사용자가 고른 것"이
 아니기 때문이다 — 정상 동작이다. 실제 드롭과 파일 고르기는 샌드박스 확장을 함께 받는다.
 
 > DEBUG 로 확인할 때는 컨테이너 안에 두면 된다.
-> `~/Library/Containers/com.example.capturetask.mac/Data/Documents/`
+> `~/Library/Containers/com.example.whenly.mac/Data/Documents/`
 
 ---
 
@@ -397,8 +397,8 @@ confidence < 0.80          →  물어본다
 
 ```bash
 xcodegen generate
-xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTaskMac -derivedDataPath build
-open build/Build/Products/Debug/CaptureTaskMac.app
+xcodebuild build -project Whenly.xcodeproj -scheme WhenlyMac -derivedDataPath build
+open build/Build/Products/Debug/WhenlyMac.app
 ```
 
 `./scripts/verify.sh` 가 macOS 빌드도 함께 돌린다. 공유 코드를 고치면 여기가 먼저 깨지는데,
@@ -409,15 +409,15 @@ open build/Build/Products/Debug/CaptureTaskMac.app
 끌어다 놓기는 자동화할 수 없다. DEBUG 전용 경로를 뒀다.
 
 ```bash
-cp <이미지> ~/Library/Containers/com.example.capturetask.mac/Data/Documents/shot.png
-CAPTURETASK_FILE=~/Library/Containers/com.example.capturetask.mac/Data/Documents/shot.png \
-  build/Build/Products/Debug/CaptureTaskMac.app/Contents/MacOS/CaptureTaskMac
+cp <이미지> ~/Library/Containers/com.example.whenly.mac/Data/Documents/shot.png
+WHENLY_FILE=~/Library/Containers/com.example.whenly.mac/Data/Documents/shot.png \
+  build/Build/Products/Debug/WhenlyMac.app/Contents/MacOS/WhenlyMac
 ```
 
 또는 실제와 같은 길로:
 
 ```bash
-open -a build/Build/Products/Debug/CaptureTaskMac.app <이미지>
+open -a build/Build/Products/Debug/WhenlyMac.app <이미지>
 ```
 
 ---
@@ -435,7 +435,7 @@ open -a build/Build/Products/Debug/CaptureTaskMac.app <이미지>
 | 물방울 | 창 72×72 로 화면 우하단에 떠 있음 · 끌어서 옮기면 마우스를 1:1 로 따라옴 · 눌러 대시보드 열림 |
 | 메뉴바 항목 | 있음 |
 | `open -a` 경로 | 할 일 1건 저장 + **캘린더 이벤트 생성됨** |
-| 백엔드 호출 | 200 (`CaptureTask/1 CFNetwork/… Darwin/27`) |
+| 백엔드 호출 | 200 (`Whenly/1 CFNetwork/… Darwin/27`) |
 | 샌드박스 | 임의 경로 읽기 차단 확인 |
 
 **확인하지 못한 것**

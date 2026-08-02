@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 /// 저장·복원 계약.
 ///
@@ -13,7 +13,7 @@ final class TaskStorageTests: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
         directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CaptureTaskTests-\(UUID().uuidString)")
+            .appendingPathComponent("WhenlyTests-\(UUID().uuidString)")
         storage = TaskStorage(directory: directory)
     }
 
@@ -228,7 +228,7 @@ extension TaskStorageTests {
     func testUnusableDirectoryIsRejectedBeforeItIsChosen() {
         // /dev/null 은 디렉터리가 아니므로 그 아래는 어떤 권한으로도 만들 수 없다.
         // 권한에 기대는 검사는 root 로 돌리면 통과해 버린다.
-        let impossible = URL(fileURLWithPath: "/dev/null/CaptureTask")
+        let impossible = URL(fileURLWithPath: "/dev/null/Whenly")
 
         XCTAssertFalse(TaskStorage.isUsable(impossible))
     }

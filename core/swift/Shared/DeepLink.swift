@@ -8,7 +8,7 @@ import Foundation
 ///
 /// 값은 `project.yml` 의 `CFBundleURLTypes` 와 같아야 한다.
 enum DeepLink {
-    static let scheme = "capturetask"
+    static let scheme = "whenly"
 
     /// 카메라를 곧바로 연다. 잠금화면 위젯이 쓰는 길이다.
     static let capture = URL(string: "\(scheme)://capture")!

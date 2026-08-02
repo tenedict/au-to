@@ -1,4 +1,4 @@
-# CaptureTask 백엔드 — Cloud Run 용.
+# Whenly 백엔드 — Cloud Run 용.
 #
 # 외부 패키지가 0개라 `npm install` 도 lockfile 도 없습니다. 소스만 복사하면 끝입니다.
 # 그래서 빌드 캐시 계층을 나눌 이유도 없습니다.

@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 final class BackendContextUnderstandingServiceTests: XCTestCase {
 

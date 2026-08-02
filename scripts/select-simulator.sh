@@ -4,12 +4,12 @@
 # 이름(name=iPhone 17 Pro)으로 지정하면 같은 이름이 여러 개일 때나
 # 런타임이 안 맞을 때 조용히 실패한다. UDID 로 고정한다.
 #
-#   CAPTURETASK_SIMULATOR_ID=<udid>  로 덮어쓸 수 있다.
+#   WHENLY_SIMULATOR_ID=<udid>  로 덮어쓸 수 있다.
 
 set -uo pipefail
 
-if [ -n "${CAPTURETASK_SIMULATOR_ID:-}" ]; then
-  echo "$CAPTURETASK_SIMULATOR_ID"; exit 0
+if [ -n "${WHENLY_SIMULATOR_ID:-}" ]; then
+  echo "$WHENLY_SIMULATOR_ID"; exit 0
 fi
 
 devices=$(xcrun simctl list devices available 2>/dev/null)

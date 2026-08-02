@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="CaptureTask iOS 개인 비서 통합 개발 기획서">
-  <title>CaptureTask 통합 개발 기획서</title>
+  <meta name="description" content="Whenly iOS 개인 비서 통합 개발 기획서">
+  <title>Whenly 통합 개발 기획서</title>
   <style>
     :root {
       --ink: #15231f;
@@ -134,7 +134,7 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">CaptureTask · Development Plan</div>
+    <div class="brand">Whenly · Development Plan</div>
     <button class="print-button" onclick="window.print()">인쇄 / PDF 저장</button>
   </header>
   <div class="layout">
@@ -219,7 +219,7 @@
 <a class="toc-level-2" href="#25-참고-문서와-변경-관리">25. 참고 문서와 변경 관리</a>
     </nav>
     <main>
-      <article><h1 id="capturetask-통합-개발-기획서">CaptureTask 통합 개발 기획서</h1>
+      <article><h1 id="whenly-통합-개발-기획서">Whenly 통합 개발 기획서</h1>
 <blockquote>스크린샷 한 장을 검토 가능한 할 일과 캘린더 일정으로 바꾸는 iOS 개인 비서</blockquote>
 <div class="table-wrap"><table><thead><tr>
 <th>문서 정보</th>
@@ -255,7 +255,7 @@
 </tr>
 </tbody></table></div>
 <h2 id="1-한눈에-보는-결론">1. 한눈에 보는 결론</h2>
-<p>CaptureTask는 사용자가 메시지, 공지, 예약 화면을 캡처한 뒤 iOS 공유 시트에서 앱을 선택하면 로컬 OCR과 문맥 분석으로 할 일 후보를 만들고, 사용자가 확인한 결과를 앱의 할 일 목록과 선택적으로 Apple 캘린더에 저장하는 개인 비서다.</p>
+<p>Whenly는 사용자가 메시지, 공지, 예약 화면을 캡처한 뒤 iOS 공유 시트에서 앱을 선택하면 로컬 OCR과 문맥 분석으로 할 일 후보를 만들고, 사용자가 확인한 결과를 앱의 할 일 목록과 선택적으로 Apple 캘린더에 저장하는 개인 비서다.</p>
 <p>현재 저장소에는 메인 앱, Share Extension, App Group inbox, Vision OCR, OpenAI 백엔드 어댑터, 검토 화면, 로컬 할 일 저장, EventKit 캘린더 저장까지 구현되어 있다. 백엔드 테스트 8개와 iOS 테스트 9개가 통과한 상태다. 다만 실제 서명과 App Group entitlement를 적용한 실기기 공유 흐름, 실제 OpenAI 키를 사용한 종단간 검증, 운영 인증과 요청 제한, 캘린더 수정/삭제 정책은 아직 완료되지 않았다. 따라서 현재 상태는 &quot;작동하는 R0 골격&quot;이며 &quot;운영 출시 완료&quot;가 아니다.</p>
 <h3 id="11-제품-약속">1.1 제품 약속</h3>
 <ul>
@@ -405,7 +405,7 @@
 <h3 id="51-정상-흐름">5.1 정상 흐름</h3>
 <ol>
 <li>사용자가 iPhone에서 일정이나 요청 화면을 캡처한다.</li>
-<li>사진 또는 스크린샷 화면에서 공유 버튼을 누르고 CaptureTask를 선택한다.</li>
+<li>사진 또는 스크린샷 화면에서 공유 버튼을 누르고 Whenly를 선택한다.</li>
 <li>Share Extension이 이미지와 캡처 ID, 생성 시각을 App Group inbox에 저장한다.</li>
 <li>사용자가 메인 앱을 열면 가장 오래된 미처리 캡처를 가져온다.</li>
 <li>Vision이 기기에서 텍스트를 인식한다.</li>
@@ -691,12 +691,12 @@
 <h2 id="9-시스템-아키텍처">9. 시스템 아키텍처</h2>
 <h3 id="91-전체-흐름">9.1 전체 흐름</h3>
 <pre><code class="language-text">iOS Share Sheet
-  → CaptureTask Share Extension
+  → Whenly Share Extension
   → App Group inbox (image + metadata)
   → Main App TaskStore
   → Vision OCR on device
   → BackendContextUnderstandingService
-  → CaptureTask Backend
+  → Whenly Backend
   → OpenAI Responses API
   → TaskDraft review
   → Local TaskRepository
@@ -738,7 +738,7 @@ Share Extension → App Group inbox → Main app import</code></pre>
 <td>캡처 유지, 분석 오류 노출</td>
 </tr>
 <tr>
-<td>CaptureTask Backend</td>
+<td>Whenly Backend</td>
 <td>인증 경계, 프롬프트, 스키마, OpenAI 호출</td>
 <td>표준 오류와 request ID 반환</td>
 </tr>
@@ -1366,7 +1366,7 @@ Content-Type: application/json</code></pre>
 <tr>
 <td>D-01</td>
 <td>최종 앱 이름과 Bundle ID</td>
-<td>CaptureTask, 역도메인 ID 확정</td>
+<td>Whenly, 역도메인 ID 확정</td>
 <td>실기기 빌드 전</td>
 </tr>
 <tr>
@@ -1503,19 +1503,19 @@ npm start</code></pre>
 npm test</code></pre>
 <h3 id="232-ios">23.2 iOS</h3>
 <pre><code class="language-bash">xcodegen generate
-xcodebuild -project CaptureTask.xcodeproj -scheme CaptureTask \
+xcodebuild -project Whenly.xcodeproj -scheme Whenly \
   -sdk iphonesimulator -destination &#x27;generic/platform=iOS Simulator&#x27; \
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO build</code></pre>
-<pre><code class="language-bash">xcodebuild test -project CaptureTask.xcodeproj -scheme CaptureTask \
+<pre><code class="language-bash">xcodebuild test -project Whenly.xcodeproj -scheme Whenly \
   -sdk iphonesimulator -destination &#x27;platform=iOS Simulator,name=iPhone 17 Pro&#x27; \
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO</code></pre>
 <h3 id="233-문서-출력">23.3 문서 출력</h3>
 <pre><code class="language-bash">python3 -m pip install -r requirements-docs.txt
 python3 scripts/build_development_plan.py</code></pre>
-<p>생성물은 <code>docs/CaptureTask-Development-Plan.html</code>과 <code>output/pdf/CaptureTask-Development-Plan.pdf</code>다.</p>
+<p>생성물은 <code>docs/Whenly-Development-Plan.html</code>과 <code>output/pdf/Whenly-Development-Plan.pdf</code>다.</p>
 <h2 id="24-현재-화면">24. 현재 화면</h2>
 <p>현재 R0 목록 화면은 기본 SwiftUI 디자인으로 구현되어 있다. 이후 UI 작업은 이 단순함을 유지하면서 대기 캡처, 분석 단계, 확인 필요 상태, 오류 복구 행동을 같은 시각 언어로 확장한다.</p>
-<figure><img src="assets/capturetask-r0-home.png" alt="CaptureTask R0 목록 화면"><figcaption>CaptureTask R0 목록 화면</figcaption></figure>
+<figure><img src="assets/whenly-r0-home.png" alt="Whenly R0 목록 화면"><figcaption>Whenly R0 목록 화면</figcaption></figure>
 <h2 id="25-참고-문서와-변경-관리">25. 참고 문서와 변경 관리</h2>
 <p>이 통합 기획서는 아래 문서를 한 번에 읽을 수 있게 정리한 배포용 산출물이다. 세부 규칙을 변경할 때는 원본 문서와 이 문서를 같은 커밋에서 갱신한다.</p>
 <ul>

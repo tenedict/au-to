@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CaptureTask 디자인 언어 기획서</title>
+<title>Whenly 디자인 언어 기획서</title>
 <style>
   /* ─────────────────────────────────────────────────────────────
-     CaptureTask 디자인 언어 기획서
+     Whenly 디자인 언어 기획서
      서체 SF Pro (한글은 SF Pro 가 덮지 않으므로 Apple SD Gothic Neo 로 이어 받는다)
      색   흑백 전용 — 강조는 색이 아니라 굵기·괘선·여백으로만 한다
      인쇄 A4 세로. 어떤 요소도 잘리지 않는다
@@ -194,14 +194,14 @@
 
 <!-- ══════════════════════ 표지 ══════════════════════ -->
 <header class="cover">
-  <div class="org">CaptureTask</div>
+  <div class="org">Whenly</div>
   <h1>디자인 언어 기획서</h1>
   <p class="sub">물방울에서 출발해 색·글자·간격·부품까지 — iOS 와 macOS 가 함께 쓰는
      하나의 설계 규격</p>
 
   <div class="docinfo">
     <table>
-      <tr><th>문서명</th><td>CaptureTask 디자인 언어 기획서</td></tr>
+      <tr><th>문서명</th><td>Whenly 디자인 언어 기획서</td></tr>
       <tr><th>버전</th><td>1.0</td></tr>
       <tr><th>작성일</th><td>2026-08-03</td></tr>
       <tr><th>문서 상태</th><td>승인 · <strong>구현 완료</strong> (2026-08-03)</td></tr>
@@ -241,7 +241,7 @@
   <h2>목적과 범위</h2>
 
   <h3>1.1 목적</h3>
-  <p>CaptureTask 의 화면은 지금까지 <strong>개별 판단의 누적</strong>으로 만들어졌다.
+  <p>Whenly 의 화면은 지금까지 <strong>개별 판단의 누적</strong>으로 만들어졌다.
      카드 반경 20pt, 여백 18/16/16/12pt, 마감 묶음별 4가지 색 — 각각은 그 자리에서
      타당했으나 <strong>서로를 참조하지 않는다.</strong> 새 화면을 만들 때 무엇을 따라야
      하는지 코드를 읽어야 알 수 있고, 두 플랫폼이 같은 값을 각자 적고 있다.</p>
@@ -285,7 +285,7 @@
   <h3>2.2 색은 하나의 뜻만 맡는다</h3>
   <p>캘린더의 적색은 <strong>지금</strong> 하나만, 미리 알림의 적색은 <strong>지났음</strong>
      하나만 뜻한다. 색이 여러 뜻을 맡으면 어느 뜻인지 매번 문맥으로 추론해야 한다.
-     CaptureTask 는 현재 마감 묶음마다 색을 달리 쓰고 있다 (적색·주황·청색·녹색).
+     Whenly 는 현재 마감 묶음마다 색을 달리 쓰고 있다 (적색·주황·청색·녹색).
      <strong>이 문서에서 색을 두 개로 줄인다.</strong></p>
 
   <h3>2.3 형식은 자리의 폭이 정한다</h3>
@@ -294,7 +294,7 @@
      같은 데이터라도 <strong>들어갈 자리의 폭</strong>에 따라 형식을 고른다.</p>
 
   <h3>2.4 빈도가 단계 수를 정한다</h3>
-  <p>미리 알림만 모달을 없앴다. 입력 빈도가 가장 높기 때문이다. CaptureTask 에서
+  <p>미리 알림만 모달을 없앴다. 입력 빈도가 가장 높기 때문이다. Whenly 에서
      빈도가 가장 높은 동작은 <strong>확인</strong>이며, 확인은 제품 원칙상 건너뛸 수 없다.
      그렇다면 확인 <em>화면</em>의 단계를 줄이는 것이 답이다 — 화면을 없애는 것이 아니라.</p>
 
@@ -690,7 +690,7 @@
   <div class="note">
     <span class="h">이 절이 규격의 핵심이다</span>
     <p>연구에서 확인한 것 — Apple 은 같은 날짜를 <strong>들어갈 자리의 폭에 따라</strong>
-      다르게 적는다 (연구 §5.2). CaptureTask 는 현재 5개 화면 파일에 <strong>13곳</strong>의
+      다르게 적는다 (연구 §5.2). Whenly 는 현재 5개 화면 파일에 <strong>13곳</strong>의
       날짜 형식이 흩어져 있고, 좁은 자리에도 완전 서술형을 쓴다. 그 결과가 접힌 카드의
       마감 표시 잘림이다 (개발 보고서 §9.1).</p>
   </div>
@@ -1055,7 +1055,7 @@ enum DueDateText {
   </table></div>
 </section>
 
-<p class="foot">CaptureTask 디자인 언어 기획서 · 버전 1.0 · 2026-08-03<br>
+<p class="foot">Whenly 디자인 언어 기획서 · 버전 1.0 · 2026-08-03<br>
 근거 — 제품 요구사항 정의(PRD §1) · 디자인 연구 보고서 1.0 · 개발 보고서 1.0 부록 A<br>
 명암비는 sRGB 상대 휘도로 계산했으며 본문에 쓰는 모든 색이 AA(4.5:1)를 넘는다.</p>
 

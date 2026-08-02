@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 /// 저장소가 실제로 유스케이스를 지키는지 확인한다.
 ///
@@ -14,7 +14,7 @@ final class TaskStoreTests: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
         directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("CaptureTaskStoreTests-\(UUID().uuidString)")
+            .appendingPathComponent("WhenlyStoreTests-\(UUID().uuidString)")
         storage = TaskStorage(directory: directory)
         scheduler = RecordingReminderScheduler()
     }

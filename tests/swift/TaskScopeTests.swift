@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import CaptureTask
+@testable import Whenly
 
 /// 대시보드 사이드바가 보여 주는 묶음과 개수.
 ///

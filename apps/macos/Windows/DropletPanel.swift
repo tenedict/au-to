@@ -69,7 +69,7 @@ final class DropletPanel: NSPanel {
     }
 
     func showDroplet() {
-        setFrameAutosaveName("CaptureTaskDroplet")
+        setFrameAutosaveName("WhenlyDroplet")
         orderFrontRegardless()
     }
 }

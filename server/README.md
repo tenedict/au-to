@@ -1,4 +1,4 @@
-# CaptureTask 백엔드
+# Whenly 백엔드
 
 **OpenAI API 키가 존재하는 유일한 곳입니다.**
 
@@ -34,7 +34,7 @@ npm start
 ```
 
 ```
-CaptureTask backend listening on http://127.0.0.1:8787
+Whenly backend listening on http://127.0.0.1:8787
 OpenAI model: gpt-4.1-mini
 ```
 
@@ -269,8 +269,8 @@ cd server && npm test
 
 | 우선순위 | 어디 |
 | --- | --- |
-| 1 | 환경변수 `CAPTURETASK_API_BASE_URL` |
-| 2 | `Info.plist` 의 `CAPTURETASK_API_BASE_URL` (`project.yml` 에서 주입) |
+| 1 | 환경변수 `WHENLY_API_BASE_URL` |
+| 2 | `Info.plist` 의 `WHENLY_API_BASE_URL` (`project.yml` 에서 주입) |
 | 3 | `http://127.0.0.1:8787` |
 
 | 상황 | 해야 할 일 |
@@ -305,14 +305,14 @@ printf '%s' "sk-proj-실제키" | \
 
 # 앱과 서버가 나눠 갖는 공유 비밀
 printf '%s' "$(openssl rand -base64 32)" | \
-  gcloud secrets create CAPTURETASK_CLIENT_KEY --data-file=-
+  gcloud secrets create WHENLY_CLIENT_KEY --data-file=-
 ```
 
 ### 배포 뒤 앱 연결
 
 ```bash
 cp config/apple/Secrets.xcconfig.example config/apple/Secrets.xcconfig   # 없으면
-gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY
+gcloud secrets versions access latest --secret WHENLY_CLIENT_KEY
 ```
 
 `config/apple/Secrets.xcconfig` 에 주소와 비밀을 넣고 `xcodegen generate` 를 다시 돌립니다.
@@ -331,7 +331,7 @@ gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY
 ### 왜 `--allow-unauthenticated` 인가
 
 "구글 IAM 인증을 요구하지 않는다"는 뜻입니다. 우리 인증은 그 위에서
-`X-CaptureTask-Key` 헤더로 합니다. IAM 을 켜면 앱이 구글 토큰을 들고 다녀야 해서
+`X-Whenly-Key` 헤더로 합니다. IAM 을 켜면 앱이 구글 토큰을 들고 다녀야 해서
 이 제품에는 맞지 않습니다.
 
 ### 아직 없는 것

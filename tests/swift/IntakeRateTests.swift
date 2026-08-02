@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import CaptureTask
+@testable import Whenly
 
 /// 잇달아 들어온 캡처를 얼마나 빨리 읽는가.
 ///

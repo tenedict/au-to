@@ -1,4 +1,4 @@
-# CaptureTask — 문서 인덱스
+# Whenly — 문서 인덱스
 
 **스크린샷 한 장이 할 일이 되는 iOS 앱** · 2026-08-01
 
@@ -28,7 +28,7 @@ Windows·Android 가 붙으면 `platform/` 에 문서가 하나씩 늘어난다.
 | 상황 | 읽을 것 |
 | --- | --- |
 | **처음 왔다** | [project-context.md](project-context.md) — 5분 요약 |
-| 전체 기획을 한 번에 본다 | [통합 HTML](CaptureTask-Development-Plan.html) · [원문](INTEGRATED-DEVELOPMENT-PLAN.md) · [PDF](../output/pdf/CaptureTask-Development-Plan.pdf) |
+| 전체 기획을 한 번에 본다 | [통합 HTML](Whenly-Development-Plan.html) · [원문](INTEGRATED-DEVELOPMENT-PLAN.md) · [PDF](../output/pdf/Whenly-Development-Plan.pdf) |
 | 제품을 이해하고 싶다 | [00-PRODUCT-BRIEF.md](product/00-PRODUCT-BRIEF.md) → [01-PRD.md](product/01-PRD.md) |
 | 코드를 고치려 한다 | [09-SPEC.md](engineering/09-SPEC.md) + [10-ARCHITECTURE-SPINE.md](engineering/10-ARCHITECTURE-SPINE.md) + [16-ENGINEERING-PLAYBOOK.md](engineering/16-ENGINEERING-PLAYBOOK.md) |
 | 파일이 어디 있는지 모르겠다 | [20-REPO-LAYOUT.md](engineering/20-REPO-LAYOUT.md) |
@@ -135,9 +135,9 @@ BMAD 가 **무엇을 만들지**를 정한다면, Superpowers 는 **어떻게 �
 | — | [sprint-status.yaml](sprint-status.yaml) | **기계가 읽는 스프린트 상태 (숫자의 원본)** |
 | — | [plans/](plans/) | 스토리별 2~5분 태스크 계획 |
 | — | [INTEGRATED-DEVELOPMENT-PLAN.md](INTEGRATED-DEVELOPMENT-PLAN.md) | HTML/PDF 생성의 기준 원문 |
-| — | [report/template.html](report/template.html) | **개발 보고서** 원본 — `python3 scripts/build-report.py` 로 [한 파일 HTML](../output/report/CaptureTask-Report.html) 을 만든다 |
-| — | [report/design-research.html](report/design-research.html) | **디자인 연구 보고서** 원본 — Apple 지갑·미리 알림·캘린더·일기 분석 → [한 파일 HTML](../output/report/CaptureTask-Design-Research.html) |
-| — | [report/design-language.html](report/design-language.html) | **디자인 언어 기획서** 원본 — 색·글자·간격·부품·날짜 표기 규격 → [한 파일 HTML](../output/report/CaptureTask-Design-Language.html) |
+| — | [report/template.html](report/template.html) | **개발 보고서** 원본 — `python3 scripts/build-report.py` 로 [한 파일 HTML](../output/report/Whenly-Report.html) 을 만든다 |
+| — | [report/design-research.html](report/design-research.html) | **디자인 연구 보고서** 원본 — Apple 지갑·미리 알림·캘린더·일기 분석 → [한 파일 HTML](../output/report/Whenly-Design-Research.html) |
+| — | [report/design-language.html](report/design-language.html) | **디자인 언어 기획서** 원본 — 색·글자·간격·부품·날짜 표기 규격 → [한 파일 HTML](../output/report/Whenly-Design-Language.html) |
 
 ### 프로젝트 루트
 

@@ -1,5 +1,5 @@
 import XCTest
-@testable import CaptureTask
+@testable import Whenly
 
 final class TaskDraftTests: XCTestCase {
     func testLowConfidenceDraftNeedsDateConfirmation() {

@@ -3,7 +3,7 @@ import { timingSafeEqual } from "node:crypto";
 /**
  * 클라이언트 인증.
  *
- * 앱이 `X-CaptureTask-Key` 헤더에 공유 비밀을 실어 보냅니다.
+ * 앱이 `X-Whenly-Key` 헤더에 공유 비밀을 실어 보냅니다.
  *
  * **이 비밀은 앱 번들을 뜯으면 나옵니다.** 그걸 알고 쓰는 방식입니다.
  * 그래도 의미가 있는 이유:
@@ -13,7 +13,7 @@ import { timingSafeEqual } from "node:crypto";
  *
  * 진짜로 앱만 통과시키려면 App Attest 가 필요합니다 (docs/09-SPEC.md H-3).
  */
-export const CLIENT_KEY_HEADER = "x-capturetask-key";
+export const CLIENT_KEY_HEADER = "x-whenly-key";
 
 /** 이 값 미만이면 무작위 대입이 현실적으로 가능합니다. */
 export const MIN_CLIENT_KEY_LENGTH = 24;
@@ -33,14 +33,14 @@ export function resolveClientKey({ key, host }) {
   if (!key) {
     if (isLoopback) return null;
     throw new ClientKeyError(
-      `CAPTURETASK_CLIENT_KEY가 필요합니다. HOST가 ${host} 라 외부에서 접근할 수 있습니다.\n` +
+      `WHENLY_CLIENT_KEY가 필요합니다. HOST가 ${host} 라 외부에서 접근할 수 있습니다.\n` +
         "  만들기: openssl rand -base64 32"
     );
   }
 
   if (key.length < MIN_CLIENT_KEY_LENGTH) {
     throw new ClientKeyError(
-      `CAPTURETASK_CLIENT_KEY가 너무 짧습니다 (${key.length}자). ` +
+      `WHENLY_CLIENT_KEY가 너무 짧습니다 (${key.length}자). ` +
         `${MIN_CLIENT_KEY_LENGTH}자 이상이어야 합니다.\n` +
         "  만들기: openssl rand -base64 32"
     );
@@ -49,7 +49,7 @@ export function resolveClientKey({ key, host }) {
   // OpenAI 키를 여기에 잘못 넣는 사고를 막습니다. 그러면 앱 번들에 OpenAI 키가 실립니다.
   if (key.startsWith("sk-")) {
     throw new ClientKeyError(
-      "CAPTURETASK_CLIENT_KEY에 OpenAI 키를 넣으면 안 됩니다. 이 값은 앱 번들에 들어갑니다."
+      "WHENLY_CLIENT_KEY에 OpenAI 키를 넣으면 안 됩니다. 이 값은 앱 번들에 들어갑니다."
     );
   }
 

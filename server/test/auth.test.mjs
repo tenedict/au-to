@@ -23,7 +23,7 @@ test("루프백에서는 키 없이 켤 수 있다", () => {
 test("외부에 바인딩하면 키 없이 켜지지 않는다", () => {
   assert.throws(
     () => resolveClientKey({ key: undefined, host: "0.0.0.0" }),
-    (error) => error instanceof ClientKeyError && /CAPTURETASK_CLIENT_KEY/.test(error.message)
+    (error) => error instanceof ClientKeyError && /WHENLY_CLIENT_KEY/.test(error.message)
   );
 });
 

@@ -56,7 +56,7 @@ struct DashboardSidebar: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("CaptureTask")
+        .navigationTitle("Whenly")
     }
 }
 

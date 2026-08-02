@@ -114,7 +114,7 @@ struct TaskEditorSheet: View {
 
     private var calendarSection: some View {
         Section("저장 위치") {
-            Label("CaptureTask 할 일에는 항상 저장해요", systemImage: "checklist")
+            Label("Whenly 할 일에는 항상 저장해요", systemImage: "checklist")
             Toggle("Apple 캘린더에도 추가", isOn: $edit.addToCalendar)
                 .disabled(!edit.hasDate)
             if !edit.hasDate {

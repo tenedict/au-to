@@ -58,14 +58,14 @@ enum ContextUnderstanding {
 
     /// 앱이 처음 뜰 때 쓸 엔진.
     ///
-    /// DEBUG 빌드에서 `CAPTURETASK_OFFLINE=1` 이면 규칙 기반으로 시작한다.
+    /// DEBUG 빌드에서 `WHENLY_OFFLINE=1` 이면 규칙 기반으로 시작한다.
     /// 릴리스 빌드에서는 이 분기가 아예 없다.
     static func defaultEngine(
         stored: AnalysisEngine? = nil,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> AnalysisEngine {
         #if DEBUG
-        if environment["CAPTURETASK_OFFLINE"] == "1" {
+        if environment["WHENLY_OFFLINE"] == "1" {
             return .ruleBased
         }
         #endif

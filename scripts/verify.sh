@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CaptureTask 검증 — 사람 · Claude · Git Hook · CI 가 모두 이 명령 하나를 쓴다.
+# Whenly 검증 — 사람 · Claude · Git Hook · CI 가 모두 이 명령 하나를 쓴다.
 #
 #   ./scripts/verify.sh          전체 (규칙 + 포맷 + 린트 + 백엔드 테스트 + iOS 테스트)
 #   ./scripts/verify.sh --quick  빠른 것만 (iOS 테스트 제외) — pre-commit 용
@@ -117,11 +117,11 @@ else
 
   set -o pipefail
   if command -v xcbeautify >/dev/null 2>&1; then
-    xcodebuild test -project CaptureTask.xcodeproj -scheme CaptureTask -sdk iphonesimulator \
+    xcodebuild test -project Whenly.xcodeproj -scheme Whenly -sdk iphonesimulator \
       -destination "id=$SIM_ID" -derivedDataPath build CODE_SIGNING_ALLOWED=NO 2>&1 | xcbeautify --quiet
     rc=$?
   else
-    out=$(xcodebuild test -project CaptureTask.xcodeproj -scheme CaptureTask -sdk iphonesimulator \
+    out=$(xcodebuild test -project Whenly.xcodeproj -scheme Whenly -sdk iphonesimulator \
       -destination "id=$SIM_ID" -derivedDataPath build CODE_SIGNING_ALLOWED=NO 2>&1); rc=$?
     echo "$out" | grep -E '(^|[^-])error:|Executed .* tests' | sed 's/^/    /'
     skipped+=("xcbeautify — brew install xcbeautify")
@@ -131,7 +131,7 @@ else
   # macOS 앱은 iOS 와 Models·Services·Store·Shared 를 공유한다. 공유 코드를 고치면
   # 여기가 먼저 깨지는데, 빌드하지 않으면 그 사실을 아무도 모른 채 초록이 난다.
   step "macOS 빌드"
-  if out=$(xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTaskMac \
+  if out=$(xcodebuild build -project Whenly.xcodeproj -scheme WhenlyMac \
              -derivedDataPath build CODE_SIGNING_ALLOWED=NO 2>&1); then
     ok "macOS 앱 빌드"
   else

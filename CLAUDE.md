@@ -1,7 +1,12 @@
-# CaptureTask — 작업 규칙
+# Whenly — 작업 규칙
 
-스크린샷을 공유하면 온디바이스 OCR과 문맥 분석으로 할 일을 만들고,
-사용자 확인 뒤 Apple 캘린더와 마감 알림까지 이어 주는 iOS 개인 비서 앱.
+스크린샷을 공유하거나 물방울에 떨어뜨리면 온디바이스 OCR과 문맥 분석으로 일정을
+읽어 **바로 등록하고 알려 주는** iOS · macOS 개인 비서 앱.
+
+> **이름은 Whenly 다.** 예전 이름은 CaptureTask 였다 — 그 이름은 이 앱이 *하는 일*
+> (담기)을 말했지 사용자가 *얻는 것*(언제인지 아는 것)을 말하지 않았다.
+> 디스크에 남은 옛 폴더 이름 `CaptureTask` 만은 코드에 그대로 있어야 한다
+> (`TaskStorage.legacyDirectoryNames`) — 지우면 옛 빌드 사용자의 할 일이 사라진다.
 
 > 자세한 맥락은 [`docs/project-context.md`](docs/project-context.md), 개발 규율은 [`docs/16-ENGINEERING-PLAYBOOK.md`](docs/engineering/16-ENGINEERING-PLAYBOOK.md).
 
@@ -23,13 +28,13 @@
 ./scripts/check-project-rules.sh          # 이 프로젝트만의 규칙
 ./scripts/check-project-rules.sh --list   # 어떤 규칙이 있는지
 cd server && npm test                    # 백엔드만
-xcodegen generate && xcodebuild test -project CaptureTask.xcodeproj -scheme CaptureTask \
+xcodegen generate && xcodebuild test -project Whenly.xcodeproj -scheme Whenly \
   -sdk iphonesimulator -destination "id=$(./scripts/select-simulator.sh)" \
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO
 ```
 
-DEBUG 라우팅 — `CAPTURETASK_OFFLINE=1` · `CAPTURETASK_TAB=0|1` (탭) · `CAPTURETASK_SHEET=settings|text` (시트)
-macOS 는 `CAPTURETASK_OPEN_LIST=1` (대시보드 열기) · `CAPTURETASK_FILE=<경로>` (그 이미지 처리).
+DEBUG 라우팅 — `WHENLY_OFFLINE=1` · `WHENLY_TAB=0|1` (탭) · `WHENLY_SHEET=settings|text` (시트)
+macOS 는 `WHENLY_OPEN_LIST=1` (대시보드 열기) · `WHENLY_FILE=<경로>` (그 이미지 처리).
 시뮬레이터에서는 `SIMCTL_CHILD_` 접두사를 붙이고, macOS 는 `open -n --env KEY=VAL` 로 준다.
 
 **시뮬레이터에서 공유 상자를 쓰려면 서명해서 빌드한다.** `CODE_SIGNING_ALLOWED=NO` 로 빌드하면
@@ -37,7 +42,7 @@ entitlements 가 안 박혀 App Group 이 언제나 nil 이고, 앱이 "공유 �
 테스트는 서명이 필요 없어 `verify.sh` 는 그대로 두고, 눌러 볼 때만 서명 빌드를 쓴다.
 
 ```bash
-xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTask -sdk iphonesimulator \
+xcodebuild build -project Whenly.xcodeproj -scheme Whenly -sdk iphonesimulator \
   -destination "id=$(./scripts/select-simulator.sh)" -derivedDataPath /tmp/ct-signed
 ```
 

@@ -11,7 +11,7 @@ import WidgetKit
 /// 둘을 하나로 합치지 않는다. 홈 화면 위젯을 눌러도 카메라가 열리면, 일정을
 /// 확인하려고 누른 사용자가 매번 카메라를 닫아야 한다.
 @main
-struct CaptureTaskWidgetBundle: WidgetBundle {
+struct WhenlyWidgetBundle: WidgetBundle {
     var body: some Widget {
         NextTaskWidget()
         CaptureLockWidget()

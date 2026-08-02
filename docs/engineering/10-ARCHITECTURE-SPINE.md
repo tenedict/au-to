@@ -90,7 +90,7 @@ OCR·LLM·EventKit·알림은 전부 메인 앱이 한다.
 | 구현 | 언제 |
 | --- | --- |
 | `BackendContextUnderstandingService` | 기본 |
-| `RuleBasedContextUnderstandingService` | `CAPTURETASK_OFFLINE=1` (DEBUG 전용) |
+| `RuleBasedContextUnderstandingService` | `WHENLY_OFFLINE=1` (DEBUG 전용) |
 | 온디바이스 | 예정 — ADR-10 |
 
 **왜** — 온디바이스로 옮길 때 화면·저장소·테스트를 건드리지 않기 위해서다.

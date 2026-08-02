@@ -24,7 +24,7 @@
 
 | ID | 요구사항 | 상태 | 검증 |
 | --- | --- | --- | --- |
-| FR-CAP-01 | 사진 앱 공유 시트에서 이미지 1장을 CaptureTask로 보낼 수 있다 | 🟡 | 실기기 |
+| FR-CAP-01 | 사진 앱 공유 시트에서 이미지 1장을 Whenly로 보낼 수 있다 | 🟡 | 실기기 |
 | FR-CAP-02 | 담은 이미지와 메타데이터는 App Group 상자에 원자적으로 저장된다 | ✅ | `SharedInbox.enqueue` |
 | FR-CAP-03 | 담기가 끝나면 Extension은 즉시 닫히고 결과를 문구로 알린다 | ✅ | 코드 리뷰 |
 | FR-CAP-04 | 앱이 앞으로 나올 때마다 상자를 다시 훑는다 | ✅ | `RootView` scenePhase |
@@ -48,7 +48,7 @@
 | FR-AI-03 | 글자를 찾지 못하면 그 사실을 말한다 | ✅ | `OCRServiceError.noTextRecognized` |
 | FR-AI-04 | 추출 텍스트로 제목·메모·마감·신뢰도·근거·모호점을 제안한다 | ✅ | `BackendContextUnderstandingServiceTests` |
 | FR-AI-05 | 분석기는 프로토콜 뒤에서 교체 가능하다 (백엔드 / 규칙 기반 / 온디바이스) | ✅ | `ContextUnderstanding.makeDefault` |
-| FR-AI-06 | 백엔드가 없어도 규칙 기반으로 전체 흐름을 눌러 볼 수 있다 | ✅ | `CAPTURETASK_OFFLINE=1` |
+| FR-AI-06 | 백엔드가 없어도 규칙 기반으로 전체 흐름을 눌러 볼 수 있다 | ✅ | `WHENLY_OFFLINE=1` |
 | FR-AI-07 | 텍스트만 붙여 넣어 분석을 시험할 수 있다 | ✅ | `ManualCaptureSheet` |
 | FR-AI-08 | 분석 실패 시 원인을 구분해 알린다 (요청 거절 / 한도 / 서버 / 형식) | ✅ | `BackendAnalysisError` |
 

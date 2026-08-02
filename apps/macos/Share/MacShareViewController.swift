@@ -63,7 +63,7 @@ final class MacShareViewController: NSViewController {
         if let message {
             extensionContext?.cancelRequest(
                 withError: NSError(
-                    domain: "CaptureTaskMacShare",
+                    domain: "WhenlyMacShare",
                     code: 1,
                     userInfo: [NSLocalizedDescriptionKey: message]
                 )

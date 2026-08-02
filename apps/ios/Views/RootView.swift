@@ -29,7 +29,7 @@ struct RootView: View {
 
     /// 탭 라우팅.
     ///
-    /// DEBUG 빌드에서 `CAPTURETASK_TAB=0|1` 로 시작 탭을 고를 수 있다.
+    /// DEBUG 빌드에서 `WHENLY_TAB=0|1` 로 시작 탭을 고를 수 있다.
     /// 시뮬레이터는 탭 입력을 자동화할 수 없어서, 이게 없으면 캘린더 화면을
     /// 사람이 손으로 눌러 보는 것 말고는 확인할 방법이 없다.
     /// (시뮬레이터에서는 `SIMCTL_CHILD_` 접두사를 붙인다)
@@ -39,7 +39,7 @@ struct RootView: View {
 
         static var initialFromEnvironment: Tab {
             #if DEBUG
-            if let raw = ProcessInfo.processInfo.environment["CAPTURETASK_TAB"],
+            if let raw = ProcessInfo.processInfo.environment["WHENLY_TAB"],
                let value = Int(raw), let tab = Tab(rawValue: value) {
                 return tab
             }
@@ -50,12 +50,12 @@ struct RootView: View {
 
     /// 시트 라우팅.
     ///
-    /// DEBUG 빌드에서 `CAPTURETASK_SHEET=settings|text` 로 시작하자마자 그 시트를 연다.
+    /// DEBUG 빌드에서 `WHENLY_SHEET=settings|text` 로 시작하자마자 그 시트를 연다.
     /// 시뮬레이터는 메뉴를 눌러 열 수 없어서, 이게 없으면 설정 화면을 사람이
     /// 손으로 눌러 보는 것 말고는 확인할 방법이 없다.
     private func openSheetFromEnvironment() {
         #if DEBUG
-        switch ProcessInfo.processInfo.environment["CAPTURETASK_SHEET"] {
+        switch ProcessInfo.processInfo.environment["WHENLY_SHEET"] {
         case "settings": showsSettings = true
         case "text": showsManualCapture = true
         default: break

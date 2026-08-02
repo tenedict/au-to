@@ -22,7 +22,7 @@ struct URLSessionHTTPClient: HTTPClient {
 
 struct BackendContextUnderstandingService: ContextUnderstandingService {
     /// 서버가 이 앱에서 온 요청인지 보는 헤더.
-    static let clientKeyHeader = "X-CaptureTask-Key"
+    static let clientKeyHeader = "X-Whenly-Key"
 
     private let endpoint: URL
     private let clientKey: String?
@@ -117,12 +117,12 @@ enum BackendConfiguration {
     /// 실제 값은 `Config/Secrets.xcconfig` 에 있고 그 파일은 커밋되지 않습니다.
     /// 비어 있으면 헤더를 붙이지 않습니다 — 로컬 백엔드는 키 없이 돕니다.
     static var clientKey: String? {
-        if let value = ProcessInfo.processInfo.environment["CAPTURETASK_CLIENT_KEY"],
+        if let value = ProcessInfo.processInfo.environment["WHENLY_CLIENT_KEY"],
            !value.isEmpty {
             return value
         }
         guard let value = Bundle.main.object(
-            forInfoDictionaryKey: "CAPTURETASK_CLIENT_KEY"
+            forInfoDictionaryKey: "WHENLY_CLIENT_KEY"
         ) as? String, !value.isEmpty else {
             return nil
         }
@@ -130,12 +130,12 @@ enum BackendConfiguration {
     }
 
     static var baseURL: URL {
-        if let value = ProcessInfo.processInfo.environment["CAPTURETASK_API_BASE_URL"],
+        if let value = ProcessInfo.processInfo.environment["WHENLY_API_BASE_URL"],
            let url = URL(string: value) {
             return url
         }
         if let value = Bundle.main.object(
-            forInfoDictionaryKey: "CAPTURETASK_API_BASE_URL"
+            forInfoDictionaryKey: "WHENLY_API_BASE_URL"
         ) as? String,
            !value.isEmpty,
            let url = URL(string: value) {

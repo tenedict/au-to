@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 @main
-struct CaptureTaskMacApp: App {
+struct WhenlyMacApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
@@ -92,14 +92,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         openListFromEnvironment()
     }
 
-    /// DEBUG 빌드에서 `CAPTURETASK_OPEN_LIST=1` 로 시작하면 대시보드를 바로 연다.
+    /// DEBUG 빌드에서 `WHENLY_OPEN_LIST=1` 로 시작하면 대시보드를 바로 연다.
     ///
     /// 창을 여는 길은 메뉴바·Dock·물방울 클릭뿐이고 셋 다 사람 손이 필요해서,
     /// 이게 없으면 화면을 눈으로 확인하는 일을 자동화할 수 없다.
-    /// iOS 의 `CAPTURETASK_TAB` · `CAPTURETASK_SHEET` 와 같은 갈고리다.
+    /// iOS 의 `WHENLY_TAB` · `WHENLY_SHEET` 와 같은 갈고리다.
     private func openListFromEnvironment() {
         #if DEBUG
-        guard ProcessInfo.processInfo.environment["CAPTURETASK_OPEN_LIST"] == "1" else { return }
+        guard ProcessInfo.processInfo.environment["WHENLY_OPEN_LIST"] == "1" else { return }
         openList()
         #endif
     }
@@ -113,17 +113,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         #endif
     }
 
-    /// DEBUG 빌드에서 `CAPTURETASK_FILE=<경로>` 로 시작하면 그 이미지를 곧바로 처리한다.
+    /// DEBUG 빌드에서 `WHENLY_FILE=<경로>` 로 시작하면 그 이미지를 곧바로 처리한다.
     ///
     /// 끌어다 놓기는 자동화할 수 없다. 이게 없으면 물방울의 주 경로를
     /// 사람이 손으로 끌어 보는 것 말고는 확인할 방법이 없다.
     ///
     /// **경로는 샌드박스가 읽을 수 있는 곳이어야 한다.** 실제 드롭과 파일 고르기는
     /// 샌드박스 확장을 함께 받지만, 여기서 주는 경로는 그냥 문자열이다.
-    /// 컨테이너 안(`~/Library/Containers/com.example.capturetask.mac/Data/Documents`)에 두면 된다.
+    /// 컨테이너 안(`~/Library/Containers/com.example.whenly.mac/Data/Documents`)에 두면 된다.
     private func fileImageFromEnvironment() {
         #if DEBUG
-        guard let path = ProcessInfo.processInfo.environment["CAPTURETASK_FILE"] else { return }
+        guard let path = ProcessInfo.processInfo.environment["WHENLY_FILE"] else { return }
         do {
             let data = try Data(contentsOf: URL(fileURLWithPath: path))
             Task { [store] in
@@ -140,7 +140,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     #if DEBUG
     private func log(_ message: String) {
-        FileHandle.standardError.write(Data("[CaptureTask] \(message)\n".utf8))
+        FileHandle.standardError.write(Data("[Whenly] \(message)\n".utf8))
     }
     #endif
 
@@ -212,7 +212,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             backing: .buffered,
             defer: false
         )
-        window.title = "CaptureTask"
+        window.title = "Whenly"
         window.titlebarAppearsTransparent = true
         window.center()
         window.isReleasedWhenClosed = false

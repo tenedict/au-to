@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the CaptureTask integrated development plan as HTML and PDF."""
+"""Build the Whenly integrated development plan as HTML and PDF."""
 
 from __future__ import annotations
 
@@ -32,8 +32,8 @@ from reportlab.platypus.tableofcontents import TableOfContents
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "INTEGRATED-DEVELOPMENT-PLAN.md"
-HTML_OUTPUT = ROOT / "docs" / "CaptureTask-Development-Plan.html"
-PDF_OUTPUT = ROOT / "output" / "pdf" / "CaptureTask-Development-Plan.pdf"
+HTML_OUTPUT = ROOT / "docs" / "Whenly-Development-Plan.html"
+PDF_OUTPUT = ROOT / "output" / "pdf" / "Whenly-Development-Plan.pdf"
 KOREAN_FONT = Path("/System/Library/Fonts/Supplemental/AppleGothic.ttf")
 
 INK = colors.HexColor("#15231F")
@@ -237,8 +237,8 @@ def build_html(markdown_text: str) -> None:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="CaptureTask iOS 개인 비서 통합 개발 기획서">
-  <title>CaptureTask 통합 개발 기획서</title>
+  <meta name="description" content="Whenly iOS 개인 비서 통합 개발 기획서">
+  <title>Whenly 통합 개발 기획서</title>
   <style>
     :root {{
       --ink: #15231f;
@@ -368,7 +368,7 @@ def build_html(markdown_text: str) -> None:
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">CaptureTask · Development Plan</div>
+    <div class="brand">Whenly · Development Plan</div>
     <button class="print-button" onclick="window.print()">인쇄 / PDF 저장</button>
   </header>
   <div class="layout">
@@ -418,7 +418,7 @@ def page_decoration(canvas, doc):
         canvas.rect(0, height - 10 * mm, width, 10 * mm, fill=1, stroke=0)
         canvas.setFont("CTK", 7.5)
         canvas.setFillColor(WHITE)
-        canvas.drawString(18 * mm, height - 6.7 * mm, "CaptureTask · 통합 개발 기획서")
+        canvas.drawString(18 * mm, height - 6.7 * mm, "Whenly · 통합 개발 기획서")
         canvas.setFillColor(MUTED)
         canvas.drawString(18 * mm, 9 * mm, "2026-08-01 · Version 1.0")
         canvas.drawRightString(width - 18 * mm, 9 * mm, f"{doc.page}")
@@ -775,10 +775,10 @@ def build_pdf(markdown_text: str) -> None:
         rightMargin=right,
         topMargin=top,
         bottomMargin=bottom,
-        title="CaptureTask 통합 개발 기획서",
-        author="CaptureTask Project",
+        title="Whenly 통합 개발 기획서",
+        author="Whenly Project",
         subject="iOS screenshot-to-task assistant product and engineering plan",
-        creator="CaptureTask documentation build",
+        creator="Whenly documentation build",
     )
     doc.addPageTemplates([template])
     story = markdown_to_pdf_story(markdown_text, styles, content_width)

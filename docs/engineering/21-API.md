@@ -1,6 +1,6 @@
 # 21 · API 명세서
 
-> CaptureTask 분석 백엔드의 HTTP 인터페이스 규격.
+> Whenly 분석 백엔드의 HTTP 인터페이스 규격.
 > 버전 v1 · 최종 갱신 2026-08-02
 
 관련 — [09-SPEC.md](09-SPEC.md) 계약 요약 · [`server/README.md`](../../server/README.md) 운영 · [`server/src/`](../../server/src) 구현
@@ -43,7 +43,7 @@
 
 | 항목 | 값 |
 | --- | --- |
-| 헤더 이름 | `X-CaptureTask-Key` |
+| 헤더 이름 | `X-Whenly-Key` |
 | 값 | 사전 공유 비밀 문자열 |
 | 최소 길이 | 24자 |
 | 비교 방식 | `crypto.timingSafeEqual` (길이가 다르면 먼저 거부) |
@@ -125,7 +125,7 @@ GET /health HTTP/1.1
 ```http
 POST /v1/analyze-capture HTTP/1.1
 Content-Type: application/json
-X-CaptureTask-Key: <공유 비밀>
+X-Whenly-Key: <공유 비밀>
 ```
 
 ```json
@@ -257,7 +257,7 @@ iOS URLRequest.timeoutInterval   20초
 | --- | --- | --- | --- |
 | `OPENAI_API_KEY` | **예** | — | 이 서버에만 존재한다 |
 | `OPENAI_MODEL` | 아니오 | `gpt-4.1-mini` | 프로젝트 규칙 10 이 실재 여부를 검사 |
-| `CAPTURETASK_CLIENT_KEY` | 조건부 | — | 비루프백 바인딩 시 필수 (§3.2) |
+| `WHENLY_CLIENT_KEY` | 조건부 | — | 비루프백 바인딩 시 필수 (§3.2) |
 | `HOST` | 아니오 | `127.0.0.1` | |
 | `PORT` | 아니오 | `8787` | |
 | `REQUEST_TIMEOUT_MS` | 아니오 | `15000` | |
@@ -283,7 +283,7 @@ iOS URLRequest.timeoutInterval   20초
 ```bash
 curl -X POST http://127.0.0.1:8787/v1/analyze-capture \
   -H 'Content-Type: application/json' \
-  -H "X-CaptureTask-Key: $CAPTURETASK_CLIENT_KEY" \
+  -H "X-Whenly-Key: $WHENLY_CLIENT_KEY" \
   -d '{
     "recognized_text": "다음 주 화요일까지 서류 제출해 주세요",
     "locale": "ko-KR",

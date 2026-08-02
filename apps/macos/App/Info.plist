@@ -2,14 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CAPTURETASK_API_BASE_URL</key>
-	<string>$(CAPTURETASK_API_BASE_URL)</string>
-	<key>CAPTURETASK_CLIENT_KEY</key>
-	<string>$(CAPTURETASK_CLIENT_KEY)</string>
+	<key>WHENLY_API_BASE_URL</key>
+	<string>$(WHENLY_API_BASE_URL)</string>
+	<key>WHENLY_CLIENT_KEY</key>
+	<string>$(WHENLY_CLIENT_KEY)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>ko</string>
 	<key>CFBundleDisplayName</key>
-	<string>CaptureTask</string>
+	<string>Whenly</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

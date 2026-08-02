@@ -12,8 +12,8 @@
 | --- | --- |
 | 단계 | R0 PASS · **백엔드 배포됨** (Cloud Run 서울) · 실기기 확인 대기 |
 | iOS 테스트 | 115 / 115 |
-| 백엔드 테스트 | 15 / 15 |
-| 프로젝트 규칙 | 11건 |
+| 백엔드 테스트 | 46 / 46 |
+| 프로젝트 규칙 | 12건 |
 | 빌드 경고 | 0 |
 | 외부 의존성 | 없음 (iOS · 백엔드 모두) |
 
@@ -63,7 +63,7 @@ npm start
 추론 계열(`gpt-5*`, `o*`)을 넣으면 `reasoning`·`verbosity` 파라미터가 자동으로 함께 붙습니다.
 
 ```bash
-cd server && npm test        # 15건 · 실제 OpenAI 호출 없음
+cd server && npm test        # 46건 · 실제 OpenAI 호출 없음
 curl http://127.0.0.1:8787/health
 ```
 
@@ -146,6 +146,7 @@ brew install lefthook && lefthook install
 | | |
 | --- | --- |
 | [`docs/README.md`](docs/README.md) | 문서 인덱스 · BMAD 워크플로 대응 |
+| [`docs/engineering/20-REPO-LAYOUT.md`](docs/engineering/20-REPO-LAYOUT.md) | **저장소 구조 · 플랫폼을 하나 더 붙일 때** |
 | [`server/README.md`](server/README.md) | **백엔드 구조 · API 키를 어디에 넣는지** |
 | [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/platform/17-ONDEVICE-LLM-RESEARCH.md) | 온디바이스 LLM 비교 분석 |
 | [`docs/project-context.md`](docs/project-context.md) | 5분 요약 — 새 세션은 여기부터 |

@@ -31,6 +31,8 @@ Windows·Android 가 붙으면 `platform/` 에 문서가 하나씩 늘어난다.
 | 전체 기획을 한 번에 본다 | [통합 HTML](CaptureTask-Development-Plan.html) · [원문](INTEGRATED-DEVELOPMENT-PLAN.md) · [PDF](../output/pdf/CaptureTask-Development-Plan.pdf) |
 | 제품을 이해하고 싶다 | [00-PRODUCT-BRIEF.md](product/00-PRODUCT-BRIEF.md) → [01-PRD.md](product/01-PRD.md) |
 | 코드를 고치려 한다 | [09-SPEC.md](engineering/09-SPEC.md) + [10-ARCHITECTURE-SPINE.md](engineering/10-ARCHITECTURE-SPINE.md) + [16-ENGINEERING-PLAYBOOK.md](engineering/16-ENGINEERING-PLAYBOOK.md) |
+| 파일이 어디 있는지 모르겠다 | [20-REPO-LAYOUT.md](engineering/20-REPO-LAYOUT.md) |
+| **플랫폼을 하나 더 붙인다** | [20-REPO-LAYOUT.md §4](engineering/20-REPO-LAYOUT.md) |
 | 화면을 고치려 한다 | [05-IA.md](product/05-IA.md) + [06-화면설계서.md](product/06-화면설계서.md) + [08-와이어프레임.md](product/08-와이어프레임.md) |
 | 다음에 뭘 할지 알고 싶다 | [14-SPRINT.md](engineering/14-SPRINT.md) + [11-EPICS-STORIES.md](engineering/11-EPICS-STORIES.md) |
 | 릴리스해도 되는지 판단한다 | [12-IMPLEMENTATION-READINESS.md](engineering/12-IMPLEMENTATION-READINESS.md) |
@@ -127,6 +129,7 @@ BMAD 가 **무엇을 만들지**를 정한다면, Superpowers 는 **어떻게 �
 | 17 | [온디바이스 LLM 리서치](platform/17-ONDEVICE-LLM-RESEARCH.md) | 어떤 모델을 쓸지 비교 분석 (구현 전 조사) |
 | 18 | [macOS 앱](platform/18-MACOS.md) | 물방울 · 바로 넣기와 되돌리기 · 샌드박스 · 앱 아이콘 |
 | 19 | [분석 품질 평가](engineering/19-EVAL.md) | 평가셋 · 첫 측정 · confidence 정정 |
+| 20 | [저장소 구조](engineering/20-REPO-LAYOUT.md) | 무엇이 어디에 · **플랫폼이 하나 더 붙을 때** |
 | — | [sprint-status.yaml](sprint-status.yaml) | **기계가 읽는 스프린트 상태 (숫자의 원본)** |
 | — | [plans/](plans/) | 스토리별 2~5분 태스크 계획 |
 | — | [INTEGRATED-DEVELOPMENT-PLAN.md](INTEGRATED-DEVELOPMENT-PLAN.md) | HTML/PDF 생성의 기준 원문 |
@@ -162,8 +165,8 @@ python3 scripts/build_development_plan.py
 | 릴리스 단계 | **R0 PASS** · MVP 기능 완성 |
 | 스토리 | 78 / 87 (90%) |
 | iOS 테스트 | ✅ 115 / 115 |
-| 백엔드 테스트 | ✅ 15 / 15 |
-| 프로젝트 규칙 | ✅ 11건 |
+| 백엔드 테스트 | ✅ 46 / 46 |
+| 프로젝트 규칙 | ✅ 12건 |
 | 빌드 | ✅ 경고 0 |
 | R1 게이트 | ⚠️ CONCERNS — 실기기 서명 · 실제 키 E2E |
 | R2 게이트 | ⛔ FAIL — 백엔드 인증 · 평가셋 (접근성 3건 해소) |

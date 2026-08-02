@@ -25,7 +25,7 @@
 
 | 묶음 | 내용 |
 | --- | --- |
-| 하네스 | `verify.sh` · 규칙 검사기 11건 · lefthook · CI 2개 · SwiftLint/swift-format · `verify` 스킬 |
+| 하네스 | `verify.sh` · 규칙 검사기 12건 · 문서 링크 검사 · lefthook · CI 2개 · SwiftLint/swift-format · `verify` 스킬 |
 | 문서 | BMAD 00~16 체계로 재편 · `sprint-status.yaml` · `plans/` |
 | MVP 결함 | App Group 무효화 등 10건 (12장 §2) |
 | 새 기능 | 지갑 스타일 마감 스택 · 로컬 마감 알림 · 이번 달 캘린더 뷰 |

@@ -53,12 +53,30 @@ xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTask -sdk iphones
 ## 구조
 
 ```
+apps/ios      App/ Views/ Resources/ Share/      화면은 여기서만 갈린다
+apps/macos    App/ Views/ Windows/ Resources/ Share/
+core/swift    Models/ Services/ Store/ Shared/   두 앱과 두 확장이 전부 쓴다
+tests/swift   core/swift 의 계산·저장 테스트
+server        모든 플랫폼이 부르는 단 하나의 백엔드
+config/apple  entitlements · Secrets.xcconfig
+```
+
+```
 View (SwiftUI) → Store (@MainActor ObservableObject) → Service 프로토콜 → 플랫폼/API 어댑터
                               ↘ Model (순수 값 · 순수 함수)
 
 Share Extension → App Group inbox → 메인 앱이 꺼내서 처리
 사진 고르기(PhotosPicker) ↗
 ```
+
+**플랫폼이 늘어도 `apps/` 아래 폴더 하나만 늘어난다.** 언어가 다른 공용 코드가
+생기면 `core/` 아래 형제(`core/kotlin/` …)로 들어온다.
+무엇을 어디에 더하는지는 [`docs/engineering/20-REPO-LAYOUT.md`](docs/engineering/20-REPO-LAYOUT.md).
+
+**경로를 아는 곳은 정해져 있다** — `project.yml` · `check-project-rules.sh` 맨 위 여섯 줄 ·
+`verify.sh` · `.swiftlint.yml` · `lefthook.yml` · `.gitignore` · CI.
+구조를 바꾸면 여기가 전부 따라 바뀌어야 한다. 하나라도 남으면 그 검사는
+빈손으로 훑고도 조용히 초록을 낸다.
 
 **분석 엔진을 고르는 지점은 `AnalysisEngine` + `ContextUnderstanding.make(_:)` 한 곳뿐이다.**
 나중에 온디바이스를 붙일 때 건드릴 파일은 둘이고, 화면·저장소·테스트는 그대로다.

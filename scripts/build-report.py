@@ -21,19 +21,25 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-TEMPLATE = ROOT / "docs" / "report" / "template.html"
-ASSETS = ROOT / "docs" / "report" / "assets"
-OUTPUT = ROOT / "output" / "report" / "CaptureTask-Report.html"
+SOURCE = ROOT / "docs" / "report"
+ASSETS = SOURCE / "assets"
+OUT_DIR = ROOT / "output" / "report"
+
+# 원본 → 생성물. 새 보고서를 더할 때 이 표에 한 줄만 넣는다.
+REPORTS = {
+    "template.html": "CaptureTask-Report.html",
+    "design-research.html": "CaptureTask-Design-Research.html",
+}
 
 PLACEHOLDER = re.compile(r"\{\{IMG:([A-Za-z0-9._-]+)\}\}")
 
 
-def main() -> int:
-    if not TEMPLATE.exists():
-        print(f"✕ 템플릿이 없습니다: {TEMPLATE}", file=sys.stderr)
+def build(source: Path, output: Path) -> int:
+    if not source.exists():
+        print(f"✕ 원본이 없습니다: {source}", file=sys.stderr)
         return 1
 
-    html = TEMPLATE.read_text(encoding="utf-8")
+    html = source.read_text(encoding="utf-8")
     missing: list[str] = []
 
     def embed(match: re.Match[str]) -> str:
@@ -52,13 +58,20 @@ def main() -> int:
         print(f"  {ASSETS} 를 확인하세요.", file=sys.stderr)
         return 1
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(html, encoding="utf-8")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(html, encoding="utf-8")
 
-    size = OUTPUT.stat().st_size / 1024 / 1024
+    size = output.stat().st_size / 1024 / 1024
     figures = len(re.findall(r"<img ", html))
-    print(f"✓ {OUTPUT.relative_to(ROOT)}  ({size:.2f} MB · 그림 {figures}개)")
+    print(f"✓ {output.relative_to(ROOT)}  ({size:.2f} MB · 그림 {figures}개)")
     return 0
+
+
+def main() -> int:
+    failed = 0
+    for src, dst in REPORTS.items():
+        failed |= build(SOURCE / src, OUT_DIR / dst)
+    return failed
 
 
 if __name__ == "__main__":

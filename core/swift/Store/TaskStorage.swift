@@ -26,9 +26,21 @@ struct TaskStorage: Sendable {
         if let shared = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: SharedInbox.appGroupIdentifier
         ) {
-            // 이전은 여기서 하지 않는다. 실패를 삼킬 자리가 없어야 하기 때문이다 —
-            // 부르는 쪽(TaskStore)이 do/catch 로 받아 화면까지 올린다.
-            return TaskStorage(directory: shared.appendingPathComponent(defaultDirectoryName))
+            let directory = shared.appendingPathComponent(defaultDirectoryName)
+            // `containerURL` 은 **권한이 없어도 경로를 돌려준다.** 서명에 App Group 이
+            // 없는 macOS 앱에서도 `~/Library/Group Containers/…` 를 그대로 준다.
+            //
+            // 그 경로를 그대로 믿으면 샌드박스가 막아 `fileExists` 가 언제나 false 가
+            // 되고, 앱은 매번 **첫 실행처럼 보인다** — 저장은 실패하는데 읽기는
+            // "아직 아무것도 없네" 로 읽히니 어디에도 빨간불이 뜨지 않는다.
+            // 사용자에게는 할 일이 통째로 사라진 것이다. 실제로 macOS 앱이 이 상태였다.
+            //
+            // 그래서 만들어 보고 정한다. SharedInbox 는 이미 이렇게 하고 있었다.
+            if isUsable(directory) {
+                // 이전은 여기서 하지 않는다. 실패를 삼킬 자리가 없어야 하기 때문이다 —
+                // 부르는 쪽(TaskStore)이 do/catch 로 받아 화면까지 올린다.
+                return TaskStorage(directory: directory)
+            }
         }
 
         guard let base = FileManager.default.urls(
@@ -37,7 +49,22 @@ struct TaskStorage: Sendable {
         ).first else {
             throw TaskStorageError.locationUnavailable
         }
-        return TaskStorage(directory: base.appendingPathComponent(defaultDirectoryName))
+        let fallback = base.appendingPathComponent(defaultDirectoryName)
+        guard isUsable(fallback) else { throw TaskStorageError.locationUnavailable }
+        return TaskStorage(directory: fallback)
+    }
+
+    /// 이 자리에 실제로 쓸 수 있는가.
+    ///
+    /// 경로가 그럴듯하게 생겼는지가 아니라 **만들어지는지**를 본다.
+    /// 이미 있으면 만들기는 성공으로 끝나므로 한 번 더 확인하지 않아도 된다.
+    static func isUsable(_ directory: URL, fileManager: FileManager = .default) -> Bool {
+        do {
+            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+            return true
+        } catch {
+            return false
+        }
     }
 
     /// 예전 위치(Application Support)에 있던 것을 App Group 으로 옮긴다.

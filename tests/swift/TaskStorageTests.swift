@@ -217,4 +217,34 @@ extension TaskStorageTests {
 
         XCTAssertEqual(try storage.loadTasks().map(\.title), ["지금 것"])
     }
+
+    // MARK: - 쓸 수 있는 자리 고르기
+
+    /// `containerURL(forSecurityApplicationGroupIdentifier:)` 은 **권한이 없어도 경로를 돌려준다.**
+    ///
+    /// 그 경로를 그대로 쓰면 `fileExists` 가 언제나 false 라 앱이 매번 "첫 실행" 처럼
+    /// 보인다. 사용자에게는 할 일이 통째로 사라진 것이다 — 실제로 macOS 앱이
+    /// 이 상태였다. 자리를 고를 때 **만들어 보고** 정해야 한다.
+    func testUnusableDirectoryIsRejectedBeforeItIsChosen() {
+        // /dev/null 은 디렉터리가 아니므로 그 아래는 어떤 권한으로도 만들 수 없다.
+        // 권한에 기대는 검사는 root 로 돌리면 통과해 버린다.
+        let impossible = URL(fileURLWithPath: "/dev/null/CaptureTask")
+
+        XCTAssertFalse(TaskStorage.isUsable(impossible))
+    }
+
+    func testWritableDirectoryIsAccepted() {
+        XCTAssertTrue(TaskStorage.isUsable(directory))
+    }
+
+    /// 고른 자리는 실제로 쓸 수 있어야 한다. 못 쓰는 자리를 골라 놓고
+    /// 조용히 빈 목록을 돌려주는 것이 이 버그의 모양이었다.
+    func testDefaultStorageChoosesAPlaceItCanActuallyWrite() throws {
+        let resolved = try TaskStorage.makeDefault()
+
+        XCTAssertTrue(
+            TaskStorage.isUsable(resolved.directory),
+            "기본 저장 위치(\(resolved.directory.path))를 만들지 못했습니다"
+        )
+    }
 }

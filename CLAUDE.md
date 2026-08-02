@@ -65,7 +65,7 @@ Share Extension → App Group inbox → 메인 앱이 꺼내서 처리
 비교 분석은 [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/17-ONDEVICE-LLM-RESEARCH.md).
 
 의존은 이 한 방향뿐이다. Model은 Store·View·EventKit·Vision·UserNotifications를 모른다.
-마감 분류·알림 시각·월 격자·지갑 스택 배치가 전부 `CaptureTask/Models/` 의 순수 함수다.
+마감 분류·알림 시각·월 격자·지갑 스택 배치가 전부 `core/swift/Models/` 의 순수 함수다.
 
 ---
 

@@ -28,12 +28,12 @@ step "코드 포맷"
 if xcrun --find swift-format >/dev/null 2>&1; then
   # 경고로만 다룬다. 스타일 때문에 빌드를 막지 않는다.
   # 자동 수정은 사람이 명시적으로 요청했을 때만 (작업 범위 밖 파일까지 번지면 리뷰가 불가능해진다)
-  if out=$(swift format lint --recursive CaptureTask CaptureTaskShare CaptureTaskTests 2>&1); then
+  if out=$(swift format lint --recursive apps core tests 2>&1); then
     ok "swift-format"
   else
     printf '%s  ! swift-format 지적 %s건%s\n' "$YEL" "$(echo "$out" | grep -c 'error:')" "$OFF"
     echo "$out" | head -8 | sed 's/^/    /'
-    printf '%s    고치기: swift format --in-place --recursive CaptureTask CaptureTaskShare CaptureTaskTests%s\n' "$DIM" "$OFF"
+    printf '%s    고치기: swift format --in-place --recursive apps core tests%s\n' "$DIM" "$OFF"
   fi
 else
   skip "swift-format" "Xcode 16+ 필요"

@@ -10,7 +10,7 @@ pre-commit:
     - name: 프로젝트 규칙
       run: ./scripts/check-project-rules.sh
     - name: 포맷
-      run: swift format lint --recursive --strict CaptureTask CaptureTaskShare CaptureTaskTests
+      run: swift format lint --recursive --strict apps core tests
       skip:
         - run: '! xcrun --find swift-format >/dev/null 2>&1'
     - name: 린트

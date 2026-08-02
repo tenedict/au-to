@@ -2,14 +2,14 @@
 #   brew install swiftlint
 
 included:
-  - CaptureTask
-  - CaptureTaskShare
-  - CaptureTaskTests
+  - apps
+  - core
+  - tests
 excluded:
   - build
   - docs
   - output
-  - backend
+  - server
 
 # 화면 파일 500줄 (NFR-MNT-05)
 file_length:
@@ -69,7 +69,7 @@ custom_rules:
   openai_key_in_app:
     name: "앱 코드의 OpenAI 키"
     regex: '(OPENAI_API_KEY|api\.openai\.com)'
-    message: "OpenAI 호출은 backend/ 만 합니다 (CLAUDE 규칙 3)."
+    message: "OpenAI 호출은 server/ 만 합니다 (CLAUDE 규칙 3)."
     severity: error
 
   swallowed_storage_error:

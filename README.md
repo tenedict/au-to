@@ -133,7 +133,7 @@ brew install lefthook && lefthook install
 
 1. `project.yml` 의 `PRODUCT_BUNDLE_IDENTIFIER` 와 `DEVELOPMENT_TEAM` 을 본인 것으로 바꿉니다
 2. 같은 파일의 `com.apple.security.application-groups` 값을 개발자 계정에 등록합니다
-3. `CaptureTask/Shared/PendingCapture.swift` 의 `appGroupIdentifier` 도 같은 값으로 맞춥니다
+3. `core/swift/Shared/PendingCapture.swift` 의 `appGroupIdentifier` 도 같은 값으로 맞춥니다
 4. `./scripts/check-project-rules.sh` 로 네 곳이 일치하는지 확인합니다
 5. `CAPTURETASK_API_BASE_URL` 을 맥의 LAN 주소로 바꿉니다 (`http://192.168.x.x:8787`)
 

@@ -21,9 +21,16 @@ report() {  # report <심각도> <규칙> <근거> <설명>
   fi
 }
 
-SRC="CaptureTask"
-SHARE="CaptureTaskShare"
-TESTS="CaptureTaskTests"
+# 경로는 여기 한 곳에만 적는다. 구조가 바뀌면 이 여섯 줄만 고친다.
+CORE="core/swift"          # 두 앱과 두 확장이 전부 쓰는 계산·저장
+IOS="apps/ios"             # iOS 화면
+MAC="apps/macos"           # macOS 화면
+SHARE="apps/ios/Share"     # iOS 공유 확장
+MAC_SHARE="apps/macos/Share"
+TESTS="tests/swift"
+
+# Swift 가 있는 곳 전부. 규칙 대부분이 이 묶음을 훑는다.
+ALL_SWIFT=("$CORE" "$IOS" "$MAC" "$SHARE" "$MAC_SHARE")
 
 # ── --list · 규칙 목록을 검사기가 직접 출력한다 ────────────────
 # 개수를 문서에 손으로 적으면 반드시 어긋난다. 셈은 여기서만 한다.
@@ -40,12 +47,12 @@ strip_comments() { grep -vE '^[^:]+:[0-9]+:[[:space:]]*(///?|\*|/\*|#)' || true;
 # 경로가 어긋나면 모든 grep 이 빈손으로 돌아오고 검사기는 조용히 초록을 낸다.
 # verify.sh 가 도구 부재에 대해 적어 둔 원칙을 검사기 자신에게도 적용한다 —
 #   "없다고 조용히 통과시키면 검증이 거짓말을 시작한다."
-for dir in "$SRC" "$SHARE" "$TESTS"; do
+for dir in "${ALL_SWIFT[@]}" "$TESTS"; do
   [ -d "$dir" ] || report error "검사 대상 디렉터리 없음" "자기 검사" \
     "$dir/ 가 없습니다. 검사기가 아무것도 훑지 못했습니다 — 초록불은 거짓입니다."
 done
 
-scanned=$(find "$SRC" "$SHARE" "$TESTS" -name '*.swift' 2>/dev/null | wc -l | tr -d ' ')
+scanned=$(find "${ALL_SWIFT[@]}" "$TESTS" -name '*.swift' 2>/dev/null | wc -l | tr -d ' ')
 [ "$scanned" -ge 15 ] || report error "훑은 파일이 너무 적음 (${scanned}개)" "자기 검사" \
   "경로가 어긋났거나 체크아웃이 잘렸습니다. 이 상태의 통과는 근거가 없습니다."
 
@@ -76,11 +83,11 @@ done
 # 게다가 XcodeGen 은 project.yml 의 entitlements.properties 가 없으면 파일을
 # 빈 <dict/> 로 덮어쓴다 — 파일에만 적어 두면 다음 generate 에서 조용히 사라진다.
 group_in_code=$(grep -oE 'appGroupIdentifier[[:space:]]*=[[:space:]]*"[^"]+"' \
-  "$SRC/Shared/PendingCapture.swift" 2>/dev/null | sed -E 's/.*"([^"]+)"/\1/' | head -1)
+  "$CORE/Shared/PendingCapture.swift" 2>/dev/null | sed -E 's/.*"([^"]+)"/\1/' | head -1)
 
 if [ -z "$group_in_code" ]; then
   report error "App Group 식별자를 코드에서 찾지 못함" "SPEC C-1" \
-    "$SRC/Shared/PendingCapture.swift 의 SharedInbox.appGroupIdentifier 를 확인하세요."
+    "$CORE/Shared/PendingCapture.swift 의 SharedInbox.appGroupIdentifier 를 확인하세요."
 else
   for f in project.yml Config/CaptureTask.entitlements Config/CaptureTaskShare.entitlements; do
     if [ ! -f "$f" ]; then
@@ -99,10 +106,10 @@ fi
 # ── 규칙 2 · OpenAI 키가 앱·Extension 에 들어오지 않았는가 ────
 # 키가 앱 번들에 들어가면 누구나 꺼낼 수 있다. 호출은 반드시 백엔드를 거친다. (CLAUDE 규칙 3)
 hits=$(grep -rnE '"sk-[A-Za-z0-9_-]|OPENAI_API_KEY|api\.openai\.com' \
-        --include='*.swift' "$SRC" "$SHARE" 2>/dev/null | strip_comments)
+        --include='*.swift' "${ALL_SWIFT[@]}" 2>/dev/null | strip_comments)
 if [ -n "$hits" ]; then
   report error "앱 코드에 OpenAI 키/직접 호출" "CLAUDE 규칙 3" \
-    "OpenAI 호출은 backend/ 만 합니다. 앱은 CAPTURETASK_API_BASE_URL 로 백엔드를 부릅니다."
+    "OpenAI 호출은 server/ 만 합니다. 앱은 CAPTURETASK_API_BASE_URL 로 백엔드를 부릅니다."
   echo "$hits" | sed 's/^/      /'
 fi
 
@@ -119,14 +126,14 @@ fi
 #
 # grep 은 "먼저" 를 확인하지 못한다. 여기서는 담기가 **있는지**만 보고,
 # 순서는 코드 리뷰와 ShareViewController 의 주석이 지킨다.
-grep -q 'SharedInbox\.enqueue' "$SHARE"/*.swift 2>/dev/null || \
+grep -qr 'SharedInbox\.enqueue' --include='*.swift' "$SHARE" 2>/dev/null || \
   report error "Extension 이 캡처를 담지 않음" "ADR-2" \
     "분석 전에 SharedInbox.enqueue 를 불러야 합니다. 시스템이 중간에 죽이면 캡처가 사라집니다."
 
 # ── 규칙 4 · 신뢰도 임계값은 Confidence 한 곳에서만 ──────────
 # 0.80 을 여러 곳에 흩어 놓으면 한 곳만 고쳐지고, "확인 없이 캘린더에 쓰지 않는다" 는
 # 약속이 경로마다 달라진다. (CLAUDE 규칙 2)
-hits=$(grep -rnE '(^|[^0-9.])0\.80?([^0-9]|$)' --include='*.swift' "$SRC" 2>/dev/null \
+hits=$(grep -rnE '(^|[^0-9.])0\.80?([^0-9]|$)' --include='*.swift' "${ALL_SWIFT[@]}" 2>/dev/null \
         | grep -v 'Models/AssistantTask.swift' | strip_comments)
 if [ -n "$hits" ]; then
   report error "신뢰도 임계값 리터럴" "CLAUDE 규칙 2" \
@@ -137,8 +144,8 @@ fi
 # ── 규칙 5 · 캡처를 지우는 지점은 저장소 하나뿐 ──────────────
 # 확인 전에 지우면 사용자가 공유한 스크린샷을 영영 잃는다. 지우는 자리가 여러 곳이면
 # 그중 하나는 반드시 확인보다 먼저 지운다. (CLAUDE 규칙 7)
-hits=$(grep -rn 'SharedInbox\.complete' --include='*.swift' "$SRC" "$SHARE" 2>/dev/null \
-        | grep -v "^$SRC/Store/" | grep -v "^$SRC/Shared/" | strip_comments)
+hits=$(grep -rn 'SharedInbox\.complete' --include='*.swift' "${ALL_SWIFT[@]}" 2>/dev/null \
+        | grep -v "^$CORE/Store/" | grep -v "^$CORE/Shared/" | strip_comments)
 if [ -n "$hits" ]; then
   report error "저장소 밖에서 캡처 삭제" "CLAUDE 규칙 7" \
     "TaskStore 가 사용자 확인 뒤에만 지웁니다."
@@ -148,8 +155,8 @@ fi
 # ── 규칙 6 · 모델은 화면·플랫폼을 모른다 ─────────────────────
 # 모델이 SwiftUI 나 EventKit 을 알면 계산을 테스트하려고 화면을 띄워야 한다.
 # 그러면 아무도 테스트하지 않게 된다. (ADR-1)
-hits=$(grep -rnE '^import (SwiftUI|UIKit|EventKit|Vision|UserNotifications)' \
-        --include='*.swift' "$SRC/Models" 2>/dev/null | strip_comments)
+hits=$(grep -rnE '^import (SwiftUI|UIKit|AppKit|EventKit|Vision|UserNotifications)' \
+        --include='*.swift' "$CORE/Models" 2>/dev/null | strip_comments)
 if [ -n "$hits" ]; then
   report error "모델이 화면·플랫폼을 앎" "ADR-1" \
     "순수 값과 순수 함수만 두세요. 어댑터는 Services/ 입니다."
@@ -167,9 +174,9 @@ fi
 # 때문이다. Services/ 에 두면 Extension 타깃에 들어가지 않는다.
 # 다른 곳에서는 이 두 타입을 **불러 쓰기만** 한다 — 직접 예약하지 않는다.
 hits=$(grep -rn 'UNUserNotificationCenter\|UNNotificationRequest' \
-        --include='*.swift' "$SRC" "$SHARE" 2>/dev/null \
-        | grep -v 'Services/NotificationService.swift' \
-        | grep -v 'Shared/CaptureNotice.swift' | strip_comments)
+        --include='*.swift' "${ALL_SWIFT[@]}" 2>/dev/null \
+        | grep -v "^$CORE/Services/NotificationService.swift" \
+        | grep -v "^$CORE/Shared/CaptureNotice.swift" | strip_comments)
 if [ -n "$hits" ]; then
   report error "정해진 곳 밖에서 알림 예약" "SPEC N-1" \
     "마감은 LocalNotificationService, 확인 요청은 CaptureNotice 를 거치세요."
@@ -178,7 +185,7 @@ fi
 
 # ── 규칙 8 · 저장·복원 실패를 try? 로 삼키지 않는다 ──────────
 # 사용자는 잃은 뒤에 안다. 저장소 호출의 실패는 반드시 화면까지 올라와야 한다.
-hits=$(grep -rn 'try?[[:space:]]*storage\.' --include='*.swift' "$SRC" 2>/dev/null \
+hits=$(grep -rn 'try?[[:space:]]*storage\.' --include='*.swift' "${ALL_SWIFT[@]}" 2>/dev/null \
         | strip_comments)
 if [ -n "$hits" ]; then
   report error "저장 실패를 삼킴" "CLAUDE 규칙 8" \
@@ -195,7 +202,8 @@ while IFS= read -r line; do
   elif [ "$n" -gt 450 ]; then
     report warn "450줄 근접 ($n줄)" "NFR-MNT-05" "$f"
   fi
-done < <(find "$SRC/Views" -name '*.swift' -exec wc -l {} + 2>/dev/null | sed 's/^ *//' | grep -v ' total$')
+done < <(find "$IOS/Views" "$MAC/Views" "$MAC/Windows" -name '*.swift' -exec wc -l {} + 2>/dev/null \
+           | sed 's/^ *//' | grep -v ' total$')
 
 # ── 규칙 10 · 백엔드 기본 모델이 확인된 이름인가 ─────────────
 # 실재하지 않는 이름을 기본값에 두면 키를 넣은 첫 호출이 404 로 죽는다. 그때 사용자에게는

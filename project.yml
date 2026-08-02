@@ -27,10 +27,14 @@ targets:
   CaptureTask:
     type: application
     platform: iOS
+    # 화면은 apps/ios, 계산과 저장은 core/swift. Share 는 별도 타깃이라 여기 넣지 않는다.
     sources:
-      - CaptureTask
+      - apps/ios/App
+      - apps/ios/Views
+      - apps/ios/Resources
+      - core/swift
     info:
-      path: CaptureTask/App/Info.plist
+      path: apps/ios/App/Info.plist
       properties:
         CFBundleDisplayName: CaptureTask
         UILaunchScreen: {}
@@ -70,13 +74,10 @@ targets:
     platform: iOS
     # 확장이 등록까지 끝낸다 (ADR-2 재검토). 그래서 앱과 같은 코드를 쓴다.
     sources:
-      - CaptureTaskShare
-      - CaptureTask/Shared
-      - CaptureTask/Models
-      - CaptureTask/Services
-      - CaptureTask/Store
+      - apps/ios/Share
+      - core/swift
     info:
-      path: CaptureTaskShare/Info.plist
+      path: apps/ios/Share/Info.plist
       properties:
         CFBundleDisplayName: "CaptureTask에 담기"
         NSExtension:
@@ -97,20 +98,20 @@ targets:
         SKIP_INSTALL: YES
         INFOPLIST_KEY_CFBundleDisplayName: "CaptureTask에 담기"
   # ── macOS ────────────────────────────────────────────────
-  # Models·Services·Store·Shared 를 iOS 와 그대로 공유한다.
-  # Views 는 공유하지 않는다 — 화면은 플랫폼마다 다른 것이 맞다.
+  # core/swift 를 iOS 와 그대로 공유한다.
+  # apps/macos/Views 는 공유하지 않는다 — 화면은 플랫폼마다 다른 것이 맞다.
   CaptureTaskMac:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - CaptureTaskMac
-      - CaptureTask/Models
-      - CaptureTask/Services
-      - CaptureTask/Store
-      - CaptureTask/Shared
+      - apps/macos/App
+      - apps/macos/Views
+      - apps/macos/Windows
+      - apps/macos/Resources
+      - core/swift
     info:
-      path: CaptureTaskMac/App/Info.plist
+      path: apps/macos/App/Info.plist
       properties:
         CFBundleDisplayName: CaptureTask
         CFBundleDevelopmentRegion: ko
@@ -159,9 +160,9 @@ targets:
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - CaptureTaskMacShare
+      - apps/macos/Share
     info:
-      path: CaptureTaskMacShare/Info.plist
+      path: apps/macos/Share/Info.plist
       properties:
         CFBundleDisplayName: "CaptureTask에 담기"
         CFBundleDevelopmentRegion: ko
@@ -185,7 +186,7 @@ targets:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - CaptureTaskTests
+      - tests/swift
     dependencies:
       - target: CaptureTask
     settings:

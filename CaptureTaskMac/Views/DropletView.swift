@@ -81,19 +81,24 @@ struct DropletView: View {
     ///
     /// 스테인리스처럼 보이는 이유는 **각도에 따라 밝기가 도는** 그라디언트 때문이다.
     /// 금속은 한 방향에서만 빛나지 않는다 — 둘레를 돌며 밝은 띠와 어두운 띠가 번갈아 온다.
+    ///
+    /// **그림자를 쓰지 않는다.** 창이 고리에 딱 맞는 68×68 이라 중심에서 모서리까지가
+    /// 고리 반지름보다 가깝다. 그래서 그림자가 네 모서리에 닿고 창 경계에서 직선으로
+    /// 잘려 **뿌연 네모**로 보였다. 윤곽은 그림자 대신 바깥쪽 실선으로 만든다.
     private var ring: some View {
         let width: CGFloat = isTargeted ? 4 : 3
 
         return Circle()
             .strokeBorder(Self.steel, lineWidth: width)
             .overlay {
-                // 바깥 모서리 — 빛을 받는 쪽. 금속의 각진 느낌은 이 얇은 선이 만든다.
-                Circle().strokeBorder(.white.opacity(0.5), lineWidth: 0.75)
+                // 바깥 윤곽 — 밝은 배경 위에서도 고리가 배경에 묻히지 않게 한다.
+                // 그림자가 하던 일을, 원 밖으로 한 픽셀도 넘지 않으면서 한다.
+                Circle().strokeBorder(.black.opacity(0.30), lineWidth: 0.5)
             }
             .overlay {
                 // 안쪽 모서리 — 그늘. 두께가 있다는 신호다.
                 Circle()
-                    .strokeBorder(.black.opacity(0.28), lineWidth: 0.75)
+                    .strokeBorder(.black.opacity(0.35), lineWidth: 0.75)
                     .padding(width - 0.75)
             }
             .overlay {
@@ -101,25 +106,27 @@ struct DropletView: View {
                     Circle().strokeBorder(Color.accentColor.opacity(0.85), lineWidth: 2)
                 }
             }
-            // 그림자는 고리에만 진다. 가운데는 비어 있으므로 판처럼 보이지 않는다.
-            .shadow(color: .black.opacity(0.35), radius: 3, y: 1)
     }
 
     /// 둘레를 도는 금속 광택.
     ///
     /// 밝은 띠 둘, 어두운 띠 둘을 마주 보게 놓았다. 실제 원통형 금속에 조명이
     /// 하나 있을 때 나타나는 배치다.
+    ///
+    /// **명암 차가 커야 금속으로 읽힌다.** 처음에는 0.45~1.00 을 썼는데 흰 배경 위에서는
+    /// 그냥 흰 고리로 보였다. 어두운 띠를 0.22 까지 내리니 비로소 금속이 됐다 —
+    /// 금속의 어두운 부분은 회색이 아니라 거의 검다.
     private static let steel = AngularGradient(
         stops: [
-            .init(color: Color(white: 0.95), location: 0.00),
-            .init(color: Color(white: 0.55), location: 0.12),
-            .init(color: Color(white: 0.78), location: 0.25),
+            .init(color: Color(white: 0.97), location: 0.00),
+            .init(color: Color(white: 0.32), location: 0.12),
+            .init(color: Color(white: 0.72), location: 0.25),
             .init(color: Color(white: 1.00), location: 0.38),
-            .init(color: Color(white: 0.60), location: 0.50),
-            .init(color: Color(white: 0.88), location: 0.62),
-            .init(color: Color(white: 0.45), location: 0.75),
-            .init(color: Color(white: 0.82), location: 0.88),
-            .init(color: Color(white: 0.95), location: 1.00),
+            .init(color: Color(white: 0.28), location: 0.50),
+            .init(color: Color(white: 0.86), location: 0.62),
+            .init(color: Color(white: 0.22), location: 0.75),
+            .init(color: Color(white: 0.78), location: 0.88),
+            .init(color: Color(white: 0.97), location: 1.00),
         ],
         center: .center,
         angle: .degrees(-35)

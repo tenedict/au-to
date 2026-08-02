@@ -58,6 +58,11 @@ struct DropletView: View {
 
     /// 유리에 맺힌 물방울.
     ///
+    /// **떠 있는 물방울은 완전한 원이다.** 메뉴바 아이콘(`MenuBarIcon`)은 맺힌 윤곽
+    /// (`Bead`)을 쓰는데, 여기서는 쓰지 않는다 — 18pt 아이콘에서는 비대칭이 "손으로
+    /// 그린 것"으로 읽혀 성격이 되지만, 44pt 로 화면에 떠 있으면 같은 비대칭이
+    /// **찌그러진 원**으로 보인다. 크기가 다르면 같은 모양도 다른 뜻이 된다.
+    ///
     /// 층이 넷이고 순서가 곧 광학이다.
     ///
     /// 1. **유리** — 가운데를 아주 옅게 채운다 (macOS 26+). 굴절은 아니지만
@@ -70,7 +75,7 @@ struct DropletView: View {
     /// 4. **하이라이트 둘** — 왼쪽 위의 작고 밝은 점(주광), 오른쪽 아래의 넓고 옅은
     ///    반사(환경광). 물방울이 물방울로 읽히는 것은 굴절이 아니라 이 둘 때문이다.
     private var droplet: some View {
-        BeadShape()
+        Circle()
             .fill(.clear)
             .glassIfAvailable()
             .overlay { edgeShade }
@@ -84,7 +89,7 @@ struct DropletView: View {
 
     /// 가장자리 그늘. 가운데는 투명하고 테두리로 갈수록 짙어진다.
     private var edgeShade: some View {
-        BeadShape()
+        Circle()
             .fill(
                 RadialGradient(
                     stops: [
@@ -98,7 +103,7 @@ struct DropletView: View {
 
     /// 안쪽 얇은 밝은 선.
     private var innerRim: some View {
-        BeadShape()
+        Circle()
             .strokeBorder(.white.opacity(0.55), lineWidth: 0.9)
             .blendMode(.plusLighter)
     }
@@ -119,7 +124,7 @@ struct DropletView: View {
                 .blur(radius: diameter * 0.09)
                 .offset(x: diameter * 0.16, y: diameter * 0.22)
         }
-        .mask(BeadShape())
+        .mask(Circle())
     }
 
     // MARK: - 누르기 · 옮기기 · 탭
@@ -190,7 +195,7 @@ private extension View {
         if #available(macOS 26.0, *) {
             // `.regular` 가 아니라 `.clear` 다. `.regular` 는 뒤를 서리처럼 가려서
             // 물방울이 아니라 **불투명한 알약**으로 보인다. 물방울은 뒤가 보여야 한다.
-            self.glassEffect(.clear, in: BeadShape())
+            self.glassEffect(.clear, in: .circle)
         } else {
             self
         }

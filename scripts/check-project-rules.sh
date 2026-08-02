@@ -106,23 +106,22 @@ if [ -n "$hits" ]; then
   echo "$hits" | sed 's/^/      /'
 fi
 
-# ── 규칙 3 · Share Extension 은 수집만 한다 ──────────────────
-# Extension 은 메모리와 실행 시간이 빡빡하다. 긴 네트워크 요청이나 EventKit 쓰기를 넣으면
-# 시스템이 중간에 죽인다 — 사용자는 담기가 실패한 줄도 모른다. (CLAUDE 규칙 5)
-# CaptureTask/Shared 도 Extension 타깃에 함께 들어가므로 같이 본다.
+# ── 규칙 3 · Share Extension 은 분석 전에 반드시 담는다 ──────
 #
-# `UserNotifications` 는 **일부러 뺐다.** 막는 기준은 "import 했는가"가 아니라
-# "얼마나 오래 걸리는가"다. 네트워크·EventKit·Vision 은 수백 밀리초에서 수 초가 걸리지만,
-# 로컬 알림 예약은 파일 쓰기 한 번 수준이라 같은 위험이 없다.
-# 그리고 그 알림이 없으면 담기만 하고 앱을 안 연 사용자에게 아무 일도 일어나지 않는다
-# — 분석은 메인 앱에서만 돌기 때문이다. (CaptureNotice)
-hits=$(grep -rnE '^import (EventKit|Vision)|URLSession|URLRequest' \
-        --include='*.swift' "$SHARE" "$SRC/Shared" 2>/dev/null | strip_comments)
-if [ -n "$hits" ]; then
-  report error "Share Extension 에 무거운 작업" "CLAUDE 규칙 5" \
-    "OCR·LLM·캘린더는 메인 앱이 합니다. Extension 은 담고 알림 한 번 거는 것까지입니다."
-  echo "$hits" | sed 's/^/      /'
-fi
+# 이 규칙은 한때 "Extension 에 무거운 것을 넣지 마라" 였다. 지금은 Extension 이
+# OCR·분석·캘린더까지 끝낸다 — 공유 한 번으로 등록까지 가는 것이 이 제품의 값이고,
+# 앱을 열어야만 처리되면 담아 둔 스크린샷은 사진첩에 묻힌 것과 다를 게 없었다.
+#
+# **그래서 막는 대상을 바꿨다.** ADR-2 의 진짜 알맹이는 "무거운 것 금지" 가 아니라
+# **"죽어도 잃지 마라"** 였다. 시스템은 언제든 Extension 을 죽일 수 있으니,
+# 분석보다 `SharedInbox.enqueue` 가 **먼저** 와야 한다. 그러면 죽어도 캡처가 남고
+# 앱이 다음에 이어서 처리한다.
+#
+# grep 은 "먼저" 를 확인하지 못한다. 여기서는 담기가 **있는지**만 보고,
+# 순서는 코드 리뷰와 ShareViewController 의 주석이 지킨다.
+grep -q 'SharedInbox\.enqueue' "$SHARE"/*.swift 2>/dev/null || \
+  report error "Extension 이 캡처를 담지 않음" "ADR-2" \
+    "분석 전에 SharedInbox.enqueue 를 불러야 합니다. 시스템이 중간에 죽이면 캡처가 사라집니다."
 
 # ── 규칙 4 · 신뢰도 임계값은 Confidence 한 곳에서만 ──────────
 # 0.80 을 여러 곳에 흩어 놓으면 한 곳만 고쳐지고, "확인 없이 캘린더에 쓰지 않는다" 는

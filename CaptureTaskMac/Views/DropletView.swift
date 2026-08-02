@@ -22,14 +22,6 @@ struct DropletView: View {
     enum Phase {
         case idle, ready, working
 
-        var symbol: String {
-            switch self {
-            case .idle: return "drop.fill"
-            case .ready: return "arrow.down.circle.fill"
-            case .working: return "drop.fill"
-            }
-        }
-
         var label: String {
             switch self {
             case .idle: return "물방울. 스크린샷을 여기에 끌어다 놓으세요"
@@ -55,7 +47,9 @@ struct DropletView: View {
 
             glass
             surfaceHighlights
-            symbol
+            if store.isImporting {
+                ProgressView().controlSize(.small)
+            }
         }
         .frame(width: DropletPanel.diameter, height: DropletPanel.diameter)
         .contentShape(.circle)
@@ -146,21 +140,6 @@ struct DropletView: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .allowsHitTesting(false)
-    }
-
-    @ViewBuilder
-    private var symbol: some View {
-        if store.isImporting {
-            ProgressView()
-                .controlSize(.small)
-        } else {
-            Image(systemName: phase.symbol)
-                .font(.system(size: isTargeted ? 22 : 19, weight: .medium))
-                .foregroundStyle(
-                    isTargeted ? Color.accentColor : Color.primary.opacity(0.55)
-                )
-                .shadow(color: .white.opacity(0.6), radius: 1, y: 0.5)
-        }
     }
 
     /// 떨어진 것들을 순서대로 처리한다.

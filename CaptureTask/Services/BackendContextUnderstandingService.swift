@@ -51,7 +51,7 @@ struct BackendContextUnderstandingService: ContextUnderstandingService {
         self.now = now
     }
 
-    func makeDraft(from text: String, captureID: UUID?) async throws -> TaskDraft {
+    func makeDrafts(from text: String, captureID: UUID?) async throws -> [TaskDraft] {
         let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else {
             throw ContextUnderstandingError.noTextFound
@@ -85,7 +85,11 @@ struct BackendContextUnderstandingService: ContextUnderstandingService {
         } catch {
             throw BackendAnalysisError.invalidResponse
         }
-        return try payload.makeDraft(captureID: captureID)
+
+        // 하나가 이상하다고 나머지를 버리지 않는다. 서버도 같은 규칙으로 다듬는다.
+        let drafts = payload.tasks.compactMap { try? $0.makeDraft(captureID: captureID) }
+        guard !drafts.isEmpty else { throw BackendAnalysisError.invalidResponse }
+        return drafts
     }
 
     private func decodeError(from data: Data, statusCode: Int) -> BackendAnalysisError {
@@ -156,6 +160,10 @@ private struct AnalyzeCaptureRequest: Encodable {
 }
 
 private struct AnalyzeCaptureResponse: Decodable {
+    let tasks: [AnalyzedTask]
+}
+
+private struct AnalyzedTask: Decodable {
     let title: String
     let notes: String
     let dueAt: String?

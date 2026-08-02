@@ -1,4 +1,4 @@
-import { taskDraftSchema, validateTaskDraft } from "./task-draft-schema.mjs";
+import { MAX_TASKS, taskDraftSchema, validateTaskDrafts } from "./task-draft-schema.mjs";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 
@@ -101,10 +101,14 @@ export function makeResponsesRequest({
     // 스크린샷 원문이 OpenAI 쪽에 남지 않게 한다.
     store: false,
     instructions: [
-      "Role: OCR 텍스트를 사용자가 실행할 수 있는 하나의 할 일 후보로 바꾼다.",
-      "Goal: 제목, 메모, 날짜/시간, 보수적인 신뢰도와 근거를 반환한다.",
+      "Role: OCR 텍스트에서 사용자가 실행할 수 있는 할 일을 **전부** 찾아낸다.",
+      "Goal: 할 일마다 제목, 메모, 날짜/시간, 보수적인 신뢰도와 근거를 반환한다.",
       "Constraints:",
       "- OCR에 없는 사실을 만들지 않는다.",
+      `- 서로 다른 날짜나 서로 다른 일이면 따로 나눈다 (최대 ${MAX_TASKS}개).`,
+      "- 같은 일을 다르게 표현한 것이면 하나로 합친다.",
+      "- 할 일이 하나뿐이어도 tasks 배열에 하나만 담는다.",
+      "- 할 일이 하나도 없으면 원문 전체를 요약한 항목 하나만 담는다.",
       "- 날짜가 명확하지 않으면 due_at은 null이다.",
       "- 연도나 오전/오후가 모호하면 ambiguities에 적고 confidence를 낮춘다.",
       "- has_explicit_time은 원문에 구체적인 시간이 있을 때만 true다.",
@@ -113,7 +117,7 @@ export function makeResponsesRequest({
       "- 어떻게 추론했는지 설명하지 않는다. 근거는 evidence에만 넣는다.",
       "- due_at은 context.timezone 기준의 오프셋을 포함한다.",
       "- 출력 언어는 한국어다.",
-      "Success: 모든 스키마 필드를 채우고 evidence는 원문 구절만 포함한다.",
+      "Success: 각 할 일이 스키마 필드를 모두 채우고 evidence는 원문 구절만 포함한다.",
     ].join("\n"),
     input: JSON.stringify({
       recognized_text: recognizedText,
@@ -154,7 +158,7 @@ export function parseTaskDraftResponse(payload) {
   } catch {
     throw new Error("OpenAI 응답 JSON을 해석할 수 없습니다.");
   }
-  return validateTaskDraft(parsed);
+  return validateTaskDrafts(parsed);
 }
 
 async function readJSON(response) {

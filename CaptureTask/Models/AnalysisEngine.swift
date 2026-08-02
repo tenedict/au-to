@@ -31,7 +31,7 @@ enum AnalysisEngine: String, CaseIterable, Codable, Sendable {
         case .ruleBased:
             return "네트워크 없이 날짜만 찾아요. 문맥을 모르니 제목과 날짜를 꼭 확인해 주세요."
         case .onDevice:
-            return "기기 안에서만 분석해요. 글자도 나가지 않아요."
+            return "기기 안에서만 분석해요. 인식한 글자도 나가지 않아요."
         }
     }
 
@@ -44,18 +44,11 @@ enum AnalysisEngine: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    var isAvailable: Bool { self != .onDevice }
-
-    /// 고를 수 없다면 **왜 못 고르는지** 함께 보여준다.
-    /// 이유 없는 비활성은 고장으로 읽힌다 (CLAUDE 규칙 12).
-    var unavailableReason: String? {
-        switch self {
-        case .onDevice:
-            return "아직 준비 중이에요. 어떤 모델을 쓸지 정하는 중입니다."
-        case .backend, .ruleBased:
-            return nil
-        }
-    }
+    /// 기기 사정과 무관하게 **언제나** 쓸 수 있는가.
+    ///
+    /// 온디바이스는 기기에 물어봐야 안다. 그 판정은 `ContextUnderstanding` 이 한다 —
+    /// 모델이 서비스를 알면 의존이 거꾸로 서고, 계산을 테스트하려고 프레임워크가 필요해진다 (ADR-1).
+    var alwaysAvailable: Bool { self != .onDevice }
 
     /// 이 엔진이 만든 초안을 확인 없이 캘린더에 넣어도 되는가.
     ///

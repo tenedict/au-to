@@ -33,14 +33,10 @@ enum CaptureNotice {
 
     // MARK: - 담았을 때 (Share Extension)
 
-    /// 스크린샷을 담은 직후 알린다.
+    /// 스크린샷을 담았지만 아직 읽지 못했을 때.
     ///
-    /// 문구가 "할 일을 만들었어요" 가 아닌 이유 — 이 시점에는 아직 아무것도 읽지 않았다.
-    /// 하지 않은 일을 했다고 말하면 열어 봤을 때 어긋난다.
-    ///
-    /// **여러 장이어도 알림은 한 번이다.** 5장을 공유했다고 배너가 5번 뜨면
-    /// 사용자는 알림을 꺼 버린다. 식별자는 첫 캡처의 것을 쓰고, 앱은 어느 캡처를
-    /// 처리하든 그 캡처의 알림을 지우므로 남지 않는다.
+    /// 분석까지 끝났으면 이걸 쓰지 않는다 — `postFiled` 가 무엇이 등록됐는지 말해 준다.
+    /// 이 알림은 **분석이 실패했거나 확인이 필요할 때**만 남는다.
     static func postCaptureTaken(
         captureIDs: [UUID],
         center: UNUserNotificationCenter = .current()
@@ -55,7 +51,6 @@ enum CaptureNotice {
         content.sound = .default
         content.userInfo = ["captureID": first.uuidString]
 
-        // trigger 가 nil 이면 곧바로 전달된다. Extension 이 닫힌 뒤에도 남는다.
         center.add(
             UNNotificationRequest(
                 identifier: identifier(for: first),
@@ -64,6 +59,48 @@ enum CaptureNotice {
             )
         )
     }
+
+    /// **등록까지 마쳤을 때.** 이게 새 흐름의 마지막 단계다.
+    ///
+    ///   스크린샷 → 공유 → 등록 → "언제 무슨 일정이 등록되었습니다"
+    ///
+    /// 예전에는 담기만 하고 사용자가 앱을 열어 확인해야 했다. 단계가 넷이었고,
+    /// 그 사이에 잊으면 아무 일도 일어나지 않았다.
+    ///
+    /// 문구에 **언제**와 **무엇**이 다 들어가야 한다. "등록했어요" 만으로는
+    /// 사용자가 앱을 열어 확인해야 하고, 그러면 단계를 줄인 의미가 없다.
+    static func postFiled(
+        summaries: [String],
+        captureID: UUID?,
+        center: UNUserNotificationCenter = .current()
+    ) {
+        guard let first = summaries.first else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = summaries.count == 1
+            ? "일정을 등록했어요"
+            : "일정 \(summaries.count)개를 등록했어요"
+        // 여러 개면 줄바꿈으로 나열한다. 알림은 펼치면 여러 줄이 보인다.
+        content.body = summaries.prefix(maxSummariesInBody).joined(separator: "\n")
+        if summaries.count > maxSummariesInBody {
+            content.body += "\n외 \(summaries.count - maxSummariesInBody)개"
+        }
+        content.sound = .default
+        if let captureID {
+            content.userInfo = ["captureID": captureID.uuidString]
+        }
+
+        center.add(
+            UNNotificationRequest(
+                identifier: "\(identifierPrefix)filed-\(captureID?.uuidString ?? UUID().uuidString)",
+                content: content,
+                trigger: nil
+            )
+        )
+    }
+
+    /// 알림 본문에 나열할 최대 개수. 그 이상은 "외 N개" 로 줄인다.
+    static let maxSummariesInBody = 3
 
     // MARK: - 확인 안 한 초안이 남았을 때 (메인 앱)
 

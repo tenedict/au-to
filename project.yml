@@ -68,9 +68,13 @@ targets:
   CaptureTaskShare:
     type: app-extension
     platform: iOS
+    # 확장이 등록까지 끝낸다 (ADR-2 재검토). 그래서 앱과 같은 코드를 쓴다.
     sources:
       - CaptureTaskShare
       - CaptureTask/Shared
+      - CaptureTask/Models
+      - CaptureTask/Services
+      - CaptureTask/Store
     info:
       path: CaptureTaskShare/Info.plist
       properties:

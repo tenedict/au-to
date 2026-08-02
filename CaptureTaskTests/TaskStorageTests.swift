@@ -176,3 +176,45 @@ final class TaskStorageTests: XCTestCase {
         XCTAssertTrue(try storage.loadTasks().isEmpty)
     }
 }
+
+// MARK: - 저장 위치 옮기기
+
+extension TaskStorageTests {
+    /// 저장 위치를 App Group 으로 옮기면서 이걸 하지 않으면
+    /// **사용자의 할 일이 통째로 사라진 것처럼 보인다.**
+    func testAdoptsTasksLeftInTheLegacyLocation() throws {
+        let legacyBase = try XCTUnwrap(
+            FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+        )
+        let legacy = legacyBase.appendingPathComponent(TaskStorage.defaultDirectoryName)
+        try FileManager.default.createDirectory(at: legacy, withIntermediateDirectories: true)
+        let legacyTasks = legacy.appendingPathComponent("tasks.json")
+        let hadLegacy = FileManager.default.fileExists(atPath: legacyTasks.path)
+        let backup = hadLegacy ? try Data(contentsOf: legacyTasks) : nil
+        defer {
+            try? FileManager.default.removeItem(at: legacyTasks)
+            if let backup { try? backup.write(to: legacyTasks) }
+        }
+
+        let task = AssistantTask(title: "예전 위치의 할 일", createdAt: Date(timeIntervalSince1970: 1))
+        try TaskStorage(directory: legacy).saveTasks([task])
+
+        try storage.adoptLegacyStoreIfNeeded()
+
+        XCTAssertEqual(try storage.loadTasks().map(\.title), ["예전 위치의 할 일"])
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: legacyTasks.path),
+            "옮겼으면 예전 자리에는 남지 않아야 합니다"
+        )
+    }
+
+    /// 새 자리에 이미 있으면 건드리지 않는다. 옮기다 덮어쓰는 것이 더 나쁘다.
+    func testDoesNotOverwriteAnExistingStore() throws {
+        let current = AssistantTask(title: "지금 것", createdAt: Date(timeIntervalSince1970: 2))
+        try storage.saveTasks([current])
+
+        try storage.adoptLegacyStoreIfNeeded()
+
+        XCTAssertEqual(try storage.loadTasks().map(\.title), ["지금 것"])
+    }
+}

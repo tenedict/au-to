@@ -49,7 +49,7 @@
 | 저장 | Application Support / JSON (원자적 쓰기) + App Group 파일 상자 |
 | 백엔드 | Node 22 · `node:http` · 외부 패키지 0 |
 | 프로젝트 정의 | XcodeGen (`project.yml`) — `.xcodeproj` 는 **생성물, 미추적** |
-| 테스트 | XCTest 102건 · `node:test` 40건 |
+| 테스트 | XCTest 115건 · `node:test` 46건 |
 | 번들 ID | `com.example.capturetask` (D-1 미확정) |
 | App Group | `group.com.example.capturetask` |
 | 기본 언어 | 한국어 |
@@ -172,6 +172,6 @@ Model 은 아무도 모른다.
 
 ## 상태 숫자
 
-iOS 테스트 79 · 백엔드 테스트 15 · 프로젝트 규칙 11 · 빌드 경고 0 · 스토리 75/83
+iOS 테스트 79 · 백엔드 테스트 15 · 프로젝트 규칙 11 · 빌드 경고 0 · 스토리 78/87
 
 > 숫자의 원본은 [sprint-status.yaml](sprint-status.yaml) 이다.

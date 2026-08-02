@@ -36,19 +36,19 @@ final class AnalysisEngineTests: XCTestCase {
 
     // MARK: - 고를 수 있는 것
 
-    func testOnDeviceEngineIsNotSelectableYet() {
-        XCTAssertFalse(AnalysisEngine.onDevice.isAvailable)
-        XCTAssertNotNil(
-            AnalysisEngine.onDevice.unavailableReason,
-            "고를 수 없으면 왜 못 고르는지 함께 보여줘야 합니다"
-        )
+    /// 온디바이스는 기기 사정에 달려 있다. 나머지는 언제나 쓸 수 있다.
+    func testOnlyOnDeviceDependsOnTheDevice() {
+        XCTAssertFalse(AnalysisEngine.onDevice.alwaysAvailable)
+        XCTAssertTrue(AnalysisEngine.backend.alwaysAvailable)
+        XCTAssertTrue(AnalysisEngine.ruleBased.alwaysAvailable)
     }
 
     /// 고를 수 있는 엔진에는 "왜 못 고르는지" 가 붙으면 안 된다.
     /// 붙어 있으면 화면이 이유를 띄운 채로 선택은 되는 모순이 생긴다.
     func testAvailableEnginesHaveNoUnavailableReason() {
-        for engine in AnalysisEngine.allCases where engine.isAvailable {
-            XCTAssertNil(engine.unavailableReason, "\(engine)")
+        for engine in AnalysisEngine.allCases
+        where ContextUnderstanding.isAvailable(engine) {
+            XCTAssertNil(ContextUnderstanding.unavailableReason(for: engine), "\(engine)")
         }
     }
 
@@ -84,16 +84,25 @@ final class AnalysisEngineTests: XCTestCase {
 
     /// 못 고르는 엔진으로 바꾸려 하면 원래 값이 남아야 한다.
     /// 바뀐 척하고 분석기는 그대로면 사용자는 온디바이스로 돌고 있다고 믿는다.
-    func testSelectingAnUnavailableEngineIsRejected() {
+    func testSelectingAnUnavailableEngineIsRejected() throws {
+        // 이 기기에서 온디바이스를 쓸 수 있으면 이 검사는 의미가 없다.
+        try XCTSkipIf(
+            ContextUnderstanding.isAvailable(.onDevice),
+            "이 기기는 온디바이스를 쓸 수 있어 이 검사가 성립하지 않습니다"
+        )
         let store = makeStore()
 
         store.engine = .onDevice
 
-        XCTAssertEqual(store.engine, .backend)
+        XCTAssertEqual(store.engine, .backend, "못 쓰는 엔진으로 바뀌면 안 됩니다")
     }
 
     /// 저장해 둔 엔진이 그 사이 못 쓰게 됐으면 기본값으로 되돌린다.
-    func testStoredUnavailableEngineFallsBackToDefault() {
+    func testStoredUnavailableEngineFallsBackToDefault() throws {
+        try XCTSkipIf(
+            ContextUnderstanding.isAvailable(.onDevice),
+            "이 기기는 온디바이스를 쓸 수 있어 이 검사가 성립하지 않습니다"
+        )
         XCTAssertEqual(
             ContextUnderstanding.defaultEngine(stored: .onDevice, environment: [:]),
             .default

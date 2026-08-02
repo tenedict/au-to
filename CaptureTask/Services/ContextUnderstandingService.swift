@@ -1,7 +1,14 @@
 import Foundation
 
 protocol ContextUnderstandingService: Sendable {
-    func makeDraft(from text: String, captureID: UUID?) async throws -> TaskDraft
+    /// 한 장에 일정이 여러 개 있을 수 있다.
+    ///
+    /// 예약 확정 문자에 "8월 12일 검진, 9월 3일 재방문" 이 함께 오거나, 공지 하나에
+    /// 접수 마감과 발표일이 같이 적힌다. 하나만 뽑으면 나머지를 사용자가 다시 입력해야 하고,
+    /// 그러면 이 앱을 쓸 이유가 없다.
+    ///
+    /// 빈 배열은 돌려주지 않는다 — 찾지 못했으면 던진다.
+    func makeDrafts(from text: String, captureID: UUID?) async throws -> [TaskDraft]
 }
 
 /// 문맥 분석기를 고르는 **유일한** 지점.
@@ -27,7 +34,25 @@ enum ContextUnderstanding {
         case .ruleBased:
             return RuleBasedContextUnderstandingService()
         case .onDevice:
-            return BackendContextUnderstandingService()
+            return OnDeviceContextUnderstandingService()
+        }
+    }
+
+    /// 이 엔진을 지금 이 기기에서 고를 수 있는가.
+    ///
+    /// 온디바이스는 **기기에 물어본다.** 기종 문자열로 판정하면 새 기기가 나올 때마다
+    /// 고쳐야 하고, 사용자가 Apple Intelligence 를 꺼 둔 경우를 못 잡는다.
+    static func isAvailable(_ engine: AnalysisEngine) -> Bool {
+        unavailableReason(for: engine) == nil
+    }
+
+    /// 고를 수 없다면 **왜 못 고르는지**. 이유 없는 비활성은 고장으로 읽힌다 (CLAUDE 규칙 12).
+    static func unavailableReason(for engine: AnalysisEngine) -> String? {
+        switch engine {
+        case .onDevice:
+            return OnDeviceContextUnderstandingService.availability.reason
+        case .backend, .ruleBased:
+            return nil
         }
     }
 
@@ -44,8 +69,9 @@ enum ContextUnderstanding {
             return .ruleBased
         }
         #endif
-        // 저장된 값이 그 사이 못 쓰게 됐을 수 있다 (예: 온디바이스를 골라 뒀는데 아직 없음).
-        guard let stored, stored.isAvailable else { return .default }
+        // 저장된 값이 그 사이 못 쓰게 됐을 수 있다 —
+        // 온디바이스를 골라 둔 채 다른 기기에서 열었거나 Apple Intelligence 를 껐을 때.
+        guard let stored, isAvailable(stored) else { return .default }
         return stored
     }
 }
@@ -57,7 +83,7 @@ enum ContextUnderstanding {
 /// 이 구현은 명시적으로 골랐을 때만 쓰인다.
 struct RuleBasedContextUnderstandingService: ContextUnderstandingService {
 
-    func makeDraft(from text: String, captureID: UUID?) async throws -> TaskDraft {
+    func makeDrafts(from text: String, captureID: UUID?) async throws -> [TaskDraft] {
         let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else {
             throw ContextUnderstandingError.noTextFound
@@ -70,17 +96,20 @@ struct RuleBasedContextUnderstandingService: ContextUnderstandingService {
         let title = String(firstLine.prefix(80))
         let detected = detectDate(in: normalized)
 
-        return TaskDraft(
-            title: title,
-            notes: normalized,
-            dueDate: detected?.date,
-            hasExplicitTime: detected?.hasExplicitTime ?? false,
-            // 규칙 기반은 문맥을 모른다. 임계값을 넘지 않게 두어 캘린더 자동 추가를 막는다.
-            confidence: detected == nil ? 0.55 : 0.70,
-            evidence: detected.map { [$0.matchedText] } ?? [],
-            ambiguities: ["규칙 기반 분석 결과예요. 날짜와 제목을 확인해 주세요."],
-            sourceCaptureID: captureID
-        )
+        // 규칙 기반은 문맥을 모른다. 여러 개로 쪼갤 판단도 못 하므로 언제나 하나다.
+        return [
+            TaskDraft(
+                title: title,
+                notes: normalized,
+                dueDate: detected?.date,
+                hasExplicitTime: detected?.hasExplicitTime ?? false,
+                // 임계값을 넘지 않게 두어 캘린더 자동 추가를 막는다.
+                confidence: detected == nil ? 0.55 : 0.70,
+                evidence: detected.map { [$0.matchedText] } ?? [],
+                ambiguities: ["규칙 기반 분석 결과예요. 날짜와 제목을 확인해 주세요."],
+                sourceCaptureID: captureID
+            )
+        ]
     }
 
     private func detectDate(

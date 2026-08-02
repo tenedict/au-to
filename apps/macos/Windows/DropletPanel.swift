@@ -13,15 +13,18 @@ import SwiftUI
 /// SwiftUI 의 `Window`/`WindowGroup` 로는 이 조합을 만들 수 없어서 AppKit 을 직접 쓴다.
 final class DropletPanel: NSPanel {
 
-    /// 물방울 지름.
+    /// 창 한 변.
     ///
-    /// 커서로 겨냥할 수 있으면서 화면을 가리지 않는 크기. 떠 있는 것은
-    /// 작을수록 좋지만, 너무 작으면 드롭 목표로 맞히기 어렵다.
-    static let diameter: CGFloat = 68
+    /// **창은 고정이고 물방울만 커진다.** 창까지 같이 커지면 겨냥하는 중에 드롭
+    /// 영역이 움직여서 커서가 안팎을 오간다 — 그러면 놓기가 풀렸다 걸렸다 깜빡인다.
+    ///
+    /// 그래서 눈에 보이는 물방울보다 **실제로 받는 영역이 넓다.** 떠 있는 것은
+    /// 작을수록 화면을 덜 가리지만, 작으면 맞히기 어려워지는 것을 창이 받아 준다.
+    static var side: CGFloat { DropletAppearance.panelSide }
 
     init<Content: View>(@ViewBuilder content: () -> Content) {
         super.init(
-            contentRect: NSRect(x: 0, y: 0, width: Self.diameter, height: Self.diameter),
+            contentRect: NSRect(x: 0, y: 0, width: Self.side, height: Self.side),
             styleMask: [.nonactivatingPanel, .borderless],
             backing: .buffered,
             defer: false
@@ -32,8 +35,10 @@ final class DropletPanel: NSPanel {
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         isOpaque = false
         backgroundColor = .clear
-        hasShadow = false          // 그림자는 SwiftUI 쪽에서 원형에 맞춰 그린다
-        isMovableByWindowBackground = true
+        hasShadow = false          // 그림자는 SwiftUI 쪽에서 물방울 모양에 맞춰 그린다
+        // 옮기기는 DropletMotion 이 직접 다룬다. AppKit 에 맡기면 **옮기는 중이라는
+        // 사실을 화면이 알 수 없어서**, 잡고 있는 동안 물방울을 키울 수 없다.
+        isMovableByWindowBackground = false
         hidesOnDeactivate = false
         // 전체 화면 앱 위에도 떠 있어야 한다. 그렇지 않으면 정작 필요할 때 사라진다.
         animationBehavior = .utilityWindow
@@ -58,7 +63,7 @@ final class DropletPanel: NSPanel {
     private static func defaultOrigin() -> NSPoint {
         guard let visible = NSScreen.main?.visibleFrame else { return NSPoint(x: 100, y: 100) }
         return NSPoint(
-            x: visible.maxX - diameter - 28,
+            x: visible.maxX - side - 28,
             y: visible.minY + 120
         )
     }

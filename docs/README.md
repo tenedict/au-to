@@ -136,6 +136,7 @@ BMAD 가 **무엇을 만들지**를 정한다면, Superpowers 는 **어떻게 �
 | — | [INTEGRATED-DEVELOPMENT-PLAN.md](INTEGRATED-DEVELOPMENT-PLAN.md) | HTML/PDF 생성의 기준 원문 |
 | — | [report/template.html](report/template.html) | **개발 보고서** 원본 — `python3 scripts/build-report.py` 로 [한 파일 HTML](../output/report/CaptureTask-Report.html) 을 만든다 |
 | — | [report/design-research.html](report/design-research.html) | **디자인 연구 보고서** 원본 — Apple 지갑·미리 알림·캘린더·일기 분석 → [한 파일 HTML](../output/report/CaptureTask-Design-Research.html) |
+| — | [report/design-language.html](report/design-language.html) | **디자인 언어 기획서** 원본 — 색·글자·간격·부품·날짜 표기 규격 → [한 파일 HTML](../output/report/CaptureTask-Design-Language.html) |
 
 ### 프로젝트 루트
 

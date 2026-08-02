@@ -29,6 +29,7 @@ OUT_DIR = ROOT / "output" / "report"
 REPORTS = {
     "template.html": "CaptureTask-Report.html",
     "design-research.html": "CaptureTask-Design-Research.html",
+    "design-language.html": "CaptureTask-Design-Language.html",
 }
 
 PLACEHOLDER = re.compile(r"\{\{IMG:([A-Za-z0-9._-]+)\}\}")

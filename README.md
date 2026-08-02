@@ -153,6 +153,7 @@ brew install lefthook && lefthook install
 | [`CLAUDE.md`](CLAUDE.md) | 작업 규칙 (사람·AI 공용) |
 | [**개발 보고서**](output/report/CaptureTask-Report.html) | 기획→PRD→SRS→플로우→기술→검증을 순서대로 · **스크린샷 포함** · 한 파일 |
 | [**디자인 연구 보고서**](output/report/CaptureTask-Design-Research.html) | Apple 지갑·미리 알림·캘린더·일기를 실제로 실행해 분석 · 적용 권고 |
+| [**디자인 언어 기획서**](output/report/CaptureTask-Design-Language.html) | 물방울에서 파생한 색·글자·간격·부품 규격 · 이행 계획 |
 | [통합 HTML 기획서](docs/CaptureTask-Development-Plan.html) | 제품·UX·아키텍처·비용·배포를 한 문서로 |
 | [PDF](output/pdf/CaptureTask-Development-Plan.pdf) | 공유·인쇄용 A4 |
 

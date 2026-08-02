@@ -1,7 +1,7 @@
 name: 커밋 위생
 
-# 커밋 기록에는 사람만 남는다.
-# `.githooks/commit-msg` 가 지우지만 훅은 `--no-verify` 로 건너뛸 수 있다 —
+# 커밋 기록에는 사람만 남고, 제목은 한 형식으로 읽힌다.
+# `.githooks/` 의 훅이 지우고 막지만 훅은 `--no-verify` 로 건너뛸 수 있다 —
 # 건너뛴 것이 main 에 들어가지 않게 하는 최종 강제가 여기다.
 
 on:
@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  trailers:
-    name: AI 협업자 흔적 검사
+  hygiene:
+    name: 커밋 메시지 검사
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -20,14 +20,29 @@ jobs:
         with:
           fetch-depth: 0
 
+      # 새로 들어온 커밋만 본다.
+      # 히스토리 전체를 보면 규칙을 세우기 전의 옛 커밋 때문에 영원히 빨간불이고,
+      # 그러면 아무도 이 검사를 안 보게 된다. 지금부터 들어오는 것만 막으면 된다.
       - name: 검사 범위 정하기
         id: range
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "value=${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+            range="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
           else
-            echo "value=HEAD~20..HEAD" >> "$GITHUB_OUTPUT"
+            before="${{ github.event.before }}"
+            # 새 브랜치이거나 force-push 라서 이전 위치를 못 찾으면 마지막 하나만 본다
+            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ] \
+               || ! git cat-file -e "$before^{commit}" 2>/dev/null; then
+              range="HEAD~1..HEAD"
+            else
+              range="$before..HEAD"
+            fi
           fi
+          echo "value=$range" >> "$GITHUB_OUTPUT"
+          echo "검사 범위: $range"
 
-      - name: 검사
+      - name: AI 협업자 흔적
         run: ./.githooks/no-ai-trailers.sh '${{ steps.range.outputs.value }}'
+
+      - name: 제목 형식 (Conventional Commits)
+        run: ./.githooks/check-commit-format.sh '${{ steps.range.outputs.value }}'

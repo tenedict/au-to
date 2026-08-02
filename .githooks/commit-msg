@@ -50,4 +50,11 @@ if ! grep -qE '[^[:space:]#]' "$msg_file"; then
   exit 1
 fi
 
+# 제목 형식은 지우지 못한다 — 사람만 고칠 수 있으므로 여기서 막는다.
+# 트레일러 지우기와 달리 이 검사는 커밋을 세운다. CI 도 같은 스크립트를 쓴다.
+hook_dir="$(cd "$(dirname "$0")" && pwd)"
+if [ -x "$hook_dir/check-commit-format.sh" ]; then
+  "$hook_dir/check-commit-format.sh" --file "$msg_file" || exit 1
+fi
+
 exit 0

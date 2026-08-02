@@ -59,16 +59,24 @@ R-22(알림 64건 한도)는 할 일이 22건을 넘기 전까지는 드러나�
 
 | 레벨 | 무엇 | 개수 | 어디 |
 | --- | --- | --- | --- |
-| 순수 계산 | 마감 묶음·알림 시각·월 격자·지갑 배치(배율 포함)·초안 판정 | 43 |
-| 알림 식별자 | 확인 요청 ↔ 마감 알림 충돌 방지 | 6 | `DueGroupingTests` `ReminderScheduleTests` `MonthGridTests` `WalletStackLayoutTests` `TaskDraftTests` |
-| 저장 계약 | 왕복·구버전·손상 격리·정밀도 | 8 | `TaskStorageTests` |
+| 순수 계산 | 마감 묶음·알림 시각·월 격자·지갑 배치(배율 포함)·초안 판정 | 49 | `DueGroupingTests` `ReminderScheduleTests` `MonthGridTests` `WalletStackLayoutTests` `TaskDraftTests` |
+| 묶음·개수 | 사이드바 숫자와 그 목록이 언제나 같은가 | 6 | `TaskScopeTests` |
+| 자동 등록 판정 | 바로 넣을 것인가 물어볼 것인가 | 9 | `AutoFilePolicyTests` |
+| 알림 식별자 | 확인 요청 ↔ 마감 알림 충돌 방지 | 6 | `CaptureNoticeTests` |
+| 저장 계약 | 왕복·구버전·손상 격리·정밀도·쓸 수 있는 자리 고르기 | 13 | `TaskStorageTests` |
 | 유스케이스 | 저장·버리기·완료·삭제·알림 연동·재시작 | 13 | `TaskStoreTests` |
-| 서비스 계약 | 백엔드 요청/응답 파싱·오류 매핑 | 9 | `BackendContextUnderstandingServiceTests` |
-| 백엔드 | HTTP 계약·스키마·모델 분기·타임아웃·클램프 | 15 | `server/test/` |
-| 정적 규칙 | grep 으로 잡히는 구조 위반 | 11 | `scripts/check-project-rules.sh` |
+| 서비스 계약 | 백엔드 요청/응답 파싱·오류 매핑 | 6 | `BackendContextUnderstandingServiceTests` |
+| 분석 엔진 | 어느 엔진을 고르나·저장된 선택 복원 | 11 | `AnalysisEngineTests` |
+| 온디바이스 | 가용성 판정·응답 파싱 | 11 | `OnDeviceAnalysisTests` |
+| 백엔드 | HTTP 계약·스키마·모델 분기·타임아웃·클램프·인증·rate limit | 46 | `server/test/` |
+| 정적 규칙 | grep 으로 잡히는 구조 위반 | 12 | `scripts/check-project-rules.sh` |
+| 문서 링크 | 상대 링크가 실제 파일을 가리키는가 | 142 | `scripts/check-doc-links.sh` |
 | **수동** | 공유 시트·캘린더 권한·접근성 | — | 아래 3장 |
 
-**합계 — iOS 115 · 백엔드 46 · 규칙 12**
+**합계 — iOS 124 · 백엔드 46 · 규칙 12**
+
+> 숫자를 손으로 적으면 반드시 어긋난다. 실제로 이 표는 한동안 행의 합(105)과
+> 합계(115)가 달랐다. 셈의 근거는 언제나 `./scripts/verify.sh` 의 출력이다.
 
 ---
 

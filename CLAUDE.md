@@ -29,7 +29,8 @@ xcodegen generate && xcodebuild test -project CaptureTask.xcodeproj -scheme Capt
 ```
 
 DEBUG 라우팅 — `CAPTURETASK_OFFLINE=1` · `CAPTURETASK_TAB=0|1` (탭) · `CAPTURETASK_SHEET=settings|text` (시트)
-시뮬레이터에서는 `SIMCTL_CHILD_` 접두사를 붙인다.
+macOS 는 `CAPTURETASK_OPEN_LIST=1` (대시보드 열기) · `CAPTURETASK_FILE=<경로>` (그 이미지 처리).
+시뮬레이터에서는 `SIMCTL_CHILD_` 접두사를 붙이고, macOS 는 `open -n --env KEY=VAL` 로 준다.
 
 **시뮬레이터에서 공유 상자를 쓰려면 서명해서 빌드한다.** `CODE_SIGNING_ALLOWED=NO` 로 빌드하면
 entitlements 가 안 박혀 App Group 이 언제나 nil 이고, 앱이 "공유 시트로 담기를 쓸 수 없어요" 를 띄운다.
@@ -228,6 +229,7 @@ git config core.hooksPath .githooks       # 한 번만. 훅이 형식을 검사�
 
 ## 현재 상태
 
-R0 실행 뼈대 + MVP 기능 + 접근성 완성 · **iOS 테스트 115건 · 백엔드 테스트 46건 · 빌드 경고 0**
+R0 실행 뼈대 + MVP 기능 + 접근성 완성 · **iOS 테스트 124건 · 백엔드 테스트 46건 · 빌드 경고 0**
 공유 시트 → OCR → 분석 → 확인 → 할 일·캘린더·알림까지 이어진다.
+macOS 는 물방울로 받고 사이드바 대시보드(마감 묶음 + 캘린더)로 본다 — [18장](docs/platform/18-MACOS.md).
 다음: 실기기 서명·App Group 프로비저닝 · 실제 OpenAI 키 E2E · 중복 감지 정책

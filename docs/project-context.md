@@ -49,7 +49,7 @@
 | 저장 | Application Support / JSON (원자적 쓰기) + App Group 파일 상자 |
 | 백엔드 | Node 22 · `node:http` · 외부 패키지 0 |
 | 프로젝트 정의 | XcodeGen (`project.yml`) — `.xcodeproj` 는 **생성물, 미추적** |
-| 테스트 | XCTest 115건 · `node:test` 46건 |
+| 테스트 | XCTest 124건 · `node:test` 46건 |
 | 번들 ID | `com.example.capturetask` (D-1 미확정) |
 | App Group | `group.com.example.capturetask` |
 | 기본 언어 | 한국어 |
@@ -79,6 +79,8 @@ set -a; source .env; set +a; npm start
 | `CAPTURETASK_OFFLINE=1` | 백엔드 없이 규칙 기반 분석기 사용 |
 | `CAPTURETASK_TAB=0\|1` | 시작 탭 (할 일 / 캘린더) |
 | `CAPTURETASK_SHEET=settings\|text` | 시작하자마자 열 시트 |
+| `CAPTURETASK_OPEN_LIST=1` | (macOS) 시작하자마자 대시보드 창을 연다 |
+| `CAPTURETASK_FILE=<경로>` | (macOS) 그 이미지를 곧바로 처리한다 |
 | `CAPTURETASK_API_BASE_URL` | 백엔드 주소 (기본 `http://127.0.0.1:8787`) |
 | `CAPTURETASK_SIMULATOR_ID` | 시뮬레이터 고정 |
 
@@ -105,7 +107,7 @@ core/swift/       두 앱과 두 확장이 전부 쓴다
   Store/          상태·영속화·유스케이스 조율
 apps/ios/         App/ · Views/ SwiftUI 7개 · Resources/ · Share/ 담기 전용
 apps/macos/       App/ · Views/ · Windows/ · Resources/ · Share/
-tests/swift/      115건
+tests/swift/      124건
 server/           src 6개 · test 4개 · 46건
 config/apple/     entitlements 4개 · Secrets.xcconfig
 scripts/          verify · 규칙 검사 · 문서 링크 검사 · 시뮬레이터 선택
@@ -175,6 +177,6 @@ Model 은 아무도 모른다.
 
 ## 상태 숫자
 
-iOS 테스트 79 · 백엔드 테스트 15 · 프로젝트 규칙 11 · 빌드 경고 0 · 스토리 78/87
+iOS 테스트 124 · 백엔드 테스트 46 · 프로젝트 규칙 12 · 문서 링크 143 · 빌드 경고 0 · 스토리 78/87
 
 > 숫자의 원본은 [sprint-status.yaml](sprint-status.yaml) 이다.

@@ -213,20 +213,20 @@ private struct StubOCRService: OCRService {
 }
 
 private struct StubUnderstandingService: ContextUnderstandingService {
-    func makeDraft(from text: String, captureID: UUID?) async throws -> TaskDraft {
-        TaskDraft(
+    func makeDrafts(from text: String, captureID: UUID?) async throws -> [TaskDraft] {
+        [TaskDraft(
             title: String(text.prefix(40)),
             notes: text,
             dueDate: Date(timeIntervalSince1970: 1_786_600_000),
             hasExplicitTime: true,
             confidence: 0.9,
             sourceCaptureID: captureID
-        )
+        )]
     }
 }
 
 private struct FailingUnderstandingService: ContextUnderstandingService {
-    func makeDraft(from text: String, captureID: UUID?) async throws -> TaskDraft {
+    func makeDrafts(from text: String, captureID: UUID?) async throws -> [TaskDraft] {
         throw ContextUnderstandingError.noTextFound
     }
 }

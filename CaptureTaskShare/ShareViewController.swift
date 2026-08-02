@@ -1,34 +1,59 @@
 import UIKit
 import UniformTypeIdentifiers
 
-/// 공유 시트에서 이미지를 받아 App Group 상자에 담는다.
+/// 공유 시트에서 이미지를 받아 **등록까지 끝낸다.**
 ///
-/// **여기서 하는 일은 담기와 알림 한 번뿐이다.** OCR·분석·캘린더는 메인 앱이 한다 (ADR-2).
-/// Extension 은 메모리와 실행 시간이 빡빡해서, 무거운 것을 넣으면 시스템이 중간에 죽인다 —
-/// 그러면 사용자는 담기가 실패한 줄도 모른다.
+/// ## 왜 여기서 다 하나 (ADR-2 를 다시 연 이유)
+///
+/// 예전 흐름은 넷이었다 — 공유 → 담기 → 앱 열기 → 확인 → 등록.
+/// 그 사이 어디서든 잊으면 아무 일도 일어나지 않았고, 담아 두기만 한 스크린샷은
+/// 사진첩에 묻힌 것과 다를 게 없었다.
+///
+/// 지금은 셋이다 — 공유 → 등록 → "언제 무슨 일정이 등록되었습니다" 알림.
+///
+/// ## 그래도 지키는 것
+///
+/// **분석보다 담기가 먼저다.** 시스템이 확장을 중간에 죽여도 캡처는 상자에 남고,
+/// 앱이 다음에 열릴 때 이어서 처리한다. 이 순서가 ADR-2 의 진짜 알맹이였다 —
+/// "무거운 것을 넣지 마라" 가 아니라 **"죽어도 잃지 마라"** 다.
+///
+/// 확인은 없애지 않았다. 날짜가 모호하면 등록하지 않고 확인을 요청한다
+/// (`AutoFilePolicy`). 확실한 것만 바로 들어간다.
 final class ShareViewController: UIViewController {
     private let statusLabel: UILabel = {
         let label = UILabel()
-        label.text = "스크린샷을 담는 중이에요…"
+        label.text = "스크린샷을 읽는 중이에요…"
         label.textAlignment = .center
         label.numberOfLines = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
+    private let spinner: UIActivityIndicatorView = {
+        let view = UIActivityIndicatorView(style: .medium)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.startAnimating()
+        return view
+    }()
+
+    private lazy var store = TaskStore()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         view.addSubview(statusLabel)
+        view.addSubview(spinner)
         NSLayoutConstraint.activate([
             statusLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            statusLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            statusLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            spinner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            spinner.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 16)
         ])
-        receiveImages()
+        Task { await run() }
     }
 
-    private func receiveImages() {
+    private func run() async {
         let providers: [NSItemProvider] = (extensionContext?.inputItems ?? [])
             .compactMap { $0 as? NSExtensionItem }
             .reduce(into: []) { result, item in
@@ -41,42 +66,81 @@ final class ShareViewController: UIViewController {
             return
         }
 
-        if providers.count > 1 {
-            statusLabel.text = "\(providers.count)장을 담는 중이에요…"
-        }
-
-        Task { await enqueue(providers) }
-    }
-
-    private func enqueue(_ providers: [NSItemProvider]) async {
-        var captureIDs: [UUID] = []
+        // ── 1단계 · 먼저 담는다 ────────────────────────────
+        // 여기서 죽어도 캡처는 남는다. 이 순서가 유일한 안전망이다.
+        var captures: [PendingCapture] = []
         var firstFailure: String?
-
-        // 한 장이 실패해도 나머지는 담는다. 여러 장을 고른 사용자가
-        // 한 장 때문에 전부 잃으면 안 된다.
         for provider in providers {
             do {
                 let data = try await loadImageData(from: provider)
-                captureIDs.append(try SharedInbox.enqueue(imageData: data).id)
+                captures.append(try SharedInbox.enqueue(imageData: data))
             } catch {
                 firstFailure = firstFailure ?? error.localizedDescription
             }
         }
 
-        await MainActor.run {
-            guard !captureIDs.isEmpty else {
-                finishWithError(firstFailure ?? "이미지 데이터를 읽지 못했어요.")
-                return
-            }
+        guard !captures.isEmpty else {
+            finishWithError(firstFailure ?? "이미지 데이터를 읽지 못했어요.")
+            return
+        }
 
-            // 분석은 메인 앱에서만 돈다. 이 알림이 없으면 앱을 열지 않은 사용자에게
-            // 아무 일도 일어나지 않는다.
-            CaptureNotice.postCaptureTaken(captureIDs: captureIDs)
+        if captures.count > 1 {
+            statusLabel.text = "\(captures.count)장을 읽는 중이에요…"
+        }
 
-            statusLabel.text = captureIDs.count == 1
-                ? "담았어요. CaptureTask에서 할 일을 확인해 주세요."
-                : "\(captureIDs.count)장 담았어요. CaptureTask에서 확인해 주세요."
-            extensionContext?.completeRequest(returningItems: nil)
+        // ── 2단계 · 읽고 등록한다 ──────────────────────────
+        var filed: [FiledCapture] = []
+        var needsReview = false
+        for capture in captures {
+            guard let data = try? SharedInbox.imageData(for: capture) else { continue }
+            let before = await store.pendingDrafts.count
+            let results = await store.fileImage(data, captureID: capture.id)
+            filed.append(contentsOf: results)
+            if await store.pendingDrafts.count > before { needsReview = true }
+        }
+
+        await report(filed: filed, captures: captures, needsReview: needsReview)
+    }
+
+    /// 무엇이 어떻게 됐는지 알린다.
+    ///
+    /// **등록한 것과 확인이 필요한 것을 나눠 말한다.** 뭉뚱그리면 사용자는
+    /// 앱을 열어 확인해야 하고, 그러면 단계를 줄인 의미가 없다.
+    @MainActor
+    private func report(
+        filed: [FiledCapture],
+        captures: [PendingCapture],
+        needsReview: Bool
+    ) async {
+        spinner.stopAnimating()
+
+        if !filed.isEmpty {
+            CaptureNotice.postFiled(
+                summaries: filed.map(\.summary),
+                captureID: captures.first?.id
+            )
+        }
+        if needsReview {
+            // 확인이 필요한 것이 남았다. 그건 앱에서 봐야 한다.
+            CaptureNotice.postCaptureTaken(captureIDs: captures.map(\.id))
+        }
+
+        statusLabel.text = summary(filed: filed, needsReview: needsReview)
+        extensionContext?.completeRequest(returningItems: nil)
+    }
+
+    private func summary(filed: [FiledCapture], needsReview: Bool) -> String {
+        switch (filed.count, needsReview) {
+        case (0, true):
+            return "확인이 필요해요. CaptureTask에서 봐 주세요."
+        case (0, false):
+            return "할 일로 만들 내용을 찾지 못했어요."
+        case (let count, false):
+            return count == 1
+                ? "등록했어요. \(filed[0].summary)"
+                : "일정 \(count)개를 등록했어요."
+        case (let count, true):
+            return "\(count)개는 등록했고, 나머지는 확인이 필요해요."
         }
     }
 
@@ -96,7 +160,9 @@ final class ShareViewController: UIViewController {
         }
     }
 
+    @MainActor
     private func finishWithError(_ message: String) {
+        spinner.stopAnimating()
         statusLabel.text = message
         extensionContext?.cancelRequest(
             withError: NSError(

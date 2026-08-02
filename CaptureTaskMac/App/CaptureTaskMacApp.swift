@@ -58,7 +58,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationDidFinishLaunching(_ notification: Notification) {
         showDroplet()
         observeStore()
+        reportOnDeviceAvailability()
         fileImageFromEnvironment()
+    }
+
+    /// 온디바이스 모델을 이 기기에서 쓸 수 있는지 로그로 남긴다.
+    /// 화면에서는 설정에 보이지만, 자동 확인에는 이 줄이 필요하다.
+    private func reportOnDeviceAvailability() {
+        #if DEBUG
+        let availability = OnDeviceContextUnderstandingService.availability
+        log("온디바이스: \(availability.isAvailable ? "쓸 수 있음" : availability.reason ?? "?")")
+        #endif
     }
 
     /// DEBUG 빌드에서 `CAPTURETASK_FILE=<경로>` 로 시작하면 그 이미지를 곧바로 처리한다.
@@ -76,7 +86,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             let data = try Data(contentsOf: URL(fileURLWithPath: path))
             Task { [store] in
                 let filed = await store.fileImage(data)
-                log("filed=\(filed?.summary ?? "확인 필요") error=\(store.lastErrorMessage ?? "없음")")
+                let what = filed.isEmpty ? "확인 필요" : filed.map(\.summary).joined(separator: " / ")
+                log("filed=\(what) error=\(store.lastErrorMessage ?? "없음")")
             }
         } catch {
             log("읽기 실패: \(error.localizedDescription)")

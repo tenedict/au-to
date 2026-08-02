@@ -22,7 +22,7 @@ final class TaskStore: ObservableObject {
     @Published var engine: AnalysisEngine {
         didSet {
             guard engine != oldValue else { return }
-            guard engine.isAvailable else {
+            guard ContextUnderstanding.isAvailable(engine) else {
                 engine = oldValue
                 return
             }
@@ -64,7 +64,16 @@ final class TaskStore: ObservableObject {
             // 저장 위치를 못 잡으면 그 사실을 화면에 말한다. 조용히 메모리 전용으로
             // 돌아가면 사용자는 앱을 껐다 켠 뒤에야 잃은 걸 안다.
             do {
-                self.storage = try TaskStorage.makeDefault()
+                let resolved = try TaskStorage.makeDefault()
+                self.storage = resolved
+                // 저장 위치를 App Group 으로 옮겼다. 예전 자리에 남은 것을 가져온다.
+                // 실패를 삼키면 사용자는 할 일이 통째로 사라진 것으로 본다.
+                do {
+                    try resolved.adoptLegacyStoreIfNeeded()
+                } catch {
+                    self.lastErrorMessage =
+                        "예전 위치의 할 일을 옮기지 못했어요. (\(error.localizedDescription))"
+                }
             } catch {
                 self.storage = nil
                 self.lastErrorMessage = error.localizedDescription
@@ -157,8 +166,8 @@ final class TaskStore: ObservableObject {
                 try? SharedInbox.cacheRecognizedText(text, for: capture)
             }
 
-            let draft = try await understandingService.makeDraft(from: text, captureID: capture.id)
-            appendDraft(draft)
+            let drafts = try await understandingService.makeDrafts(from: text, captureID: capture.id)
+            drafts.forEach(appendDraft)
         } catch {
             // 캡처는 상자에 그대로 둔다. 다음에 다시 시도할 수 있어야 한다.
             lastErrorMessage = error.localizedDescription
@@ -190,7 +199,8 @@ final class TaskStore: ObservableObject {
     private func analyzeInMemory(_ imageData: Data) async {
         do {
             let text = try await ocrService.recognizeText(in: imageData)
-            appendDraft(try await understandingService.makeDraft(from: text, captureID: nil))
+            let drafts = try await understandingService.makeDrafts(from: text, captureID: nil)
+            drafts.forEach(appendDraft)
         } catch {
             lastErrorMessage = error.localizedDescription
         }
@@ -202,18 +212,25 @@ final class TaskStore: ObservableObject {
     /// 판정은 `AutoFilePolicy` 순수 함수가 한다.
     ///
     /// - Returns: 바로 넣었으면 그 결과, 확인이 필요하면 nil
+    /// 이미지 한 장에서 찾은 **모든** 일정을 처리한다.
+    ///
+    /// - Returns: 확인 없이 바로 넣은 것들. 모호한 것은 확인 대기로 남는다
     @discardableResult
-    func fileImage(_ imageData: Data) async -> FiledCapture? {
+    func fileImage(_ imageData: Data, captureID: UUID? = nil) async -> [FiledCapture] {
         isImporting = true
         defer { isImporting = false }
 
         do {
             let text = try await ocrService.recognizeText(in: imageData)
-            let draft = try await understandingService.makeDraft(from: text, captureID: nil)
-            return await file(draft)
+            let drafts = try await understandingService.makeDrafts(from: text, captureID: captureID)
+            var filed: [FiledCapture] = []
+            for draft in drafts {
+                if let one = await file(draft) { filed.append(one) }
+            }
+            return filed
         } catch {
             lastErrorMessage = error.localizedDescription
-            return nil
+            return []
         }
     }
 
@@ -262,7 +279,8 @@ final class TaskStore: ObservableObject {
 
     func analyzeManualText(_ text: String) async {
         do {
-            appendDraft(try await understandingService.makeDraft(from: text, captureID: nil))
+            let drafts = try await understandingService.makeDrafts(from: text, captureID: nil)
+            drafts.forEach(appendDraft)
         } catch {
             lastErrorMessage = error.localizedDescription
         }

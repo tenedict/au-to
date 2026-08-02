@@ -63,6 +63,7 @@ struct SettingsSheet: View {
     @ViewBuilder
     private func engineRow(_ engine: AnalysisEngine) -> some View {
         let isSelected = store.engine == engine
+        let reason = ContextUnderstanding.unavailableReason(for: engine)
 
         Button {
             store.engine = engine
@@ -70,19 +71,19 @@ struct SettingsSheet: View {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: engine.symbolName)
                     .font(.title3)
-                    .foregroundStyle(engine.isAvailable ? Color.accentColor : Color.secondary)
+                    .foregroundStyle(reason == nil ? Color.accentColor : Color.secondary)
                     .frame(width: 28)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(engine.title)
                         .font(.body)
-                        .foregroundStyle(engine.isAvailable ? .primary : .secondary)
+                        .foregroundStyle(reason == nil ? .primary : .secondary)
                     Text(engine.detail)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     // 고를 수 없다면 왜 못 고르는지 함께 보여준다 (CLAUDE 규칙 12).
-                    if let reason = engine.unavailableReason {
+                    if let reason {
                         Label(reason, systemImage: "hammer")
                             .font(.caption)
                             .foregroundStyle(.orange)
@@ -102,7 +103,7 @@ struct SettingsSheet: View {
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .disabled(!engine.isAvailable)
+        .disabled(reason != nil)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }

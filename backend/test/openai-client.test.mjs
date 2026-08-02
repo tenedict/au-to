@@ -7,7 +7,7 @@ import {
   OpenAIClient,
   parseTaskDraftResponse,
 } from "../src/openai-client.mjs";
-import { LIMITS } from "../src/task-draft-schema.mjs";
+import { LIMITS, MAX_TASKS } from "../src/task-draft-schema.mjs";
 
 test("Responses 요청은 저장을 끄고 strict 스키마를 사용한다", () => {
   const request = makeResponsesRequest({
@@ -98,8 +98,9 @@ test("Responses output_text에서 검증된 draft를 파싱한다", () => {
     }),
   );
 
-  assert.equal(draft.title, "치과 방문");
-  assert.equal(draft.has_explicit_time, true);
+  assert.equal(draft.tasks.length, 1);
+  assert.equal(draft.tasks[0].title, "치과 방문");
+  assert.equal(draft.tasks[0].has_explicit_time, true);
 });
 
 test("길이를 넘긴 결과는 버리지 않고 잘라 낸다", () => {
@@ -115,10 +116,11 @@ test("길이를 넘긴 결과는 버리지 않고 잘라 낸다", () => {
     }),
   );
 
-  assert.equal(draft.title.length, LIMITS.titleMaxLength);
-  assert.equal(draft.notes.length, LIMITS.notesMaxLength);
-  assert.equal(draft.evidence.length, LIMITS.listMaxItems);
-  assert.equal(draft.ambiguities[0].length, LIMITS.listItemMaxLength);
+  const only = draft.tasks[0];
+  assert.equal(only.title.length, LIMITS.titleMaxLength);
+  assert.equal(only.notes.length, LIMITS.notesMaxLength);
+  assert.equal(only.evidence.length, LIMITS.listMaxItems);
+  assert.equal(only.ambiguities[0].length, LIMITS.listItemMaxLength);
 });
 
 test("날짜 없이 명시 시간이 있는 결과를 거절한다", () => {
@@ -210,13 +212,101 @@ test("연결 실패는 502로 감싸 원인을 남긴다", async () => {
   );
 });
 
-function responsePayload(draft) {
+function responsePayload(...drafts) {
   return {
     output: [
       {
         type: "message",
-        content: [{ type: "output_text", text: JSON.stringify(draft) }],
+        content: [{ type: "output_text", text: JSON.stringify({ tasks: drafts }) }],
       },
     ],
+  };
+}
+
+// ── 한 장에 일정이 여럿일 때 ──────────────────────────────
+
+test("여러 할 일을 모두 돌려준다", () => {
+  const result = parseTaskDraftResponse(
+    responsePayload(
+      task({ title: "정기검진", due_at: "2026-08-12T15:00:00+09:00" }),
+      task({ title: "재방문", due_at: "2026-09-03T15:00:00+09:00" }),
+    ),
+  );
+
+  assert.equal(result.tasks.length, 2);
+  assert.deepEqual(result.tasks.map((t) => t.title), ["정기검진", "재방문"]);
+});
+
+/**
+ * 셋 중 하나가 이상하다고 나머지 둘을 버리면 사용자만 손해다.
+ * 두 개라도 들어가는 편이 낫다.
+ */
+test("일부가 잘못돼도 나머지는 살린다", () => {
+  const result = parseTaskDraftResponse(
+    responsePayload(
+      task({ title: "정상 1" }),
+      task({ title: "", due_at: null }), // 제목이 빔 → 거절
+      task({ title: "정상 2" }),
+    ),
+  );
+
+  assert.equal(result.tasks.length, 2);
+  assert.equal(result.rejected.length, 1);
+  assert.match(result.rejected[0], /title/);
+});
+
+test("전부 잘못됐으면 응답 자체를 거절한다", () => {
+  assert.throws(
+    () => parseTaskDraftResponse(responsePayload(task({ title: "" }))),
+    /title/,
+  );
+});
+
+test("tasks 배열이 없으면 거절한다", () => {
+  assert.throws(
+    () =>
+      parseTaskDraftResponse({
+        output: [
+          {
+            type: "message",
+            content: [{ type: "output_text", text: JSON.stringify({ title: "옛 형식" }) }],
+          },
+        ],
+      }),
+    /tasks/,
+  );
+});
+
+test("최대 개수를 넘으면 잘라 낸다", () => {
+  const many = Array.from({ length: MAX_TASKS + 4 }, (_, i) => task({ title: `할 일 ${i}` }));
+  const result = parseTaskDraftResponse(responsePayload(...many));
+
+  assert.equal(result.tasks.length, MAX_TASKS);
+});
+
+test("여러 개를 찾으라는 지시가 프롬프트에 있다", () => {
+  const request = makeResponsesRequest({
+    model: DEFAULT_MODEL,
+    recognizedText: "8월 12일 검진, 9월 3일 재방문",
+    locale: "ko-KR",
+    timezone: "Asia/Seoul",
+    now: "2026-08-01T12:00:00+09:00",
+  });
+
+  assert.match(request.instructions, /전부\*\* 찾아낸다/);
+  assert.match(request.instructions, /따로 나눈다/);
+  assert.equal(request.text.format.schema.properties.tasks.type, "array");
+});
+
+function task(overrides) {
+  return {
+    title: "치과 방문",
+    notes: "",
+    due_at: "2026-08-12T15:00:00+09:00",
+    has_explicit_time: true,
+    confidence: 0.9,
+    evidence: [],
+    ambiguities: [],
+    ...overrides,
   };
 }

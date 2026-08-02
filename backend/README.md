@@ -73,7 +73,7 @@ backend/
 │  ├─ rate-limit.mjs         IP 당 분당 · 인스턴스 당 하루
 │  ├─ openai-client.mjs      OpenAI 호출 — 요청 조립 · 타임아웃 · 응답 파싱
 │  └─ task-draft-schema.mjs  스키마 + 범위 검증/다듬기
-└─ test/                     40건 — 실제 OpenAI 호출 없음
+└─ test/                     46건 — 실제 OpenAI 호출 없음
 ```
 
 **외부 패키지가 0개입니다.** `node:http` 와 내장 `fetch` 만 씁니다.
@@ -243,7 +243,7 @@ export function isReasoningModel(model) {
 cd backend && npm test
 ```
 
-40건 전부 **실제 OpenAI 호출 없이** 돕니다. `fetchImpl` 을 대역으로 바꿔 넣습니다.
+46건 전부 **실제 OpenAI 호출 없이** 돕니다. `fetchImpl` 을 대역으로 바꿔 넣습니다.
 
 | 무엇을 잡나 |
 | --- |

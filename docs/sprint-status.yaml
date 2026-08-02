@@ -34,10 +34,10 @@ deployment:
 
 verification:
   command: ./scripts/verify.sh
-  ios_tests_total: 102
-  ios_tests_passed: 102
-  backend_tests_total: 40
-  backend_tests_passed: 40
+  ios_tests_total: 115
+  ios_tests_passed: 115
+  backend_tests_total: 46
+  backend_tests_passed: 46
   project_rules: 12
   build_warnings: 0
   simulator_checked:
@@ -90,14 +90,14 @@ previous_sprint:
 epics:
   - id: E1
     name: 캡처 수집
-    stories: 8
-    done: 7
+    stories: 10
+    done: 8
     status: in_progress
     blocked_by: [D-1]
   - id: E2
     name: 텍스트와 문맥
-    stories: 12
-    done: 10
+    stories: 14
+    done: 12
     status: in_progress
   - id: E3
     name: 확인
@@ -144,8 +144,8 @@ epics:
     note: 물방울 · 바로 넣기와 되돌리기 · 다른 앱으로 열기까지 동작. 공유 확장은 서명 필요
 
 progress:
-  stories_total: 83
-  stories_done: 75
+  stories_total: 87
+  stories_done: 78
   percent: 90
 
 completed_stories:

@@ -13,9 +13,24 @@ struct TaskStorage: Sendable {
         self.directory = directory
     }
 
-    /// 앱이 실제로 쓰는 위치. Application Support 를 못 찾는 일은 없지만,
-    /// 없으면 임시 폴더로 떨어뜨리는 대신 실패를 알린다.
+    /// 앱이 실제로 쓰는 위치.
+    ///
+    /// **App Group 안에 둔다.** Share Extension 이 분석까지 끝내고 할 일을 저장하는데,
+    /// 확장의 Application Support 는 앱의 것과 다른 상자다. 각자 저장하면 사용자는
+    /// 공유로 만든 할 일이 앱에 없는 것을 보게 된다.
+    ///
+    /// App Group 을 못 쓰면(서명 미설정·시뮬레이터) 앱 전용 저장소로 떨어진다.
+    /// 그 경우 확장이 만든 것은 앱에 보이지 않지만, 확장은 분석 전에 캡처를
+    /// 상자에 담아 두므로 앱이 나중에 처리한다 — 잃지는 않는다.
     static func makeDefault() throws -> TaskStorage {
+        if let shared = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: SharedInbox.appGroupIdentifier
+        ) {
+            // 이전은 여기서 하지 않는다. 실패를 삼킬 자리가 없어야 하기 때문이다 —
+            // 부르는 쪽(TaskStore)이 do/catch 로 받아 화면까지 올린다.
+            return TaskStorage(directory: shared.appendingPathComponent(defaultDirectoryName))
+        }
+
         guard let base = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -23,6 +38,32 @@ struct TaskStorage: Sendable {
             throw TaskStorageError.locationUnavailable
         }
         return TaskStorage(directory: base.appendingPathComponent(defaultDirectoryName))
+    }
+
+    /// 예전 위치(Application Support)에 있던 것을 App Group 으로 옮긴다.
+    ///
+    /// 저장 위치를 바꾸면서 이걸 하지 않으면 **사용자의 할 일이 통째로 사라진 것처럼 보인다.**
+    /// 새 위치에 이미 파일이 있으면 건드리지 않는다 — 옮기다 덮어쓰는 것이 더 나쁘다.
+    func adoptLegacyStoreIfNeeded() throws {
+        guard let base = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first else { return }
+
+        let legacy = base.appendingPathComponent(Self.defaultDirectoryName)
+        guard legacy.path != directory.path,
+              FileManager.default.fileExists(atPath: legacy.path) else { return }
+
+        try FileManager.default.createDirectory(
+            at: directory, withIntermediateDirectories: true
+        )
+        for name in ["tasks.json", "drafts.json"] {
+            let from = legacy.appendingPathComponent(name)
+            let to = directory.appendingPathComponent(name)
+            guard FileManager.default.fileExists(atPath: from.path),
+                  !FileManager.default.fileExists(atPath: to.path) else { continue }
+            try FileManager.default.moveItem(at: from, to: to)
+        }
     }
 
     // MARK: - 할 일

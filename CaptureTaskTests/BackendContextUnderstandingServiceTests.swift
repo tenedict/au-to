@@ -19,7 +19,7 @@ final class BackendContextUnderstandingServiceTests: XCTestCase {
         }
 
         _ = try await makeService(clientKey: "비밀키-충분히-긴-값", httpClient: httpClient)
-            .makeDraft(from: "치과", captureID: nil)
+            .makeDrafts(from: "치과", captureID: nil)
     }
 
     /// 로컬 백엔드는 키 없이 돕니다. 빈 값을 헤더로 보내면 401 이 됩니다.
@@ -35,7 +35,7 @@ final class BackendContextUnderstandingServiceTests: XCTestCase {
             }
 
             _ = try await makeService(clientKey: key, httpClient: httpClient)
-                .makeDraft(from: "치과", captureID: nil)
+                .makeDrafts(from: "치과", captureID: nil)
         }
     }
 
@@ -51,7 +51,7 @@ final class BackendContextUnderstandingServiceTests: XCTestCase {
         let service = makeService(clientKey: "틀린키", httpClient: httpClient)
 
         do {
-            _ = try await service.makeDraft(from: "치과", captureID: nil)
+            _ = try await service.makeDrafts(from: "치과", captureID: nil)
             XCTFail("401 은 던져야 합니다")
         } catch let error as BackendAnalysisError {
             guard case .unauthorized = error else {
@@ -64,13 +64,17 @@ final class BackendContextUnderstandingServiceTests: XCTestCase {
     }
 
     private static let validBody: [String: Any] = [
-        "title": "치과 방문",
-        "notes": "",
-        "due_at": NSNull(),
-        "has_explicit_time": false,
-        "confidence": 0.5,
-        "evidence": [],
-        "ambiguities": [],
+        "tasks": [
+            [
+                "title": "치과 방문",
+                "notes": "",
+                "due_at": NSNull(),
+                "has_explicit_time": false,
+                "confidence": 0.5,
+                "evidence": [],
+                "ambiguities": [],
+            ]
+        ]
     ]
 
     private func makeService(
@@ -104,13 +108,17 @@ final class BackendContextUnderstandingServiceTests: XCTestCase {
             return try response(
                 status: 200,
                 body: [
-                    "title": "치과 방문",
-                    "notes": "예약 시간에 방문",
-                    "due_at": "2026-08-05T14:00:00+09:00",
-                    "has_explicit_time": true,
-                    "confidence": 0.94,
-                    "evidence": ["8월 5일 오후 2시", "치과"],
-                    "ambiguities": [],
+                    "tasks": [
+                        [
+                            "title": "치과 방문",
+                            "notes": "예약 시간에 방문",
+                            "due_at": "2026-08-05T14:00:00+09:00",
+                            "has_explicit_time": true,
+                            "confidence": 0.94,
+                            "evidence": ["8월 5일 오후 2시", "치과"],
+                            "ambiguities": [],
+                        ]
+                    ]
                 ]
             )
         }
@@ -122,11 +130,13 @@ final class BackendContextUnderstandingServiceTests: XCTestCase {
             now: { Date(timeIntervalSince1970: 0) }
         )
 
-        let draft = try await service.makeDraft(
+        let drafts = try await service.makeDrafts(
             from: "  8월 5일 오후 2시 치과  ",
             captureID: captureID
         )
 
+        XCTAssertEqual(drafts.count, 1)
+        let draft = try XCTUnwrap(drafts.first)
         XCTAssertEqual(draft.title, "치과 방문")
         XCTAssertEqual(draft.sourceCaptureID, captureID)
         XCTAssertTrue(draft.hasExplicitTime)
@@ -152,7 +162,7 @@ final class BackendContextUnderstandingServiceTests: XCTestCase {
         )
 
         do {
-            _ = try await service.makeDraft(from: "테스트", captureID: nil)
+            _ = try await service.makeDrafts(from: "테스트", captureID: nil)
             XCTFail("오류가 발생해야 합니다.")
         } catch {
             XCTAssertEqual(
@@ -183,7 +193,7 @@ final class BackendContextUnderstandingServiceTests: XCTestCase {
         )
 
         await XCTAssertThrowsErrorAsync {
-            _ = try await service.makeDraft(from: "예약", captureID: nil)
+            _ = try await service.makeDrafts(from: "예약", captureID: nil)
         }
     }
 }

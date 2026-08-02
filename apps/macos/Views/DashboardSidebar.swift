@@ -20,6 +20,13 @@ struct DashboardSidebar: View {
                     .tag(DashboardSelection.scope(scope))
                 }
             }
+
+            // 캘린더는 묶음이 아니다. 같은 원장을 날짜로 본 것이고 여기서는
+            // 고치지 않는다 — 구역을 나눠 그 차이를 눈에 보이게 한다.
+            Section("보기") {
+                Label("캘린더", systemImage: "calendar")
+                    .tag(DashboardSelection.calendar)
+            }
         }
         .listStyle(.sidebar)
         .navigationTitle("CaptureTask")

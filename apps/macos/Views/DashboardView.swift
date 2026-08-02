@@ -43,6 +43,8 @@ struct DashboardView: View {
         switch selection {
         case .scope(let scope):
             TaskListPane(store: store, scope: scope, onPickFiles: onPickFiles)
+        case .calendar:
+            MonthCalendarPane(store: store)
         }
     }
 
@@ -88,14 +90,16 @@ struct DashboardView: View {
 
 /// 사이드바에서 고른 것.
 ///
-/// 지금은 묶음뿐이지만 곧 캘린더가 붙는다. `TaskScope` 를 그대로 선택 타입으로 쓰면
-/// 캘린더를 넣을 자리가 없어서, 고른 것과 묶음을 처음부터 나눠 둔다.
+/// 묶음과 캘린더는 성격이 다르다 — 묶음은 목록이고 캘린더는 같은 원장을 날짜로
+/// 본 것이다. `TaskScope` 를 그대로 선택 타입으로 쓰면 캘린더를 넣을 자리가 없다.
 enum DashboardSelection: Hashable {
     case scope(TaskScope)
+    case calendar
 
     var title: String {
         switch self {
         case .scope(let scope): return scope.title
+        case .calendar: return "캘린더"
         }
     }
 }

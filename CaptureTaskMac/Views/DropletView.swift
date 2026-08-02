@@ -3,14 +3,13 @@ import UniformTypeIdentifiers
 
 /// 화면에 떠 있는 물방울. 여기에 이미지를 떨어뜨리면 캘린더까지 간다.
 ///
-/// 상태를 **모양으로** 보여준다 — 색만 바꾸면 흑백 화면이나 색각 이상 사용자에게는
-/// 아무 일도 일어나지 않은 것과 같다 (CLAUDE 규칙 13).
+/// 상태를 **모양으로만** 보여준다. 색은 아예 쓰지 않는다 — 색만 바꾸면 흑백 화면이나
+/// 색각 이상 사용자에게는 아무 일도 일어나지 않은 것과 같다 (CLAUDE 규칙 13).
 struct DropletView: View {
     @ObservedObject var store: TaskStore
     let onOpenList: () -> Void
 
     @State private var isTargeted = false
-    @State private var ripple = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var phase: Phase {
@@ -33,19 +32,6 @@ struct DropletView: View {
 
     var body: some View {
         ZStack {
-            // 떨어뜨릴 수 있다는 신호. 물결이 **안쪽으로** 모인다 —
-            // 셔터가 닫히는 방향과 같아야 한 동작으로 읽힌다.
-            if isTargeted && !reduceMotion {
-                Circle()
-                    .stroke(Color.accentColor.opacity(0.5), lineWidth: 2)
-                    .scaleEffect(ripple ? 0.90 : 1.32)
-                    .opacity(ripple ? 0 : 1)
-                    .animation(
-                        .easeOut(duration: 1.1).repeatForever(autoreverses: false),
-                        value: ripple
-                    )
-            }
-
             ring
                 // 바깥 지름도 조금 줄어든다. 셔터는 안으로 조이는 동작이다.
                 .scaleEffect(isTargeted && !reduceMotion ? 0.90 : 1)
@@ -64,9 +50,6 @@ struct DropletView: View {
         .onDrop(of: [.image, .fileURL], isTargeted: $isTargeted) { providers in
             Task { await handle(providers) }
             return true
-        }
-        .onChange(of: isTargeted) { _, targeted in
-            ripple = targeted
         }
         // 눌러서 목록을 연다. 끌어다 놓기를 모르는 사용자에게 다른 길이 있어야 한다.
         .onTapGesture(perform: onOpenList)
@@ -95,6 +78,10 @@ struct DropletView: View {
     /// 끌고 오면 **카메라 셔터가 닫히듯 조인다.** 두께가 안쪽으로 자라 구멍이 좁아진다 —
     /// 셔터에서 움직이는 것은 날개이지 렌즈 통이 아니다. 바깥이 아니라
     /// **안쪽으로** 자라야 조여지는 것으로 읽힌다.
+    ///
+    /// **색은 쓰지 않는다.** 강조색 고리와 물결이 있었지만 쇠에 파란 테가 겹치니
+    /// 물건 하나가 아니라 두 개로 보였다. 알림은 조임 하나로 충분하다 —
+    /// 색을 안 쓰니 규칙 13(색만으로 알리지 않기)도 저절로 지켜진다.
     private var ring: some View {
         let width: CGFloat = isTargeted ? 12 : 3
 
@@ -110,15 +97,6 @@ struct DropletView: View {
                 Circle()
                     .strokeBorder(.black.opacity(0.35), lineWidth: 0.75)
                     .padding(width - 0.75)
-            }
-            .overlay {
-                if isTargeted {
-                    // 강조색은 **좁아진 구멍의 가장자리**에 둔다. 시선이 가야 할 곳은
-                    // 고리 바깥이 아니라 닫히고 있는 구멍이다.
-                    Circle()
-                        .strokeBorder(Color.accentColor.opacity(0.9), lineWidth: 2)
-                        .padding(width - 2)
-                }
             }
     }
 

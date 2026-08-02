@@ -90,13 +90,12 @@ final class ShareViewController: UIViewController {
 
         // ── 2단계 · 읽고 등록한다 ──────────────────────────
         var filed: [FiledCapture] = []
-        var needsReview = false
+        var needsReview: [TaskDraft] = []
         for capture in captures {
             guard let data = try? SharedInbox.imageData(for: capture) else { continue }
-            let before = await store.pendingDrafts.count
-            let results = await store.fileImage(data, captureID: capture.id)
-            filed.append(contentsOf: results)
-            if await store.pendingDrafts.count > before { needsReview = true }
+            let result = await store.intake(data, captureID: capture.id)
+            filed.append(contentsOf: result.filed)
+            needsReview.append(contentsOf: result.needsReview)
         }
 
         await report(filed: filed, captures: captures, needsReview: needsReview)
@@ -110,7 +109,7 @@ final class ShareViewController: UIViewController {
     private func report(
         filed: [FiledCapture],
         captures: [PendingCapture],
-        needsReview: Bool
+        needsReview: [TaskDraft]
     ) async {
         spinner.stopAnimating()
 
@@ -120,12 +119,18 @@ final class ShareViewController: UIViewController {
                 captureID: captures.first?.id
             )
         }
-        if needsReview {
-            // 확인이 필요한 것이 남았다. 그건 앱에서 봐야 한다.
-            CaptureNotice.postCaptureTaken(captureIDs: captures.map(\.id))
+        if !needsReview.isEmpty {
+            // 확인이 필요한 것이 남았다. 무엇인지까지 알림이 말한다.
+            CaptureNotice.postNeedsReview(
+                titles: needsReview.map(\.title),
+                captureID: captures.first?.id
+            )
+        }
+        if filed.isEmpty, needsReview.isEmpty {
+            CaptureNotice.postNothingFound(captureID: captures.first?.id, reason: nil)
         }
 
-        statusLabel.text = summary(filed: filed, needsReview: needsReview)
+        statusLabel.text = summary(filed: filed, needsReview: !needsReview.isEmpty)
         extensionContext?.completeRequest(returningItems: nil)
     }
 

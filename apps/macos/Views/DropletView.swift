@@ -6,18 +6,29 @@ import UniformTypeIdentifiers
 /// **상태를 크기로만 말한다.** 색은 아예 쓰지 않는다 — 색만 바꾸면 흑백 화면이나
 /// 색각 이상 사용자에게는 아무 일도 일어나지 않은 것과 같다 (CLAUDE 규칙 13).
 /// 어떤 상태가 얼마나 커지는지는 `DropletAppearance` 가 정하고 테스트가 지킨다.
+///
+/// **읽는 중이라는 표시는 두지 않는다.** 읽기는 `CaptureQueue` 가 뒤에서 하고,
+/// 끝나면 알림이 온다. 물방울에 회전판을 달면 사용자는 그것이 끝날 때까지
+/// 화면을 지키게 되는데, 이 제품의 값은 정확히 그 기다림을 없애는 것이다.
+/// 대신 놓은 직후 잠깐 크게 머문다 — 삼킨 티가 한 번은 나야 한다.
 struct DropletView: View {
-    @ObservedObject var store: TaskStore
     @ObservedObject var motion: DropletMotion
     let onOpenList: () -> Void
+    /// 받은 이미지를 넘길 곳. 화면은 들고 있지 않는다 — 창이 열리고 닫혀도
+    /// 처리가 끊기면 안 되기 때문이다 (`CaptureQueue` 참고).
+    let onReceive: (Data) -> Void
 
     @State private var isTargeted = false
     @State private var isPressed = false
+    /// 방금 삼켰다. 잠깐 크게 머문다.
+    @State private var justSwallowed = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    /// 놓은 뒤 큰 상태로 머무는 시간.
+    private static let swallowLinger: Duration = .milliseconds(420)
+
     private var phase: DropletPhase {
-        if store.isImporting { return .working }
-        if isTargeted { return .receiving }
+        if isTargeted || justSwallowed { return .receiving }
         if motion.isMoving { return .moving }
         if isPressed { return .pressed }
         return .idle
@@ -26,14 +37,7 @@ struct DropletView: View {
     private var diameter: CGFloat { DropletAppearance.diameter(for: phase) }
 
     var body: some View {
-        ZStack {
-            droplet
-            if store.isImporting {
-                ProgressView()
-                    .controlSize(.small)
-                    .scaleEffect(0.72)
-            }
-        }
+        droplet
         // 창은 고정이고 물방울만 커진다. 창까지 같이 커지면 겨냥하는 중에
         // 드롭 영역이 움직여서 커서가 안팎을 오간다.
         .frame(width: DropletAppearance.panelSide, height: DropletAppearance.panelSide)
@@ -44,6 +48,7 @@ struct DropletView: View {
                    value: phase)
         .gesture(pressAndMove)
         .onDrop(of: [.image, .fileURL], isTargeted: $isTargeted) { providers in
+            showSwallow()
             Task { await handle(providers) }
             return true
         }
@@ -154,21 +159,35 @@ struct DropletView: View {
         switch phase {
         case .idle, .pressed: return "물방울. 스크린샷을 여기에 끌어다 놓으세요"
         case .moving: return "물방울을 옮기는 중이에요"
-        case .receiving: return "놓으면 할 일로 만들어요"
-        case .working: return "읽는 중이에요"
+        case .receiving:
+            return justSwallowed
+                ? "받았어요. 다 읽으면 알림으로 알려 드려요"
+                : "놓으면 할 일로 만들어요"
         }
     }
 
     // MARK: - 받은 것 처리
 
-    /// 떨어진 것들을 순서대로 처리한다.
+    /// 떨어진 것들에서 **바이트만 꺼내** 줄에 넘긴다.
+    ///
+    /// 여기서 읽거나 분석하지 않는다. 파인더가 준 파일 URL 의 접근권은 드롭 세션이
+    /// 끝나면 사라지므로 **지금 복사해 둬야 한다.** 그 다음 일은 화면 밖에서 돈다.
     ///
     /// 한 장이 실패해도 나머지는 진행한다 — 여러 장을 끌어다 놓은 사용자가
     /// 한 장 때문에 전부 잃으면 안 된다.
     private func handle(_ providers: [NSItemProvider]) async {
         for provider in providers {
             guard let data = await imageData(from: provider) else { continue }
-            await store.fileImage(data)
+            onReceive(data)
+        }
+    }
+
+    /// 삼킨 티를 잠깐 남긴다.
+    private func showSwallow() {
+        justSwallowed = true
+        Task { @MainActor in
+            try? await Task.sleep(for: Self.swallowLinger)
+            justSwallowed = false
         }
     }
 

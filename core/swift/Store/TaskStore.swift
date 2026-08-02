@@ -13,10 +13,6 @@ final class TaskStore: ObservableObject {
     @Published private(set) var isImporting = false
     @Published private(set) var inboxAvailability: SharedInbox.Availability = .ready
     @Published private(set) var reminderAuthorization: ReminderAuthorizationState = .notDetermined
-    /// 방금 확인 없이 넣은 것. 배너가 이걸 보고 "실행 취소" 를 띄운다.
-    @Published var lastFiled: FiledCapture?
-    /// 바로 넣을 수 없어 확인이 필요한 초안. 맥의 물방울이 이걸 보고 창을 연다.
-    @Published var needsConfirmation: TaskDraft?
 
     /// 지금 쓰는 분석 엔진. 바꾸면 곧바로 다음 분석부터 적용된다.
     @Published var engine: AnalysisEngine {
@@ -206,41 +202,56 @@ final class TaskStore: ObservableObject {
         }
     }
 
-    /// 이미지 한 장을 받아 **확인 없이** 캘린더까지 넣는다. 맥 물방울의 주 경로다.
+    /// 이미지 한 장을 읽어 찾은 **모든** 일정을 처리한 결과.
     ///
-    /// 분명하면 넣고 되돌릴 수 있게 하고, 모호하면 그때만 확인 화면을 연다.
-    /// 판정은 `AutoFilePolicy` 순수 함수가 한다.
+    /// 알리는 쪽(`CaptureQueue`)이 "무엇을 등록했고 무엇이 남았는지"를 한 번에
+    /// 말할 수 있어야 한다. 등록한 것만 돌려주면 확인이 필요한 것은 조용히 사라지고,
+    /// 사용자에게는 담기가 통째로 실패한 것으로 보인다.
+    struct IntakeResult: Sendable {
+        var filed: [FiledCapture] = []
+        var needsReview: [TaskDraft] = []
+        var errorMessage: String?
+
+        var isEmpty: Bool { filed.isEmpty && needsReview.isEmpty }
+    }
+
+    /// 이미지 한 장을 받아 **확인 화면 없이** 할 일과 캘린더까지 넣는다.
     ///
-    /// - Returns: 바로 넣었으면 그 결과, 확인이 필요하면 nil
-    /// 이미지 한 장에서 찾은 **모든** 일정을 처리한다.
-    ///
-    /// - Returns: 확인 없이 바로 넣은 것들. 모호한 것은 확인 대기로 남는다
+    /// 맥 물방울과 iOS 공유 시트가 함께 쓰는 주 경로다. 분명하면 넣고, 모호하면
+    /// 확인 대기로 남긴다 — 판정은 `AutoFilePolicy` 순수 함수가 한다.
+    /// **어느 쪽이든 화면을 띄우지 않는다.** 알리는 것은 부르는 쪽의 일이다.
     @discardableResult
-    func fileImage(_ imageData: Data, captureID: UUID? = nil) async -> [FiledCapture] {
+    func intake(_ imageData: Data, captureID: UUID? = nil) async -> IntakeResult {
         isImporting = true
         defer { isImporting = false }
 
+        var result = IntakeResult()
         do {
             let text = try await ocrService.recognizeText(in: imageData)
             let drafts = try await understandingService.makeDrafts(from: text, captureID: captureID)
-            var filed: [FiledCapture] = []
             for draft in drafts {
-                if let one = await file(draft) { filed.append(one) }
+                if let one = await file(draft) {
+                    result.filed.append(one)
+                } else {
+                    result.needsReview.append(draft)
+                }
             }
-            return filed
         } catch {
             lastErrorMessage = error.localizedDescription
-            return []
+            result.errorMessage = error.localizedDescription
         }
+        return result
     }
 
     /// 초안 하나를 정책에 따라 처리한다.
+    ///
+    /// - Returns: 바로 넣었으면 그 결과, 확인이 필요하면 nil (초안은 대기 목록에 남는다)
     @discardableResult
     func file(_ draft: TaskDraft) async -> FiledCapture? {
         guard case .fileNow = AutoFilePolicy.decide(for: draft) else {
-            // 확인 화면으로 넘긴다. 초안은 남겨 둬야 앱을 껐다 켜도 사라지지 않는다.
+            // 초안은 남겨 둬야 앱을 껐다 켜도 사라지지 않는다. 화면은 띄우지 않는다 —
+            // 사용자는 지금 다른 일을 하고 있고, 알림으로 부르는 것이 맞다.
             appendDraft(draft)
-            needsConfirmation = draft
             return nil
         }
 
@@ -256,7 +267,7 @@ final class TaskStore: ObservableObject {
 
         await save(task)
 
-        let filed = FiledCapture(
+        return FiledCapture(
             id: task.id,
             title: task.title,
             dueDate: task.dueDate,
@@ -264,17 +275,6 @@ final class TaskStore: ObservableObject {
             calendarEventIdentifier: eventIdentifier,
             filedAt: now()
         )
-        lastFiled = filed
-        return filed
-    }
-
-    /// 방금 넣은 것을 되돌린다. 할 일과 캘린더 일정을 **둘 다** 거둔다.
-    ///
-    /// 하나만 지우면 사용자는 "취소했는데 일정이 그대로" 인 상태를 보게 된다.
-    func undoLastFiled() async {
-        guard let filed = lastFiled else { return }
-        lastFiled = nil
-        await delete(filed.id)
     }
 
     func analyzeManualText(_ text: String) async {
@@ -321,6 +321,64 @@ final class TaskStore: ObservableObject {
         pendingDrafts.removeAll { $0.id == draft.id }
         persistDrafts()
         completeCapture(draft.sourceCaptureID)
+    }
+
+    // MARK: - 고치기
+
+    /// 고친 내용을 반영한다. **저장된 할 일이든 초안이든 이 문 하나로 들어온다.**
+    ///
+    /// 두 갈래를 화면이 각자 처리하면, 초안을 저장하는 길에서만 캘린더 연동이
+    /// 빠지는 식으로 반드시 어긋난다.
+    func commit(_ edit: TaskEdit, to item: EditableItem) async {
+        switch item {
+        case .task(let task):
+            await update(edit.apply(to: task), addToCalendar: edit.effectiveAddToCalendar)
+        case .draft(let draft):
+            var task = edit.makeTask(from: draft)
+            if edit.effectiveAddToCalendar {
+                do {
+                    task.calendarEventIdentifier = try await CalendarService().addToCalendar(task)
+                } catch {
+                    // 캘린더가 실패해도 할 일은 저장한다 (ADR-7).
+                    lastErrorMessage = error.localizedDescription
+                }
+            }
+            // save 가 초안을 대기 목록에서 빼고 담아 둔 캡처까지 치운다.
+            await save(task)
+        }
+    }
+
+    /// 사용자가 고친 할 일을 반영한다. **캘린더 일정까지 함께 맞춘다.**
+    ///
+    /// 캘린더를 맞추지 않으면 앱에는 새 날짜가, 캘린더에는 옛 날짜가 남는다.
+    /// 그러면 "어느 쪽이 진짜인가" 를 사용자가 매번 판단해야 한다 — 원장은 앱 하나다.
+    ///
+    /// 캘린더 실패는 화면에 올리되 저장을 막지 않는다 (ADR-7).
+    func update(_ task: AssistantTask, addToCalendar: Bool) async {
+        var updated = task
+        let calendarService = CalendarService()
+
+        switch (addToCalendar, task.calendarEventIdentifier) {
+        case (true, let identifier?):
+            do {
+                try await calendarService.updateEvent(identifier: identifier, with: task)
+            } catch {
+                lastErrorMessage = error.localizedDescription
+            }
+        case (true, nil):
+            do {
+                updated.calendarEventIdentifier = try await calendarService.addToCalendar(task)
+            } catch {
+                lastErrorMessage = error.localizedDescription
+            }
+        case (false, let identifier?):
+            await calendarService.removeFromCalendar(eventIdentifier: identifier)
+            updated.calendarEventIdentifier = nil
+        case (false, nil):
+            break
+        }
+
+        await save(updated)
     }
 
     // MARK: - 목록 조작

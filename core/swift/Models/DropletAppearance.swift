@@ -12,9 +12,10 @@ enum DropletPhase: String, CaseIterable, Sendable {
     /// 위치를 옮기는 중이다.
     case moving
     /// 이미지를 끌고 왔다. 놓으면 할 일이 된다.
+    ///
+    /// 놓은 **직후 잠깐**도 이 상태다. 읽기는 뒤에서 도는데 물방울이 곧바로 원래
+    /// 크기로 돌아가면 놓기가 먹히지 않은 것으로 보인다 — 삼킨 티가 한 번은 나야 한다.
     case receiving
-    /// 읽는 중이다.
-    case working
 }
 
 /// 물방울의 크기 규칙.
@@ -49,7 +50,6 @@ enum DropletAppearance {
     static func scale(for phase: DropletPhase) -> CGFloat {
         switch phase {
         case .idle: return 1.00
-        case .working: return 1.10
         // 누르는 것과 옮기는 것은 같은 크기다. 손가락이 닿아 있다는 사실 하나를
         // 말하는 것이고, 누르다 그대로 끌 때 크기가 또 튀면 미끄러진 것처럼 보인다.
         case .pressed, .moving: return 1.18

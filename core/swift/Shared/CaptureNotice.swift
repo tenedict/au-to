@@ -31,34 +31,7 @@ enum CaptureNotice {
         identifier.hasPrefix(identifierPrefix)
     }
 
-    // MARK: - 담았을 때 (Share Extension)
-
-    /// 스크린샷을 담았지만 아직 읽지 못했을 때.
-    ///
-    /// 분석까지 끝났으면 이걸 쓰지 않는다 — `postFiled` 가 무엇이 등록됐는지 말해 준다.
-    /// 이 알림은 **분석이 실패했거나 확인이 필요할 때**만 남는다.
-    static func postCaptureTaken(
-        captureIDs: [UUID],
-        center: UNUserNotificationCenter = .current()
-    ) {
-        guard let first = captureIDs.first else { return }
-
-        let content = UNMutableNotificationContent()
-        content.title = captureIDs.count == 1
-            ? "스크린샷을 담았어요"
-            : "스크린샷 \(captureIDs.count)장을 담았어요"
-        content.body = "눌러서 할 일로 만들지 확인해 주세요."
-        content.sound = .default
-        content.userInfo = ["captureID": first.uuidString]
-
-        center.add(
-            UNNotificationRequest(
-                identifier: identifier(for: first),
-                content: content,
-                trigger: nil
-            )
-        )
-    }
+    // MARK: - 읽고 난 뒤
 
     /// **등록까지 마쳤을 때.** 이게 새 흐름의 마지막 단계다.
     ///
@@ -74,7 +47,7 @@ enum CaptureNotice {
         captureID: UUID?,
         center: UNUserNotificationCenter = .current()
     ) {
-        guard let first = summaries.first else { return }
+        guard !summaries.isEmpty else { return }
 
         let content = UNMutableNotificationContent()
         content.title = summaries.count == 1
@@ -101,6 +74,69 @@ enum CaptureNotice {
 
     /// 알림 본문에 나열할 최대 개수. 그 이상은 "외 N개" 로 줄인다.
     static let maxSummariesInBody = 3
+
+    /// **읽기는 했는데 날짜가 모호할 때.**
+    ///
+    /// 예전에는 이럴 때 맥이 창을 스스로 열었다. 사용자는 다른 일을 하는 중이었고,
+    /// 창이 튀어나온 뒤에도 그 창에는 담긴 것이 보이지 않아서 — 등록이 통째로
+    /// 취소된 것처럼 보였다. 지금은 창을 열지 않고 여기서 부른다.
+    ///
+    /// 무엇을 못 읽었는지 제목까지 적는다. "확인이 필요해요" 만으로는 사용자가
+    /// 앱을 열어야만 그게 무엇인지 알 수 있다.
+    static func postNeedsReview(
+        titles: [String],
+        captureID: UUID?,
+        center: UNUserNotificationCenter = .current()
+    ) {
+        guard !titles.isEmpty else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = titles.count == 1
+            ? "언제인지 확인해 주세요"
+            : "\(titles.count)개의 날짜를 확인해 주세요"
+        content.body = titles.prefix(maxSummariesInBody).joined(separator: "\n")
+        if titles.count > maxSummariesInBody {
+            content.body += "\n외 \(titles.count - maxSummariesInBody)개"
+        }
+        content.sound = .default
+        if let captureID {
+            content.userInfo = ["captureID": captureID.uuidString]
+        }
+
+        center.add(
+            UNNotificationRequest(
+                identifier: "\(identifierPrefix)review-\(captureID?.uuidString ?? UUID().uuidString)",
+                content: content,
+                trigger: nil
+            )
+        )
+    }
+
+    /// **아무것도 찾지 못했을 때.**
+    ///
+    /// 조용히 넘어가면 사용자는 놓기가 먹히지 않은 것으로 읽고, 같은 스크린샷을
+    /// 몇 번이고 다시 끌어다 놓는다. 실패도 결과다.
+    static func postNothingFound(
+        captureID: UUID?,
+        reason: String?,
+        center: UNUserNotificationCenter = .current()
+    ) {
+        let content = UNMutableNotificationContent()
+        content.title = "일정을 찾지 못했어요"
+        content.body = reason ?? "이 스크린샷에서 날짜와 할 일을 읽지 못했어요."
+        content.sound = .default
+        if let captureID {
+            content.userInfo = ["captureID": captureID.uuidString]
+        }
+
+        center.add(
+            UNNotificationRequest(
+                identifier: "\(identifierPrefix)empty-\(captureID?.uuidString ?? UUID().uuidString)",
+                content: content,
+                trigger: nil
+            )
+        )
+    }
 
     // MARK: - 확인 안 한 초안이 남았을 때 (메인 앱)
 

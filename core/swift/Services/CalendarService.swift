@@ -45,6 +45,35 @@ final class CalendarService {
         return identifier
     }
 
+    /// 이미 들어가 있는 일정을 고친 내용으로 맞춘다.
+    ///
+    /// **지우고 다시 넣지 않는다.** 그러면 식별자가 바뀌어 사용자가 캘린더 앱에서
+    /// 걸어 둔 알림이나 초대가 함께 날아간다.
+    ///
+    /// 사용자가 캘린더 앱에서 이미 지운 경우에는 새로 만들지 않고 그 사실을 알린다 —
+    /// 여기서 조용히 다시 만들면 지운 사람의 뜻을 되돌리는 것이 된다.
+    func updateEvent(identifier: String, with task: AssistantTask) async throws {
+        guard let dueDate = task.dueDate else {
+            throw CalendarServiceError.missingDate
+        }
+        guard try await requestAccessIfNeeded() else {
+            throw CalendarServiceError.accessDenied
+        }
+        guard let event = eventStore.event(withIdentifier: identifier) else {
+            throw CalendarServiceError.missingEvent
+        }
+
+        event.title = task.title
+        event.notes = task.notes
+        event.startDate = dueDate
+        event.isAllDay = !task.hasExplicitTime
+        event.endDate = task.hasExplicitTime
+            ? dueDate.addingTimeInterval(60 * 60)
+            : Calendar.current.date(byAdding: .day, value: 1, to: dueDate) ?? dueDate
+
+        try eventStore.save(event, span: .thisEvent)
+    }
+
     /// 할 일을 지울 때 캘린더에서도 거둔다.
     ///
     /// 실패해도 던지지 않는다. 이벤트를 사용자가 캘린더 앱에서 이미 지웠을 수 있고,
@@ -74,11 +103,14 @@ enum CalendarServiceError: LocalizedError {
     case accessDenied
     case missingCalendar
     case missingIdentifier
+    case missingEvent
 
     var errorDescription: String? {
         switch self {
         case .missingDate:
             return "날짜가 없어 캘린더에 추가할 수 없어요."
+        case .missingEvent:
+            return "캘린더에서 이 일정을 찾지 못했어요. 캘린더 앱에서 지운 것 같아요."
         case .accessDenied:
             return "캘린더 접근이 꺼져 있어요. 설정 > CaptureTask에서 접근을 허용해 주세요."
         case .missingCalendar:

@@ -7,7 +7,7 @@ struct CaptureTaskMacApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
-        // 메뉴바가 이 앱의 유일한 상시 진입점이다 (Dock 아이콘은 LSUIElement 로 껐다).
+        // 메뉴바는 이 앱의 상시 진입점이다.
         //
         // SF Symbol 대신 직접 그린 물방울을 쓴다. `drop.fill` 은 떨어지는 물방울이라
         // 꼬리가 있는데, 이 제품의 물방울은 **유리에 맺힌** 것이라 꼬리가 없다.
@@ -39,37 +39,54 @@ struct CaptureTaskMacApp: App {
 /// 창을 만들고 관리한다.
 ///
 /// SwiftUI 의 `Window`/`WindowGroup` 으로는 "떠 있고, 눌러도 다른 앱을 뒤로 보내지 않고,
-/// 배경이 투명한" 창을 만들 수 없다. 그래서 물방울과 배너는 AppKit 으로 직접 만든다.
+/// 배경이 투명한" 창을 만들 수 없다. 그래서 물방울은 AppKit 으로 직접 만든다.
+///
+/// **읽기는 여기가 아니라 `CaptureQueue` 가 들고 있다.** 이 델리게이트도 앱과 함께
+/// 사는 객체지만, 들어오는 길이 넷(물방울·Dock·파인더·파일 고르기)이라 한 곳으로
+/// 모아 두지 않으면 속도 제한과 알림이 길마다 달라진다.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private let store = TaskStore()
+    private lazy var queue = CaptureQueue(store: store)
+    private let reminderTaps = ReminderTapRouter()
     private let dropletMotion = DropletMotion()
     private var droplet: DropletPanel?
-    private var banner: NSPanel?
     private var listWindow: NSWindow?
-    private var bannerDismissTask: Task<Void, Never>?
 
     @Published private(set) var isDropletVisible = true
 
-    /// 파인더에서 "다른 앱으로 열기" 하거나 아이콘에 끌어다 놓았을 때.
+    /// 파인더에서 "다른 앱으로 열기" 하거나 **Dock 아이콘에 끌어다 놓았을 때.**
     ///
     /// 이 경로로 온 파일에는 샌드박스 확장이 함께 오므로 그대로 읽을 수 있다.
     /// 물방울에 떨어뜨린 것과 **똑같이** 처리한다 — 들어온 길이 달라도
     /// 그 다음은 하나여야 한다.
     func application(_ application: NSApplication, open urls: [URL]) {
-        Task { [store] in
-            for url in urls {
-                let scoped = url.startAccessingSecurityScopedResource()
-                defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-                guard let data = try? Data(contentsOf: url) else { continue }
-                await store.fileImage(data)
-            }
+        for url in urls {
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            // 바이트를 지금 복사한다. 이 함수가 끝나면 접근권이 사라진다.
+            guard let data = try? Data(contentsOf: url) else { continue }
+            queue.enqueue(imageData: data)
         }
     }
 
+    /// Dock 아이콘을 눌렀을 때. 창이 하나도 없으면 대시보드를 연다.
+    ///
+    /// Dock 에 두려고 `LSUIElement` 를 껐으므로(18장 §Dock), 아이콘을 눌렀는데
+    /// 아무 일도 안 일어나면 앱이 죽은 것으로 보인다.
+    func applicationShouldHandleReopen(
+        _ sender: NSApplication,
+        hasVisibleWindows: Bool
+    ) -> Bool {
+        if !hasVisibleWindows { openList() }
+        return true
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        reminderTaps.install()
         showDroplet()
-        observeStore()
+        observeNotificationTaps()
+        Task { await store.enableReminders() }
         reportOnDeviceAvailability()
         fileImageFromEnvironment()
         openListFromEnvironment()
@@ -77,9 +94,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     /// DEBUG 빌드에서 `CAPTURETASK_OPEN_LIST=1` 로 시작하면 대시보드를 바로 연다.
     ///
-    /// 이 앱은 `LSUIElement` 라 Dock 아이콘이 없고, 창을 여는 길은 메뉴바와 물방울
-    /// 클릭뿐이다. 둘 다 사람 손이 필요해서, 이게 없으면 화면을 눈으로 확인하는 일을
-    /// 자동화할 수 없다. iOS 의 `CAPTURETASK_TAB` · `CAPTURETASK_SHEET` 와 같은 갈고리다.
+    /// 창을 여는 길은 메뉴바·Dock·물방울 클릭뿐이고 셋 다 사람 손이 필요해서,
+    /// 이게 없으면 화면을 눈으로 확인하는 일을 자동화할 수 없다.
+    /// iOS 의 `CAPTURETASK_TAB` · `CAPTURETASK_SHEET` 와 같은 갈고리다.
     private func openListFromEnvironment() {
         #if DEBUG
         guard ProcessInfo.processInfo.environment["CAPTURETASK_OPEN_LIST"] == "1" else { return }
@@ -110,8 +127,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         do {
             let data = try Data(contentsOf: URL(fileURLWithPath: path))
             Task { [store] in
-                let filed = await store.fileImage(data)
-                let what = filed.isEmpty ? "확인 필요" : filed.map(\.summary).joined(separator: " / ")
+                let result = await store.intake(data)
+                let what = result.filed.isEmpty
+                    ? "확인 필요" : result.filed.map(\.summary).joined(separator: " / ")
                 log("filed=\(what) error=\(store.lastErrorMessage ?? "없음")")
             }
         } catch {
@@ -132,9 +150,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         let motion = dropletMotion
         let panel = DropletPanel {
             DropletView(
-                store: self.store,
                 motion: motion,
-                onOpenList: { [weak self] in self?.openList() }
+                onOpenList: { [weak self] in self?.openList() },
+                onReceive: { [weak self] data in self?.queue.enqueue(imageData: data) }
             )
         }
         // 옮길 창을 알려 준다. 창이 만들어진 뒤에야 알 수 있어서 여기서 꽂는다.
@@ -154,77 +172,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
 
-    // MARK: - 결과 배너
+    // MARK: - 알림을 눌렀을 때
 
-    /// 바로 넣었을 때와 확인이 필요할 때를 나눠 처리한다.
-    private func observeStore() {
+    /// 등록 알림이나 확인 요청 알림을 누르면 대시보드를 연다.
+    ///
+    /// **알림 없이 창을 먼저 여는 일은 하지 않는다.** 예전에는 날짜가 모호하면
+    /// 맥이 스스로 창을 띄웠는데, 사용자는 다른 일을 하는 중이었고 창이 튀어나온
+    /// 그 자리에 담긴 것이 보이지도 않아 등록이 취소된 것처럼 보였다.
+    private func observeNotificationTaps() {
         Task { [weak self] in
             guard let self else { return }
-            for await filed in store.$lastFiled.values {
-                guard let filed else { continue }
-                showBanner(for: filed)
-            }
-        }
-        Task { [weak self] in
-            guard let self else { return }
-            for await draft in store.$needsConfirmation.values {
-                guard draft != nil else { continue }
-                // 모호하면 창을 열어 사람이 보게 한다. 조용히 넘어가지 않는다.
+            for await requested in reminderTaps.$requestedCaptureReview.values where requested {
+                reminderTaps.requestedCaptureReview = false
                 openList()
             }
         }
-    }
-
-    private func showBanner(for filed: FiledCapture) {
-        bannerDismissTask?.cancel()
-        banner?.orderOut(nil)
-
-        let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 380, height: 96),
-            styleMask: [.nonactivatingPanel, .borderless],
-            backing: .buffered,
-            defer: false
-        )
-        panel.isFloatingPanel = true
-        panel.level = .floating
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = false
-        panel.contentView = NSHostingView(
-            rootView: FiledBanner(
-                filed: filed,
-                onUndo: { [weak self] in
-                    Task { await self?.store.undoLastFiled(); self?.hideBanner() }
-                },
-                onEdit: { [weak self] in
-                    self?.openList()
-                    self?.hideBanner()
-                },
-                onDismiss: { [weak self] in self?.hideBanner() }
-            )
-        )
-
-        // 물방울 바로 위에 띄운다. 눈이 이미 그쪽에 있다.
-        if let dropletFrame = droplet?.frame {
-            panel.setFrameOrigin(
-                NSPoint(x: dropletFrame.maxX - 380, y: dropletFrame.maxY + 12)
-            )
+        Task { [weak self] in
+            guard let self else { return }
+            for await taskID in reminderTaps.$requestedTaskID.values {
+                guard taskID != nil else { continue }
+                reminderTaps.requestedTaskID = nil
+                openList()
+            }
         }
-        panel.orderFrontRegardless()
-        banner = panel
-
-        bannerDismissTask = Task { [weak self] in
-            try? await Task.sleep(for: FiledBanner.lifetime)
-            guard !Task.isCancelled else { return }
-            self?.hideBanner()
-        }
-    }
-
-    private func hideBanner() {
-        bannerDismissTask?.cancel()
-        banner?.orderOut(nil)
-        banner = nil
     }
 
     // MARK: - 목록 창
@@ -247,9 +217,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         window.center()
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(
-            rootView: DashboardView(store: store, onPickFiles: { [weak self] in
-                self?.pickFiles()
-            })
+            rootView: DashboardView(
+                store: store,
+                queue: queue,
+                onPickFiles: { [weak self] in self?.pickFiles() }
+            )
         )
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -269,12 +241,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         NSApp.activate(ignoringOtherApps: true)
         guard dialog.runModal() == .OK else { return }
 
-        let urls = dialog.urls
-        Task { [store] in
-            for url in urls {
-                guard let data = try? Data(contentsOf: url) else { continue }
-                await store.fileImage(data)
-            }
+        for url in dialog.urls {
+            guard let data = try? Data(contentsOf: url) else { continue }
+            queue.enqueue(imageData: data)
         }
     }
 }

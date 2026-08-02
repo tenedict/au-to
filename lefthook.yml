@@ -14,12 +14,13 @@ pre-commit:
       skip:
         - run: '! xcrun --find swift-format >/dev/null 2>&1'
     - name: 린트
-      run: swiftlint lint --quiet --strict
+      # --strict 는 .swiftlint.yml 의 severity 구분을 지운다. 막을 것은 설정에 error 로 적는다.
+      run: swiftlint lint --quiet
       skip:
         - run: '! command -v swiftlint >/dev/null 2>&1'
     - name: 백엔드 테스트
-      run: cd backend && npm test
-      glob: "backend/**"
+      run: cd server && npm test
+      glob: "server/**"
       skip:
         - run: '! command -v node >/dev/null 2>&1'
 

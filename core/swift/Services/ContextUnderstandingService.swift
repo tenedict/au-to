@@ -112,9 +112,17 @@ struct RuleBasedContextUnderstandingService: ContextUnderstandingService {
         ]
     }
 
-    private func detectDate(
-        in text: String
-    ) -> (date: Date, hasExplicitTime: Bool, matchedText: String)? {
+    /// 문장에서 찾아낸 날짜 하나와 그 근거.
+    ///
+    /// 셋을 튜플로 돌려주면 부르는 쪽에서 순서를 기억해야 하고, 넷째가 붙는 순간
+    /// 조용히 자리가 밀린다. 이름을 붙여 두면 그런 일이 없다.
+    private struct DetectedDate {
+        let date: Date
+        let hasExplicitTime: Bool
+        let matchedText: String
+    }
+
+    private func detectDate(in text: String) -> DetectedDate? {
         guard let detector = try? NSDataDetector(
             types: NSTextCheckingResult.CheckingType.date.rawValue
         ) else {
@@ -129,7 +137,11 @@ struct RuleBasedContextUnderstandingService: ContextUnderstandingService {
         let matchedText = String(text[swiftRange])
         let timeMarkers = [":", "시", "am", "pm", "오전", "오후"]
         let lowered = matchedText.lowercased()
-        return (date, timeMarkers.contains { lowered.contains($0) }, matchedText)
+        return DetectedDate(
+            date: date,
+            hasExplicitTime: timeMarkers.contains { lowered.contains($0) },
+            matchedText: matchedText
+        )
     }
 }
 

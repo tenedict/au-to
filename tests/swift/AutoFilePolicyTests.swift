@@ -30,7 +30,9 @@ final class AutoFilePolicyTests: XCTestCase {
         let decision = AutoFilePolicy.decide(for: draft(due: nil, confidence: 1))
 
         XCTAssertFalse(decision.isAutomatic)
-        guard case .askFirst(let reason) = decision else { return XCTFail() }
+        guard case .askFirst(let reason) = decision else {
+            return XCTFail("날짜 없는 초안은 .askFirst 여야 하는데 \(decision) 였습니다")
+        }
         XCTAssertTrue(reason.contains("날짜"), reason)
     }
 

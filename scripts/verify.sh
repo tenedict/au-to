@@ -42,8 +42,22 @@ fi
 # ── 3. 린트 ────────────────────────────────────────────────
 step "SwiftLint"
 if command -v swiftlint >/dev/null 2>&1; then
-  if out=$(swiftlint lint --quiet --strict 2>&1); then ok "SwiftLint"
-  else bad "SwiftLint"; echo "$out" | head -20 | sed 's/^/    /'; fi
+  # --strict 를 붙이면 .swiftlint.yml 의 severity 구분이 사라진다 — 경고로 둔 것까지
+  # 전부 error 가 되어, 무엇이 진짜 막아야 할 것인지 설정만 보고는 알 수 없게 된다.
+  # 막을 것은 severity: error 로 설정에 적는다.
+  out=$(swiftlint lint --quiet 2>&1); rc=$?
+  warnings=$(echo "$out" | grep -c ' warning: ')
+  if [ $rc -eq 0 ]; then
+    if [ "$warnings" -gt 0 ]; then
+      printf '%s  ! SwiftLint 경고 %s건%s\n' "$YEL" "$warnings" "$OFF"
+      echo "$out" | grep ' warning: ' | head -5 | sed 's|.*/auto_/||' | sed 's/^/    /'
+    else
+      ok "SwiftLint"
+    fi
+  else
+    bad "SwiftLint"
+    echo "$out" | grep ' error: ' | head -20 | sed 's|.*/auto_/||' | sed 's/^/    /'
+  fi
 else
   skip "SwiftLint" "brew install swiftlint"
 fi

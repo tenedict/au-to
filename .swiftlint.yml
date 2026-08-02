@@ -50,11 +50,17 @@ opt_in_rules:
   - empty_count
   - force_unwrapping
   - first_where
-  - unused_import
   - redundant_nil_coalescing
   - explicit_init
 
-# force_unwrapping 은 테스트의 DateComponents 조립에서 의도적으로 쓴다
+# unused_import 는 `swiftlint analyze` 에서만 도는 규칙이다.
+# opt_in_rules 에 두면 lint 는 그냥 무시하면서 "여기 있어야 한다"고 경고만 남긴다.
+analyzer_rules:
+  - unused_import
+
+# force_unwrapping 은 테스트의 DateComponents 조립에서 의도적으로 쓴다.
+# 그래서 경고로 둔다 — `swiftlint lint --strict` 로 부르면 이 구분이 사라지므로
+# verify.sh 와 lefthook 은 --strict 없이 부르고, 여기 severity 가 막을 것을 정한다.
 force_unwrapping:
   severity: warning
 

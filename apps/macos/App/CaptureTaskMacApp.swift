@@ -8,20 +8,31 @@ struct CaptureTaskMacApp: App {
 
     var body: some Scene {
         // 메뉴바가 이 앱의 유일한 상시 진입점이다 (Dock 아이콘은 LSUIElement 로 껐다).
-        MenuBarExtra("CaptureTask", systemImage: "drop.fill") {
-            Button("할 일 열기") { delegate.openList() }
-                .keyboardShortcut("o")
-            Button("파일에서 고르기…") { delegate.pickFiles() }
-                .keyboardShortcut("i")
-            Divider()
-            Toggle("물방울 보이기", isOn: Binding(
-                get: { delegate.isDropletVisible },
-                set: { _ in delegate.toggleDroplet() }
-            ))
-            Divider()
-            Button("종료") { NSApp.terminate(nil) }
-                .keyboardShortcut("q")
+        //
+        // SF Symbol 대신 직접 그린 물방울을 쓴다. `drop.fill` 은 떨어지는 물방울이라
+        // 꼬리가 있는데, 이 제품의 물방울은 **유리에 맺힌** 것이라 꼬리가 없다.
+        // 떠 있는 물방울과 같은 윤곽(`Bead`)을 써서 같은 물건으로 보이게 한다.
+        MenuBarExtra {
+            menu
+        } label: {
+            Image(nsImage: MenuBarIcon.image)
         }
+    }
+
+    @ViewBuilder
+    private var menu: some View {
+        Button("할 일 열기") { delegate.openList() }
+            .keyboardShortcut("o")
+        Button("파일에서 고르기…") { delegate.pickFiles() }
+            .keyboardShortcut("i")
+        Divider()
+        Toggle("물방울 보이기", isOn: Binding(
+            get: { delegate.isDropletVisible },
+            set: { _ in delegate.toggleDroplet() }
+        ))
+        Divider()
+        Button("종료") { NSApp.terminate(nil) }
+            .keyboardShortcut("q")
     }
 }
 
@@ -32,6 +43,7 @@ struct CaptureTaskMacApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private let store = TaskStore()
+    private let dropletMotion = DropletMotion()
     private var droplet: DropletPanel?
     private var banner: NSPanel?
     private var listWindow: NSWindow?
@@ -117,9 +129,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     // MARK: - 물방울
 
     private func showDroplet() {
+        let motion = dropletMotion
         let panel = DropletPanel {
-            DropletView(store: self.store, onOpenList: { [weak self] in self?.openList() })
+            DropletView(
+                store: self.store,
+                motion: motion,
+                onOpenList: { [weak self] in self?.openList() }
+            )
         }
+        // 옮길 창을 알려 준다. 창이 만들어진 뒤에야 알 수 있어서 여기서 꽂는다.
+        motion.panel = panel
         panel.showDroplet()
         droplet = panel
         isDropletVisible = true

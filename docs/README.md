@@ -13,9 +13,9 @@
 
 | 폴더 | 무엇이 | 누가 |
 | --- | --- | --- |
-| [`product/`](product) | 00~08 — 무엇을 왜 만드나 | 제품·디자인·처음 온 사람 |
+| [`product/`](product) | 00~08, 24 — 무엇을 왜 만드나 | 제품·디자인·처음 온 사람 |
 | [`engineering/`](engineering) | 09~16, 19~21 — 어떻게 만들고 무엇으로 판정하나 | 코드를 고치는 사람 |
-| [`platform/`](platform) | 17~18 — 플랫폼별 조사와 기록 | 그 플랫폼을 만지는 사람 |
+| [`platform/`](platform) | 17~18, 22~23 — 플랫폼별 조사와 기록 | 그 플랫폼을 만지는 사람 |
 | [`plans/`](plans) | 스토리별 2~5분 태스크 계획 | 그 스토리를 하는 사람 |
 
 Windows·Android 가 붙으면 `platform/` 에 문서가 하나씩 늘어난다.
@@ -33,6 +33,9 @@ Windows·Android 가 붙으면 `platform/` 에 문서가 하나씩 늘어난다.
 | 코드를 고치려 한다 | [09-SPEC.md](engineering/09-SPEC.md) + [10-ARCHITECTURE-SPINE.md](engineering/10-ARCHITECTURE-SPINE.md) + [16-ENGINEERING-PLAYBOOK.md](engineering/16-ENGINEERING-PLAYBOOK.md) |
 | 파일이 어디 있는지 모르겠다 | [20-REPO-LAYOUT.md](engineering/20-REPO-LAYOUT.md) |
 | **플랫폼을 하나 더 붙인다** | [20-REPO-LAYOUT.md §4](engineering/20-REPO-LAYOUT.md) |
+| **위젯을 고치려 한다** | [22-WIDGETS.md](platform/22-WIDGETS.md) |
+| **온디바이스 모델을 붙인다** | [17-ONDEVICE-LLM-RESEARCH.md](platform/17-ONDEVICE-LLM-RESEARCH.md) → [23-ONDEVICE-LLM-STRATEGY.md](platform/23-ONDEVICE-LLM-STRATEGY.md) |
+| **수익화·B2B 를 판단한다** | [24-GROWTH-STRATEGY.md](product/24-GROWTH-STRATEGY.md) |
 | 화면을 고치려 한다 | [05-IA.md](product/05-IA.md) + [06-화면설계서.md](product/06-화면설계서.md) + [08-와이어프레임.md](product/08-와이어프레임.md) |
 | **색·글자·간격을 정해야 한다** | [디자인 언어 기획서](report/design-language.html) — 근거는 [디자인 연구](report/design-research.html) |
 | 다음에 뭘 할지 알고 싶다 | [14-SPRINT.md](engineering/14-SPRINT.md) + [11-EPICS-STORIES.md](engineering/11-EPICS-STORIES.md) |

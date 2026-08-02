@@ -7,6 +7,10 @@
 
 관련 — [ADR-10](../engineering/10-ARCHITECTURE-SPINE.md) · [`AnalysisEngine`](../../core/swift/Models/AnalysisEngine.swift)
 
+> **후속** — 무엇을 쓸지는 이 문서가 정했다. **고른 것을 어떻게 잘 쓸지**는
+> [23-ONDEVICE-LLM-STRATEGY](23-ONDEVICE-LLM-STRATEGY.md) 로 이어진다.
+> (`OnDeviceContextUnderstandingService` 는 그 사이 실제로 구현됐다. 아직 기본값이 아닐 뿐이다.)
+
 ---
 
 ## 0. 세 줄 요약

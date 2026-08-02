@@ -59,10 +59,10 @@ xcodebuild build -project Whenly.xcodeproj -scheme Whenly -sdk iphonesimulator \
 ## 구조
 
 ```
-apps/ios      App/ Views/ Resources/ Share/      화면은 여기서만 갈린다
+apps/ios      App/ Views/ Resources/ Share/ Widgets/  화면은 여기서만 갈린다
 apps/macos    App/ Views/ Windows/ Resources/ Share/
-core/swift    Models/ Services/ Store/ Shared/   두 앱과 두 확장이 전부 쓴다
-              Design/                            색·간격·치수 토큰 — 두 플랫폼이 같은 값을 쓴다
+core/swift    Models/ Services/ Store/ Shared/   두 앱과 세 확장이 전부 쓴다
+              Design/                            색·간격·치수·물방울 윤곽 — 모든 자리가 같은 값을 쓴다
 tests/swift   core/swift 의 계산·저장 테스트
 server        모든 플랫폼이 부르는 단 하나의 백엔드
 config/apple  entitlements · Secrets.xcconfig
@@ -256,7 +256,18 @@ git config core.hooksPath .githooks       # 한 번만. 훅이 형식을 검사�
 
 ## 현재 상태
 
-R0 실행 뼈대 + MVP 기능 + 접근성 + 디자인 언어 완성 · **iOS 테스트 150건 · 백엔드 테스트 46건 · 빌드 경고 0**
-공유 시트 → OCR → 분석 → 확인 → 할 일·캘린더·알림까지 이어진다.
-macOS 는 물방울로 받고 사이드바 대시보드(마감 묶음 + 캘린더)로 본다 — [18장](docs/platform/18-MACOS.md).
+R0 실행 뼈대 + MVP + 접근성 + 디자인 언어 + 자동 등록 + 편집 + 위젯 완성
+· **iOS 테스트 176건 · 백엔드 테스트 46건 · 빌드 경고 0**
+
+```
+공유 · 드롭 · Dock · 카메라 → 줄(CaptureQueue) → OCR → 분석 → 등록 → 알림
+                                                       ↘ 모호하면 확인 요청 알림
+```
+
+macOS 는 물방울·Dock 으로 받고 사이드바 대시보드로 본다 — [18장](docs/platform/18-MACOS.md).
+iOS 는 홈 화면 위젯(다음 일정)과 잠금화면 위젯(찍어서 담기)을 갖는다 — [22장](docs/platform/22-WIDGETS.md).
+무엇을 누르든 편집기 하나로 간다 (`TaskEdit`).
+
 다음: 실기기 서명·App Group 프로비저닝 · 실제 OpenAI 키 E2E · 중복 감지 정책
+· 온디바이스 모델 전환 ([17장](docs/platform/17-ONDEVICE-LLM-RESEARCH.md) · [23장](docs/platform/23-ONDEVICE-LLM-STRATEGY.md))
+· 수익화와 B2B ([24장](docs/product/24-GROWTH-STRATEGY.md))

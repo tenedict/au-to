@@ -60,6 +60,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         observeStore()
         reportOnDeviceAvailability()
         fileImageFromEnvironment()
+        openListFromEnvironment()
+    }
+
+    /// DEBUG 빌드에서 `CAPTURETASK_OPEN_LIST=1` 로 시작하면 대시보드를 바로 연다.
+    ///
+    /// 이 앱은 `LSUIElement` 라 Dock 아이콘이 없고, 창을 여는 길은 메뉴바와 물방울
+    /// 클릭뿐이다. 둘 다 사람 손이 필요해서, 이게 없으면 화면을 눈으로 확인하는 일을
+    /// 자동화할 수 없다. iOS 의 `CAPTURETASK_TAB` · `CAPTURETASK_SHEET` 와 같은 갈고리다.
+    private func openListFromEnvironment() {
+        #if DEBUG
+        guard ProcessInfo.processInfo.environment["CAPTURETASK_OPEN_LIST"] == "1" else { return }
+        openList()
+        #endif
     }
 
     /// 온디바이스 모델을 이 기기에서 쓸 수 있는지 로그로 남긴다.
@@ -205,16 +218,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 560),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            contentRect: NSRect(x: 0, y: 0, width: 940, height: 620),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         window.title = "CaptureTask"
+        window.titlebarAppearsTransparent = true
         window.center()
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(
-            rootView: MacTaskListView(store: store, onPickFiles: { [weak self] in
+            rootView: DashboardView(store: store, onPickFiles: { [weak self] in
                 self?.pickFiles()
             })
         )

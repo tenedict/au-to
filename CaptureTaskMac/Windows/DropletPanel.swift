@@ -13,8 +13,11 @@ import SwiftUI
 /// SwiftUI 의 `Window`/`WindowGroup` 로는 이 조합을 만들 수 없어서 AppKit 을 직접 쓴다.
 final class DropletPanel: NSPanel {
 
-    /// 물방울 지름. 커서로 겨냥하기 쉬우면서 화면을 가리지 않는 크기.
-    static let diameter: CGFloat = 96
+    /// 물방울 지름.
+    ///
+    /// 커서로 겨냥할 수 있으면서 화면을 가리지 않는 크기. 떠 있는 것은
+    /// 작을수록 좋지만, 너무 작으면 드롭 목표로 맞히기 어렵다.
+    static let diameter: CGFloat = 68
 
     init<Content: View>(@ViewBuilder content: () -> Content) {
         super.init(

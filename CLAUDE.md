@@ -57,6 +57,7 @@ xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTask -sdk iphones
 apps/ios      App/ Views/ Resources/ Share/      화면은 여기서만 갈린다
 apps/macos    App/ Views/ Windows/ Resources/ Share/
 core/swift    Models/ Services/ Store/ Shared/   두 앱과 두 확장이 전부 쓴다
+              Design/                            색·간격·치수 토큰 — 두 플랫폼이 같은 값을 쓴다
 tests/swift   core/swift 의 계산·저장 테스트
 server        모든 플랫폼이 부르는 단 하나의 백엔드
 config/apple  entitlements · Secrets.xcconfig
@@ -112,8 +113,14 @@ Share Extension → App Group inbox → 메인 앱이 꺼내서 처리
 12. **비활성 컨트롤에는 언제나 이유를 함께 보여준다.** 이유 없는 비활성은 고장으로 읽힌다
 13. **색만으로 정보를 전달하지 않는다.** 새 인터랙티브 요소엔 접근성 레이블을 붙인다
 14. **파생 값(마감 묶음·정렬·격자)을 저장하지 않는다.** 매번 계산한다
-15. 화면 파일은 500줄 이내
-16. `#if DEBUG` 코드는 릴리스 빌드에 새지 않는다
+15. **날짜 형식은 `DueDateText` 한 곳에서만 만든다.** 화면은 폭 등급(`tick`·`narrow`·`medium`·`full`)만 고른다.
+    화면이 직접 `.formatted(` 를 부르면 검사기 규칙 12가 잡는다 — 실제로 `2026년 7월 31일 14:00` 이
+    64pt 노출 영역에서 두 줄이 되어 카드가 잘렸다
+16. **색은 `Palette` 의 둘뿐이다** — `water`(조작 가능·선택·오늘)와 `past`(마감 경과). 나머지는 무채색이다.
+    **마감 묶음마다 색을 주지 않는다** — 순서가 이미 급함을 말하므로 색은 규칙을 되풀이할 뿐이다.
+    치수는 `CardMetrics`, 간격은 `Space` 에서 가져온다. 화면에 숫자를 직접 적지 않는다
+17. 화면 파일은 500줄 이내
+18. `#if DEBUG` 코드는 릴리스 빌드에 새지 않는다
 
 ---
 
@@ -229,7 +236,7 @@ git config core.hooksPath .githooks       # 한 번만. 훅이 형식을 검사�
 
 ## 현재 상태
 
-R0 실행 뼈대 + MVP 기능 + 접근성 완성 · **iOS 테스트 130건 · 백엔드 테스트 46건 · 빌드 경고 0**
+R0 실행 뼈대 + MVP 기능 + 접근성 + 디자인 언어 완성 · **iOS 테스트 150건 · 백엔드 테스트 46건 · 빌드 경고 0**
 공유 시트 → OCR → 분석 → 확인 → 할 일·캘린더·알림까지 이어진다.
 macOS 는 물방울로 받고 사이드바 대시보드(마감 묶음 + 캘린더)로 본다 — [18장](docs/platform/18-MACOS.md).
 다음: 실기기 서명·App Group 프로비저닝 · 실제 OpenAI 키 E2E · 중복 감지 정책

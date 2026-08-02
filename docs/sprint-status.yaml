@@ -7,7 +7,7 @@
 project: capturetask
 platform: ios
 scale_level: 2 # 단일 플랫폼 · 단일 팀 · 작은 백엔드 하나
-updated: 2026-08-01
+updated: 2026-08-03
 
 release:
   current: R0
@@ -34,12 +34,15 @@ deployment:
 
 verification:
   command: ./scripts/verify.sh
-  ios_tests_total: 115
-  ios_tests_passed: 115
+  ios_tests_total: 150
+  ios_tests_passed: 150
   backend_tests_total: 46
   backend_tests_passed: 46
-  project_rules: 12
+  project_rules: 13
+  doc_links: 167
   build_warnings: 0
+  lint_warnings_production: 0
+  lint_warnings_tests: 14 # 전부 force_unwrapping. 테스트에서는 실패가 곧 진단이라 허용
   simulator_checked:
     [
       due_stack,
@@ -48,7 +51,9 @@ verification:
       manual_text,
       accessibility_text_size,
       increase_contrast,
+      due_date_single_line,
     ]
+  macos_checked: [dashboard_sidebar, summary_tile, month_calendar, droplet]
   not_verified:
     - id: M-1
       what: 공유 시트로 담기 → 앱 도착
@@ -70,6 +75,18 @@ verification:
       why: 1시간을 기다려야 한다
 
 current_sprint:
+  id: sprint-3
+  name: 디자인 언어
+  goal: Apple 네 앱을 분석해 우리 규격을 정하고, 두 플랫폼에 같은 규격을 적용한다
+  status: completed
+  completed_at: 2026-08-03
+  tests_added: 20 # 130 → 150
+  research: docs/report/design-research.html
+  spec: docs/report/design-language.html
+  note: 카드 잘림의 원인은 배율이 아니라 날짜 형식이었다. "2026년 7월 31일 14:00" 이
+    64pt 노출 영역에서 두 줄이 됐다. 폭 등급별 표기와 노출 계약을 코드에 고정했다.
+
+previous_sprint:
   id: sprint-2
   name: 접근성 마감
   goal: R2 게이트의 접근성 차단 3건을 없앤다
@@ -78,7 +95,7 @@ current_sprint:
   note: 배율 적용만으로는 부족했다. 테스트 4건이 초록인 채로 화면은 잘려 있었고,
     접근성 크기부터는 겹침 자체를 포기하고 목록으로 바꿨다.
 
-previous_sprint:
+first_sprint:
   id: sprint-1
   name: 하네스 이식과 MVP 완성
   goal: 검증 하네스를 세우고, 그 하네스로 죽어 있던 경로를 찾아 고친다
@@ -142,13 +159,51 @@ epics:
     done: 7
     status: in_progress
     note: 물방울 · 바로 넣기와 되돌리기 · 다른 앱으로 열기까지 동작. 공유 확장은 서명 필요
+  - id: E11
+    name: 디자인 언어
+    stories: 5
+    done: 5
+    status: completed
+    note: 색·글자·간격·날짜 표기·부품 규격을 정하고 iOS·macOS 에 같은 규격을 적용
 
 progress:
-  stories_total: 87
-  stories_done: 78
+  stories_total: 92
+  stories_done: 83
   percent: 90
 
 completed_stories:
+  - id: S-11.1
+    name: Apple 네 앱 디자인 연구 (지갑 · 미리 알림 · 캘린더 · 일기)
+    doc: docs/report/design-research.html
+    completed_at: 2026-08-02
+    note: 일기 앱은 사용자의 사적인 기록이 담겨 있어 캡처하지 않고 즉시 지웠다.
+      무엇을 못 봤는지는 보고서 §2.2 에 그대로 적었다
+  - id: S-11.2
+    name: 디자인 언어 기획서 — 색 · 글자 · 간격 · 부품 · 날짜 표기
+    doc: docs/report/design-language.html
+    completed_at: 2026-08-02
+    note: 색을 여섯에서 둘로 줄였다. 마감 묶음은 순서가 이미 급함을 말하고 있어
+      색이 규칙을 되풀이할 뿐이었다
+  - id: S-11.3
+    name: 날짜 표기를 폭 등급으로 나누고 한 곳에서 만든다
+    completed_at: 2026-08-03
+    tests_added: 14
+    files: [core/swift/Models/DueDateText.swift]
+    note: 카드 잘림의 진짜 원인. 화면 13곳이 각자 형식을 만들고 있었다.
+      규칙 12 로 화면에서 .formatted( 를 부르면 검사기가 잡는다
+  - id: S-11.4
+    name: 노출 계약을 코드에 고정 (CardMetrics)
+    completed_at: 2026-08-03
+    tests_added: 3
+    files: [core/swift/Design/CardMetrics.swift]
+    note: 여백을 늘리거나 줄을 더하면 화면에서 잘린 것을 눈으로 보기 전에 테스트가 먼저 깨진다
+  - id: S-11.5
+    name: 팔레트·간격 토큰을 두 플랫폼에 적용
+    completed_at: 2026-08-03
+    tests_added: 3
+    files:
+      [core/swift/Design/Palette.swift, core/swift/Design/Space.swift]
+    note: 명암비는 계산해서 확인했다. 본문에 쓰는 세 잉크와 두 색이 라이트·다크 모두 AA 를 넘는다
   - id: S-8.1
     name: verify.sh — 사람·AI·훅·CI 공용 검증
     completed_at: 2026-08-01

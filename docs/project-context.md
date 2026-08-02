@@ -49,7 +49,7 @@
 | 저장 | Application Support / JSON (원자적 쓰기) + App Group 파일 상자 |
 | 백엔드 | Node 22 · `node:http` · 외부 패키지 0 |
 | 프로젝트 정의 | XcodeGen (`project.yml`) — `.xcodeproj` 는 **생성물, 미추적** |
-| 테스트 | XCTest 130건 · `node:test` 46건 |
+| 테스트 | XCTest 150건 · `node:test` 46건 |
 | 번들 ID | `com.example.capturetask` (D-1 미확정) |
 | App Group | `group.com.example.capturetask` |
 | 기본 언어 | 한국어 |
@@ -99,15 +99,21 @@ core/swift/       두 앱과 두 확장이 전부 쓴다
   Models/         순수 값 · 순수 함수      ← 아무것도 import 하지 않는다
     AssistantTask · TaskDraft · Confidence
     DueGrouping      마감 묶음 분류·정렬
+    DueDateText      날짜 표기 — 폭 등급별 문자열을 만드는 유일한 곳
     ReminderSchedule 알림 시각·식별자
     MonthGrid        월 격자·날짜별 묶기
+    TaskScope        사이드바 묶음·개수·요약
     WalletStackLayout 지갑 카드 배치
+  Design/         디자인 토큰                ← 두 플랫폼이 같은 값을 쓴다
+    Palette          색 둘 + 무채색 · 명암비 계산 근거를 주석에 둔다
+    Space            간격 4~40 · 최소 터치 크기
+    CardMetrics      카드 치수와 노출 계약
   Services/       플랫폼·네트워크 어댑터
   Shared/         앱 ↔ Extension 공유       ← Extension 타깃에도 들어간다
   Store/          상태·영속화·유스케이스 조율
 apps/ios/         App/ · Views/ SwiftUI 7개 · Resources/ · Share/ 담기 전용
 apps/macos/       App/ · Views/ · Windows/ · Resources/ · Share/
-tests/swift/      130건
+tests/swift/      150건
 server/           src 6개 · test 4개 · 46건
 config/apple/     entitlements 4개 · Secrets.xcconfig
 scripts/          verify · 규칙 검사 · 문서 링크 검사 · 시뮬레이터 선택
@@ -152,6 +158,8 @@ Model 은 아무도 모른다.
 - **배포된 백엔드** (Cloud Run 서울) · 공유 비밀 인증 · IP/일일 요청 한도
 - 설정에서 분석 엔진 고르기 (백엔드 / 규칙 기반 / 온디바이스는 준비 중)
 - 접근성 — 큰 글자에서 목록으로 전환 · 모션 줄이기 · 대비 높이기 · 알림 탭 라우팅
+- 디자인 언어 — 색 둘 · 폭 등급별 날짜 표기 · 노출 계약 · 두 플랫폼 공용 토큰
+  ([연구](report/design-research.html) · [규격](report/design-language.html))
 
 ## 지금 안 되는 것
 
@@ -171,12 +179,12 @@ Model 은 아무도 모른다.
 2. **D-1 결정** — 제품명 · Bundle ID · App Group 확정
 3. **S-1.3** — 실기기 공유 E2E
 
-접근성 4건(S-9.1~9.4)은 2026-08-01 에 끝냈다.
+접근성 4건(S-9.1~9.4)은 2026-08-01 에, 디자인 언어 5건(S-11.1~11.5)은 2026-08-03 에 끝냈다.
 
 ---
 
 ## 상태 숫자
 
-iOS 테스트 130 · 백엔드 테스트 46 · 프로젝트 규칙 12 · 문서 링크 143 · 빌드 경고 0 · 스토리 78/87
+iOS 테스트 150 · 백엔드 테스트 46 · 프로젝트 규칙 13 · 문서 링크 167 · 빌드 경고 0 · 스토리 83/92
 
 > 숫자의 원본은 [sprint-status.yaml](sprint-status.yaml) 이다.

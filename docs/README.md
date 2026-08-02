@@ -9,12 +9,12 @@
 
 ## 폴더 구성
 
-번호는 읽는 순서다 (00 → 19). 폴더는 **누가 읽는가**로 나눈다.
+번호는 읽는 순서다 (00 → 21). 폴더는 **누가 읽는가**로 나눈다.
 
 | 폴더 | 무엇이 | 누가 |
 | --- | --- | --- |
 | [`product/`](product) | 00~08 — 무엇을 왜 만드나 | 제품·디자인·처음 온 사람 |
-| [`engineering/`](engineering) | 09~16, 19 — 어떻게 만들고 무엇으로 판정하나 | 코드를 고치는 사람 |
+| [`engineering/`](engineering) | 09~16, 19~21 — 어떻게 만들고 무엇으로 판정하나 | 코드를 고치는 사람 |
 | [`platform/`](platform) | 17~18 — 플랫폼별 조사와 기록 | 그 플랫폼을 만지는 사람 |
 | [`plans/`](plans) | 스토리별 2~5분 태스크 계획 | 그 스토리를 하는 사람 |
 
@@ -130,6 +130,7 @@ BMAD 가 **무엇을 만들지**를 정한다면, Superpowers 는 **어떻게 �
 | 18 | [macOS 앱](platform/18-MACOS.md) | 물방울 · 바로 넣기와 되돌리기 · 샌드박스 · 앱 아이콘 |
 | 19 | [분석 품질 평가](engineering/19-EVAL.md) | 평가셋 · 첫 측정 · confidence 정정 |
 | 20 | [저장소 구조](engineering/20-REPO-LAYOUT.md) | 무엇이 어디에 · **플랫폼이 하나 더 붙을 때** |
+| 21 | [API 명세서](engineering/21-API.md) | **엔드포인트 · 인증 · 요청 한도 · 오류 · 스키마** |
 | — | [sprint-status.yaml](sprint-status.yaml) | **기계가 읽는 스프린트 상태 (숫자의 원본)** |
 | — | [plans/](plans/) | 스토리별 2~5분 태스크 계획 |
 | — | [INTEGRATED-DEVELOPMENT-PLAN.md](INTEGRATED-DEVELOPMENT-PLAN.md) | HTML/PDF 생성의 기준 원문 |

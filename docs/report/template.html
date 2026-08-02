@@ -3,12 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CaptureTask — 개발 보고서</title>
+<title>CaptureTask 개발 보고서</title>
 <style>
-  /* SF Pro. 한글은 SF Pro 가 덮지 않으므로 Apple SD Gothic Neo 로 이어 받는다. */
+  /* ─────────────────────────────────────────────────────────────
+     CaptureTask 개발 보고서
+     서체 SF Pro (한글은 SF Pro 가 덮지 않으므로 Apple SD Gothic Neo 로 이어 받는다)
+     색   흑백 전용 — 강조는 색이 아니라 굵기·괘선·여백으로만 한다
+     인쇄 A4 세로. 어떤 요소도 잘리지 않는다
+     ───────────────────────────────────────────────────────────── */
   :root{
-    --ink:#000; --body:#1c1c1e; --sub:#48484a; --dim:#8e8e93; --faint:#c7c7cc;
-    --line:#d6d6da; --hair:#e8e8ec; --bg:#fff; --panel:#f6f6f7; --code:#f2f2f4;
+    --ink:#000; --body:#1a1a1c; --sub:#4a4a4e; --dim:#7c7c82;
+    --line:#c9c9ce; --hair:#e4e4e8; --bg:#fff; --panel:#f5f5f6; --code:#f1f1f3;
     --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",
            "Apple SD Gothic Neo","Helvetica Neue",Arial,sans-serif;
@@ -17,797 +22,1419 @@
   html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   body{
     margin:0;background:var(--bg);color:var(--body);font-family:var(--sans);
-    font-size:16px;line-height:1.72;letter-spacing:-0.005em;
-    /* 흑백 보고서 — 강조는 색이 아니라 굵기·괘선·여백으로만 한다 */
+    font-size:15.5px;line-height:1.7;letter-spacing:-0.004em;
+    word-break:keep-all;             /* 한국어는 어절 단위로 줄바꿈 */
+    overflow-wrap:break-word;
   }
-  .wrap{max-width:860px;margin:0 auto;padding:0 28px 140px}
+  .wrap{max-width:900px;margin:0 auto;padding:0 32px 120px}
 
-  /* ── 표지 ─────────────────────────────────── */
-  .cover{padding:120px 0 64px;border-bottom:1px solid var(--ink)}
-  .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:590}
-  .cover h1{font-size:64px;line-height:1.02;letter-spacing:-0.035em;font-weight:700;margin:22px 0 14px;color:var(--ink)}
-  .cover .tag{font-size:20px;color:var(--sub);letter-spacing:-0.01em;margin:0 0 40px;font-weight:400}
-  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:22px 18px;margin-top:44px}
-  .meta div{border-top:1px solid var(--line);padding-top:10px}
-  .meta dt{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:590}
-  .meta dd{margin:4px 0 0;font-size:22px;font-weight:600;letter-spacing:-0.02em;color:var(--ink);
-           font-variant-numeric:tabular-nums}
-  .meta dd small{font-size:13px;font-weight:400;color:var(--sub);letter-spacing:0}
+  /* ── 표지 ───────────────────────────────────────── */
+  .cover{padding:96px 0 40px}
+  .cover .org{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
+              color:var(--dim);font-weight:600}
+  .cover h1{font-size:52px;line-height:1.06;letter-spacing:-0.03em;font-weight:700;
+            margin:26px 0 10px;color:var(--ink)}
+  .cover .sub{font-size:19px;color:var(--sub);letter-spacing:-0.012em;margin:0;
+              font-weight:400;max-width:60ch}
+  .docinfo{margin:56px 0 0;border-top:2px solid var(--ink);border-bottom:1px solid var(--ink)}
+  .docinfo table{width:100%;border-collapse:collapse;font-size:14px}
+  .docinfo th{width:132px;text-align:left;font-weight:600;color:var(--sub);
+              padding:10px 16px 10px 0;border-bottom:1px solid var(--hair);
+              vertical-align:top;white-space:nowrap}
+  .docinfo td{padding:10px 0;border-bottom:1px solid var(--hair);color:var(--ink)}
+  .docinfo tr:last-child th,.docinfo tr:last-child td{border-bottom:0}
 
-  /* ── 목차 ─────────────────────────────────── */
-  nav.toc{margin:52px 0 0;padding:26px 0 30px;border-bottom:1px solid var(--hair)}
-  nav.toc h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 18px;font-weight:590}
-  nav.toc ol{list-style:none;margin:0;padding:0;columns:2;column-gap:44px}
-  nav.toc li{break-inside:avoid;margin:0 0 7px;font-size:14.5px}
-  nav.toc a{color:var(--body);text-decoration:none;display:flex;gap:12px;align-items:baseline}
-  nav.toc a:hover{color:var(--ink)}
-  nav.toc .n{color:var(--dim);font-variant-numeric:tabular-nums;min-width:24px;font-size:12.5px}
+  /* ── 목차 ───────────────────────────────────────── */
+  nav.toc{margin:64px 0 0}
+  nav.toc h2{font-size:22px;font-weight:680;letter-spacing:-0.02em;color:var(--ink);
+             margin:0 0 18px;padding-bottom:10px;border-bottom:2px solid var(--ink)}
+  nav.toc ol{list-style:none;margin:0;padding:0}
+  nav.toc li{margin:0;font-size:14.5px;border-bottom:1px solid var(--hair)}
+  nav.toc a{color:var(--body);text-decoration:none;display:flex;gap:14px;
+            align-items:baseline;padding:8px 0}
   nav.toc a:hover .t{text-decoration:underline;text-underline-offset:3px}
+  nav.toc .n{color:var(--dim);font-variant-numeric:tabular-nums;
+             min-width:46px;font-size:13px;font-weight:600}
+  nav.toc .t{flex:1}
+  nav.toc .sub-item{font-size:13.5px}
+  nav.toc .sub-item .n{padding-left:16px}
+  nav.toc .sub-item a{color:var(--sub);padding:6px 0}
 
-  /* ── 섹션 ─────────────────────────────────── */
-  section{padding-top:76px}
-  section > h2{
-    font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
-    font-weight:590;margin:0 0 10px;
-  }
-  section > h3.title{
-    font-size:34px;line-height:1.18;letter-spacing:-0.028em;font-weight:700;
-    color:var(--ink);margin:0 0 8px;
-  }
-  .lede{font-size:18.5px;line-height:1.62;color:var(--sub);letter-spacing:-0.012em;margin:0 0 30px;max-width:62ch}
-  h4{font-size:20px;font-weight:640;letter-spacing:-0.02em;color:var(--ink);margin:44px 0 12px}
-  h5{font-size:15px;font-weight:640;letter-spacing:-0.01em;color:var(--ink);margin:30px 0 8px}
-  p{margin:0 0 16px;max-width:72ch}
-  ul,ol{margin:0 0 18px;padding-left:22px;max-width:72ch}
-  li{margin:0 0 6px}
-  strong{font-weight:640;color:var(--ink)}
-  em{font-style:normal;color:var(--sub)}
+  /* ── 섹션 ───────────────────────────────────────── */
+  section{padding-top:60px}
+  section > .num{font-size:12px;letter-spacing:.16em;color:var(--dim);
+                 font-weight:640;margin:0 0 6px}
+  section > h2{font-size:29px;line-height:1.2;letter-spacing:-0.026em;font-weight:700;
+               color:var(--ink);margin:0 0 18px;padding-bottom:12px;
+               border-bottom:2px solid var(--ink)}
+  h3{font-size:19px;font-weight:660;letter-spacing:-0.018em;color:var(--ink);
+     margin:36px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  h4{font-size:15.5px;font-weight:660;letter-spacing:-0.01em;color:var(--ink);
+     margin:24px 0 8px}
+  p{margin:0 0 14px;max-width:76ch}
+  ul,ol{margin:0 0 16px;padding-left:22px;max-width:76ch}
+  li{margin:0 0 5px}
+  strong{font-weight:660;color:var(--ink)}
   a{color:var(--ink)}
-  code{font-family:var(--mono);font-size:.86em;background:var(--code);
-       padding:.12em .38em;border-radius:4px;letter-spacing:0}
+  code{font-family:var(--mono);font-size:.87em;background:var(--code);
+       padding:.1em .36em;border-radius:3px;letter-spacing:0;overflow-wrap:anywhere}
 
-  /* ── 표 ───────────────────────────────────── */
-  .tbl{width:100%;overflow-x:auto;margin:0 0 24px}
-  table{border-collapse:collapse;width:100%;font-size:14.5px;line-height:1.55}
-  th{text-align:left;font-weight:590;color:var(--dim);font-size:11.5px;letter-spacing:.08em;
-     text-transform:uppercase;padding:0 14px 9px 0;border-bottom:1px solid var(--ink);white-space:nowrap}
-  td{padding:11px 14px 11px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+  /* ── 표 ─────────────────────────────────────────── */
+  .tbl{width:100%;margin:0 0 20px;overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.55;
+        table-layout:auto}
+  caption{caption-side:top;text-align:left;font-size:12.5px;font-weight:640;
+          color:var(--dim);padding:0 0 7px}
+  th{text-align:left;font-weight:640;color:var(--ink);font-size:12px;
+     letter-spacing:.02em;padding:0 12px 8px 0;border-bottom:1.5px solid var(--ink)}
+  td{padding:9px 12px 9px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+  th:last-child,td:last-child{padding-right:0}
   tr:last-child td{border-bottom:1px solid var(--line)}
-  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:0}
-  td:first-child{color:var(--ink);font-weight:520}
-  .tight td{padding-top:8px;padding-bottom:8px}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.k{font-weight:560;color:var(--ink)}
 
-  /* ── 상태 표식 (색 대신 글자) ───────────────── */
-  .st{font-size:11px;font-weight:640;letter-spacing:.04em;padding:2px 7px;border-radius:3px;
-      white-space:nowrap;border:1px solid var(--line);color:var(--sub);background:var(--panel)}
+  /* ── 상태 표식 (색 대신 글자와 테두리) ───────────── */
+  .st{font-size:10.5px;font-weight:660;letter-spacing:.02em;padding:1px 6px;
+      border-radius:2px;white-space:nowrap;border:1px solid var(--line);
+      color:var(--sub);background:var(--panel);display:inline-block}
   .st.on{background:var(--ink);color:#fff;border-color:var(--ink)}
   .st.mid{background:#fff;color:var(--ink);border-color:var(--ink)}
   .st.off{background:#fff;color:var(--dim);border-style:dashed}
 
-  /* ── 인용·주의 ────────────────────────────── */
-  blockquote{margin:24px 0;padding:2px 0 2px 20px;border-left:2px solid var(--ink);
-             color:var(--ink);font-size:17px;line-height:1.6;letter-spacing:-0.012em;max-width:66ch}
+  /* ── 인용·주석 ──────────────────────────────────── */
+  blockquote{margin:20px 0;padding:2px 0 2px 18px;border-left:3px solid var(--ink);
+             color:var(--ink);font-size:15.5px;line-height:1.62;max-width:70ch}
   blockquote p{margin:0}
-  .note{margin:24px 0;padding:18px 20px;background:var(--panel);border:1px solid var(--hair);
-        border-radius:8px;font-size:14.5px;line-height:1.68}
+  .note{margin:20px 0;padding:16px 18px;background:var(--panel);
+        border:1px solid var(--line);border-radius:4px;font-size:13.5px;line-height:1.66}
+  .note p{max-width:none}
   .note p:last-child{margin-bottom:0}
-  .note .h{font-weight:640;color:var(--ink);display:block;margin-bottom:6px;font-size:13px;
-           letter-spacing:.04em;text-transform:uppercase}
+  .note .h{font-weight:660;color:var(--ink);display:block;margin-bottom:5px;
+           font-size:12px;letter-spacing:.06em}
 
-  /* ── 코드 블록 ────────────────────────────── */
-  pre{font-family:var(--mono);font-size:12.5px;line-height:1.62;background:var(--code);
-      border:1px solid var(--hair);border-radius:8px;padding:18px 20px;overflow-x:auto;margin:0 0 24px;
-      color:var(--body);letter-spacing:0}
+  /* ── 코드 · 도식 ────────────────────────────────── */
+  pre{font-family:var(--mono);font-size:12px;line-height:1.6;background:var(--code);
+      border:1px solid var(--hair);border-radius:4px;padding:14px 16px;margin:0 0 20px;
+      color:var(--body);letter-spacing:0;overflow-x:auto;white-space:pre}
 
-  /* ── 그림 ─────────────────────────────────── */
-  figure{margin:32px 0}
-  figure img{max-width:100%;display:block;border:1px solid var(--line);border-radius:10px;background:#fff}
-  figcaption{margin-top:11px;font-size:13px;line-height:1.6;color:var(--dim);letter-spacing:-0.003em}
-  figcaption b{color:var(--sub);font-weight:590}
-  .shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:22px;margin:32px 0}
+  /* ── 그림 ───────────────────────────────────────── */
+  figure{margin:26px 0}
+  figure img{max-width:100%;height:auto;display:block;border:1px solid var(--line);
+             background:#fff}
+  figcaption{margin-top:9px;font-size:12.5px;line-height:1.6;color:var(--sub);max-width:80ch}
+  figcaption b{color:var(--ink);font-weight:640}
+  .shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+         gap:20px;margin:26px 0}
   .shots figure{margin:0}
-  .shots img{border-radius:14px}
-  .pair{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:32px 0}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:26px 0}
   .pair figure{margin:0}
-  @media (max-width:640px){.pair{grid-template-columns:1fr}nav.toc ol{columns:1}}
+  .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:26px 0}
+  .trio figure{margin:0}
+  @media (max-width:660px){.pair,.trio{grid-template-columns:1fr}}
 
-  /* ── 판정 상자 ────────────────────────────── */
-  .verdict{border:1.5px solid var(--ink);border-radius:10px;padding:22px 24px;margin:30px 0}
-  .verdict .k{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:590}
-  .verdict .v{font-size:23px;font-weight:680;letter-spacing:-0.022em;color:var(--ink);margin:6px 0 10px;line-height:1.3}
-  .verdict p{margin:0;font-size:15px;color:var(--sub);line-height:1.66}
+  /* ── 판정 상자 ──────────────────────────────────── */
+  .verdict{border:2px solid var(--ink);padding:18px 20px;margin:24px 0}
+  .verdict .k{font-size:11px;letter-spacing:.14em;color:var(--dim);font-weight:660}
+  .verdict .v{font-size:20px;font-weight:700;letter-spacing:-0.02em;color:var(--ink);
+              margin:5px 0 9px;line-height:1.3}
+  .verdict p{margin:0;font-size:14px;color:var(--sub);line-height:1.65;max-width:none}
 
-  hr{border:0;border-top:1px solid var(--hair);margin:52px 0}
-  .foot{margin-top:96px;padding-top:26px;border-top:1px solid var(--ink);font-size:13px;color:var(--dim)}
+  .foot{margin-top:80px;padding-top:20px;border-top:2px solid var(--ink);
+        font-size:12.5px;color:var(--dim)}
 
+  /* ── 인쇄 (A4) ──────────────────────────────────────────────
+     원칙 — 어떤 요소도 잘리지 않는다.
+       · pre 는 인쇄에서 줄바꿈한다 (종이에는 가로 스크롤이 없다)
+       · 표·그림·판정 상자는 페이지를 가로지르지 않는다
+       · 제목만 남고 내용이 다음 장으로 넘어가지 않는다
+     ─────────────────────────────────────────────────────────── */
+  @page{size:A4 portrait;margin:16mm 15mm 18mm}
   @media print{
-    body{font-size:11pt}
+    html,body{background:#fff}
+    body{font-size:9.6pt;line-height:1.58;letter-spacing:0}
     .wrap{max-width:none;padding:0}
-    section{padding-top:34px;break-inside:auto}
-    section > h3.title{break-after:avoid}
-    figure,table,.verdict,.note{break-inside:avoid}
-    nav.toc{break-after:page}
-    .cover{padding-top:40px}
-    .cover h1{font-size:40pt}
+    a{text-decoration:none;color:#000}
+
+    .cover{padding:0 0 20pt;break-after:page}
+    .cover h1{font-size:30pt}
+    .cover .sub{font-size:12pt}
+    .docinfo table{font-size:9pt}
+    nav.toc{margin:0;break-after:page}
+    nav.toc h2{font-size:16pt}
+    nav.toc li{font-size:9.2pt}
+
+    section{padding-top:0;margin-top:16pt;break-before:auto}
+    section > h2{font-size:15pt;break-after:avoid;margin-bottom:10pt}
+    section > .num{margin-bottom:3pt}
+    h3{font-size:11.5pt;break-after:avoid;margin:15pt 0 7pt}
+    h4{font-size:10pt;break-after:avoid;margin:11pt 0 5pt}
+    p,li{orphans:3;widows:3}
+
+    /* 종이에는 가로 스크롤이 없다 — 접어서 전부 보이게 한다 */
+    pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:7.4pt;line-height:1.45;
+        padding:8pt 9pt;break-inside:avoid}
+    .tbl{overflow-x:visible}
+    table{font-size:8.4pt;width:100%}
+    td,th{padding:5pt 7pt 5pt 0;overflow-wrap:anywhere}
+
+    figure,table,.verdict,.note,blockquote{break-inside:avoid}
+    figure img{max-height:145mm;width:auto;max-width:100%;object-fit:contain}
+    .shots{grid-template-columns:repeat(4,1fr);gap:5mm}
+    .shots figure img{max-height:105mm}
+    .pair,.trio{gap:5mm}
+    figcaption{font-size:8pt}
+    .st{font-size:7.4pt}
+    .foot{break-inside:avoid}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
 
+<!-- ══════════════════════ 표지 ══════════════════════ -->
 <header class="cover">
-  <div class="eyebrow">개발 보고서 · 2026-08-02</div>
-  <h1>CaptureTask</h1>
-  <p class="tag">스크린샷 한 장을 공유하면 할 일이 되고, 마감이 다가오면 알려 주는 iOS · macOS 개인 비서 앱</p>
-  <dl class="meta">
-    <div><dt>릴리스 단계</dt><dd>R0 <small>PASS</small></dd></div>
-    <div><dt>iOS 테스트</dt><dd>124 <small>/ 124</small></dd></div>
-    <div><dt>백엔드 테스트</dt><dd>46 <small>/ 46</small></dd></div>
-    <div><dt>프로젝트 규칙</dt><dd>12 <small>건</small></dd></div>
-    <div><dt>수용 기준</dt><dd>78 <small>건</small></dd></div>
-    <div><dt>빌드 경고</dt><dd>0</dd></div>
-  </dl>
+  <div class="org">CaptureTask</div>
+  <h1>개발 보고서</h1>
+  <p class="sub">스크린샷 한 장을 공유하면 할 일이 되고, 마감이 다가오면 알려 주는
+     iOS · macOS 개인 비서 애플리케이션</p>
+
+  <div class="docinfo">
+    <table>
+      <tr><th>문서명</th><td>CaptureTask 개발 보고서</td></tr>
+      <tr><th>버전</th><td>1.0</td></tr>
+      <tr><th>작성일</th><td>2026-08-02</td></tr>
+      <tr><th>문서 상태</th><td>확정</td></tr>
+      <tr><th>대상</th><td>CaptureTask · iOS 17.0+ · macOS 14.0+ · 분석 백엔드 (Node 22)</td></tr>
+      <tr><th>릴리스 단계</th><td>R0 통과 · R1 조건부 · R2 미달</td></tr>
+      <tr><th>범위</th><td>제품 기획, 요구사항 명세(기능·비기능), 기능 명세, 정보 구조,
+        유저 플로우, 시스템 아키텍처, API 명세, 데이터 모델, 알림 명세, 품질 보증,
+        잔여 과제, 부록(플로팅 UI 기술 검토)</td></tr>
+      <tr><th>근거</th><td>저장소 내 문서 34건 및 실행 검증 결과 (§18)</td></tr>
+    </table>
+  </div>
 </header>
 
+<!-- ══════════════════════ 목차 ══════════════════════ -->
 <nav class="toc">
   <h2>목차</h2>
   <ol>
-    <li><a href="#s1"><span class="n">01</span><span class="t">기획 — 무엇을 왜 만드는가</span></a></li>
-    <li><a href="#s2"><span class="n">02</span><span class="t">PRD — 원칙 · 결정 · 범위</span></a></li>
-    <li><a href="#s3"><span class="n">03</span><span class="t">SRS · 기능 요구사항</span></a></li>
-    <li><a href="#s4"><span class="n">04</span><span class="t">SRS · 비기능 요구사항</span></a></li>
-    <li><a href="#s5"><span class="n">05</span><span class="t">기능 명세 — 우선순위와 수용 기준</span></a></li>
-    <li><a href="#s6"><span class="n">06</span><span class="t">정보 구조와 화면 설계</span></a></li>
-    <li><a href="#s7"><span class="n">07</span><span class="t">유저 플로우</span></a></li>
-    <li><a href="#s8"><span class="n">08</span><span class="t">화면 — 실제 실행 결과</span></a></li>
-    <li><a href="#s9"><span class="n">09</span><span class="t">기술 — 아키텍처와 결정</span></a></li>
-    <li><a href="#s10"><span class="n">10</span><span class="t">저장소 구조</span></a></li>
-    <li><a href="#s11"><span class="n">11</span><span class="t">백엔드와 API 계약</span></a></li>
-    <li><a href="#s12"><span class="n">12</span><span class="t">품질 — 검증 하네스</span></a></li>
-    <li><a href="#s13"><span class="n">13</span><span class="t">분석 품질 평가</span></a></li>
-    <li><a href="#s14"><span class="n">14</span><span class="t">현재 상태와 남은 것</span></a></li>
-    <li><a href="#sA"><span class="n">A</span><span class="t">부록 · 물방울 아이콘 기술 검토</span></a></li>
+    <li><a href="#s1"><span class="n">1</span><span class="t">제품 개요</span></a></li>
+    <li><a href="#s2"><span class="n">2</span><span class="t">제품 기획</span></a></li>
+    <li><a href="#s3"><span class="n">3</span><span class="t">제품 요구사항 정의 (PRD)</span></a></li>
+    <li><a href="#s4"><span class="n">4</span><span class="t">기능 요구사항 명세 (SRS · FR)</span></a></li>
+    <li><a href="#s5"><span class="n">5</span><span class="t">비기능 요구사항 명세 (SRS · NFR)</span></a></li>
+    <li><a href="#s6"><span class="n">6</span><span class="t">기능 명세 및 수용 기준</span></a></li>
+    <li><a href="#s7"><span class="n">7</span><span class="t">정보 구조 및 화면 설계</span></a></li>
+    <li><a href="#s8"><span class="n">8</span><span class="t">유저 플로우 및 유스케이스</span></a></li>
+    <li><a href="#s9"><span class="n">9</span><span class="t">사용자 인터페이스 (실행 화면)</span></a></li>
+    <li><a href="#s10"><span class="n">10</span><span class="t">시스템 아키텍처</span></a></li>
+    <li><a href="#s11"><span class="n">11</span><span class="t">저장소 구조 및 확장 규칙</span></a></li>
+    <li><a href="#s12"><span class="n">12</span><span class="t">API 명세</span></a></li>
+    <li><a href="#s13"><span class="n">13</span><span class="t">데이터 모델 및 영속화</span></a></li>
+    <li><a href="#s14"><span class="n">14</span><span class="t">알림 명세</span></a></li>
+    <li><a href="#s15"><span class="n">15</span><span class="t">품질 보증 및 검증 체계</span></a></li>
+    <li><a href="#s16"><span class="n">16</span><span class="t">분석 품질 평가</span></a></li>
+    <li><a href="#s17"><span class="n">17</span><span class="t">릴리스 판정 및 잔여 과제</span></a></li>
+    <li><a href="#s18"><span class="n">18</span><span class="t">문서 목록</span></a></li>
+    <li><a href="#sA"><span class="n">부록 A</span><span class="t">플로팅 UI 요소 기술 검토</span></a></li>
+    <li class="sub-item"><a href="#sA1"><span class="n">A.1</span><span class="t">요구사항 정의</span></a></li>
+    <li class="sub-item"><a href="#sA2"><span class="n">A.2</span><span class="t">메뉴바 아이콘</span></a></li>
+    <li class="sub-item"><a href="#sA3"><span class="n">A.3</span><span class="t">굴절 구현 가능성 검증</span></a></li>
+    <li class="sub-item"><a href="#sA4"><span class="n">A.4</span><span class="t">대안 및 구현 결과</span></a></li>
   </ol>
 </nav>
 
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════ 1 ══════════════════════ -->
 <section id="s1">
-  <h2>01</h2>
-  <h3 class="title">기획 — 무엇을 왜 만드는가</h3>
-  <p class="lede">메신저, 예약 화면, 공지, SNS에서 “나중에 해야 할 것”을 스크린샷으로 남기지만 사진첩에 묻힌다. 사용자는 다시 읽고, 날짜를 찾고, 할 일과 캘린더에 중복 입력한다 — <strong>대개는 그 세 단계를 하지 않는다.</strong></p>
+  <div class="num">1</div>
+  <h2>제품 개요</h2>
 
-  <blockquote><p>“스크린샷을 한 번 공유하면 해야 할 일이 정리되고, 마감이 다가오면 알려 준다.”</p></blockquote>
+  <h3>1.1 제품 정의</h3>
+  <p>CaptureTask 는 사용자가 스크린샷을 공유하면 그 안의 텍스트를 인식하고 문맥을
+     해석하여 <strong>제목과 마감이 있는 할 일</strong>로 변환하고, 마감 전에 알림을
+     제공하는 개인 비서 애플리케이션이다. iOS 와 macOS 를 대상으로 하며, 문맥 해석을
+     담당하는 분석 백엔드를 포함한다.</p>
 
-  <h4>핵심 사용자</h4>
-  <p>예약·공지·업무 요청·행사 정보를 스크린샷으로 자주 저장하는 iPhone 사용자. 전형적인 하루 — 병원 예약 확정 문자, 관리비 고지, 행사 안내, 회의 시간 변경. 전부 화면에 있고, 전부 나중에 해야 하고, 전부 사진첩에 쌓인다.</p>
+  <h3>1.2 해결 대상 문제</h3>
+  <p>사용자는 메신저·예약 화면·공지·SNS 에서 “나중에 해야 할 것”을 스크린샷으로
+     저장하지만, 해당 이미지는 사진첩에 축적될 뿐 실행으로 이어지지 않는다.
+     실행하려면 사용자가 (1) 이미지를 다시 찾아 읽고, (2) 날짜를 판별하고,
+     (3) 할 일 앱과 캘린더에 중복 입력해야 한다.</p>
+  <p><strong>대부분의 경우 이 세 단계는 수행되지 않는다.</strong> 스크린샷은 기록했다는
+     인식만 제공하고, 마감은 그대로 경과한다.</p>
 
-  <h4>차별점</h4>
+  <h3>1.3 제품 약속</h3>
+  <blockquote><p>스크린샷을 한 번 공유하면 해야 할 일이 정리되고, 마감이 다가오면 알려 준다.</p></blockquote>
+
+  <h3>1.4 대상 사용자</h3>
+  <p>예약·공지·업무 요청·행사 정보를 스크린샷으로 저장하는 빈도가 높은 iPhone 사용자.
+     대표적인 일과 — 병원 예약 확정 문자, 관리비 고지, 행사 안내, 회의 시간 변경.
+     전부 화면에 존재하고, 전부 후속 조치가 필요하며, 전부 사진첩에 축적된다.</p>
+
+  <h3>1.5 현재 상태 요약</h3>
   <div class="tbl"><table>
-    <tr><td>실행 가능한 할 일로 바꾼다</td><td>범용 노트 앱이 아니다. 제목과 마감이 있는 한 줄이 결과다</td></tr>
-    <tr><td>마감이 급한 순으로 보여준다</td><td>지갑처럼 쌓인 카드에서 지난 마감이 맨 위에 있다</td></tr>
-    <tr><td>놓치기 전에 알려 준다</td><td>로컬 알림 3종. 서버가 사용자의 할 일을 알 필요가 없다</td></tr>
-    <tr><td>소유권을 분리한다</td><td>앱 할 일이 원장, Apple 캘린더는 선택적 출력</td></tr>
-    <tr><td>로컬 우선, 확인 우선</td><td>OCR 은 기기에서. AI 결과는 사람이 확인한 뒤에만 저장된다</td></tr>
+    <thead><tr><th>구분</th><th class="n">값</th><th>비고</th></tr></thead>
+    <tr><td class="k">릴리스 단계</td><td class="n">R0 통과</td><td>시뮬레이터 전체 흐름 검증 완료</td></tr>
+    <tr><td class="k">스토리 진척</td><td class="n">78 / 87</td><td>90%</td></tr>
+    <tr><td class="k">iOS 테스트</td><td class="n">130 / 130</td><td>XCTest</td></tr>
+    <tr><td class="k">백엔드 테스트</td><td class="n">46 / 46</td><td><code>node:test</code></td></tr>
+    <tr><td class="k">프로젝트 규칙</td><td class="n">12건</td><td>정적 검사 · 전건 통과</td></tr>
+    <tr><td class="k">문서 링크 검사</td><td class="n">147건</td><td>전건 유효</td></tr>
+    <tr><td class="k">수용 기준</td><td class="n">78건</td><td>기능 21건에 대응</td></tr>
+    <tr><td class="k">빌드 경고</td><td class="n">0</td><td>iOS · macOS</td></tr>
+    <tr><td class="k">외부 의존성</td><td class="n">0</td><td>iOS · 백엔드 모두</td></tr>
   </table></div>
 
-  <h4>하지 않기로 한 것</h4>
+  <h3>1.6 용어</h3>
   <div class="tbl"><table>
-    <thead><tr><th>하지 않는다</th><th>왜</th></tr></thead>
-    <tr><td>AI 가 확인 없이 자동 저장</td><td>일정 오인식 하나가 앱 전체의 신뢰를 없앤다</td></tr>
-    <tr><td>캘린더 양방향 동기화</td><td>“어느 쪽이 진짜인가”를 사용자도 코드도 답할 수 없게 된다</td></tr>
-    <tr><td>원본 이미지를 서버로 전송</td><td>스크린샷에는 대화·주소·예약 정보가 그대로 있다</td></tr>
-    <tr><td>서버 푸시 알림</td><td>서버가 사용자의 할 일과 마감을 알아야 한다</td></tr>
-    <tr><td>앱 안의 완전한 캘린더 앱</td><td>Apple 캘린더가 이미 있다. 앱을 나가지 않을 정도만</td></tr>
+    <thead><tr><th>용어</th><th>정의</th></tr></thead>
+    <tr><td class="k">담기</td><td>스크린샷을 공유 상자(App Group)에 넣는 동작</td></tr>
+    <tr><td class="k">확인</td><td>AI 제안을 사용자가 검토·수정하여 승인하는 단계</td></tr>
+    <tr><td class="k">초안 (TaskDraft)</td><td>확인을 거치지 않은 AI 제안</td></tr>
+    <tr><td class="k">할 일 (AssistantTask)</td><td>확인을 거쳐 저장된 항목. 이 제품의 원장</td></tr>
+    <tr><td class="k">마감 묶음 (DueBucket)</td><td>긴급도에 따른 6개 분류</td></tr>
+    <tr><td class="k">원장</td><td>수정·삭제의 단일 진실 공급원. 앱 할 일이 유일한 원장이다</td></tr>
   </table></div>
-
-  <h4>북극성 지표</h4>
-  <div class="tbl"><table>
-    <thead><tr><th>지표</th><th class="num">목표</th><th>지금</th></tr></thead>
-    <tr><td>공유 시작 → 확인 완료 중앙값</td><td class="num">15초 이내</td><td><span class="st off">미측정</span></td></tr>
-    <tr><td>제안된 날짜·제목을 수정하지 않고 저장한 비율</td><td class="num">80% 이상</td><td><span class="st off">미측정</span></td></tr>
-    <tr><td>담은 캡처의 유실률</td><td class="num">0%</td><td><span class="st on">달성</span></td></tr>
-    <tr><td>마감 전 알림을 받고 완료한 비율</td><td class="num">—</td><td><span class="st off">측정 예정</span></td></tr>
-  </table></div>
-  <p>첫 두 지표가 이 제품의 존재 이유다. <strong>15초를 넘거나 매번 고쳐야 한다면 사용자는 그냥 직접 입력하는 편이 빠르다.</strong></p>
 </section>
 
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════ 2 ══════════════════════ -->
 <section id="s2">
-  <h2>02</h2>
-  <h3 class="title">PRD — 원칙 · 결정 · 범위</h3>
-  <p class="lede">여섯 개의 원칙이 이 제품의 모든 판단을 가른다. 판단이 갈릴 때 코드가 아니라 이 목록을 먼저 본다.</p>
+  <div class="num">2</div>
+  <h2>제품 기획</h2>
 
-  <h4>제품 원칙</h4>
-  <div class="tbl"><table class="tight">
-    <tr><td class="num">1</td><td><strong>캡처를 잃지 않는 것이 자동화 속도보다 중요하다.</strong> 분석·캘린더·알림이 전부 실패해도 담아 둔 스크린샷은 남는다.</td></tr>
-    <tr><td class="num">2</td><td><strong>틀린 자동 저장보다 한 번의 명확한 확인이 낫다.</strong> 확인 화면을 지나지 않는 저장 경로는 없다.</td></tr>
-    <tr><td class="num">3</td><td><strong>앱 할 일이 원장이고 나머지는 시점이다.</strong> 캘린더도, 캘린더 탭도, 알림도 원장이 아니다.</td></tr>
-    <tr><td class="num">4</td><td><strong>로컬에서 충분한 처리는 로컬에서 한다.</strong> 나가는 것은 OCR 텍스트뿐이다.</td></tr>
-    <tr><td class="num">5</td><td><strong>AI 공급자는 교체 가능해야 한다.</strong> 고르는 지점이 한 곳이어야 옮길 수 있다.</td></tr>
-    <tr><td class="num">6</td><td><strong>실패는 조용하면 안 된다.</strong> 자동 대체도, 삼킨 오류도, 없다고 통과시키는 검사도 만들지 않는다.</td></tr>
-  </table></div>
-
-  <h4>확정 결정 10건</h4>
-  <div class="tbl"><table class="tight">
-    <thead><tr><th class="num">#</th><th>결정</th><th>근거</th></tr></thead>
-    <tr><td class="num">1</td><td>앱 안에 독립적인 할 일 목록을 둔다</td><td>원장의 소유권을 앱이 갖는다</td></tr>
-    <tr><td class="num">2</td><td>캘린더는 선택적 외부 출력이다</td><td>저장 실패가 할 일을 되돌리지 않는다 (ADR-7)</td></tr>
-    <tr><td class="num">3</td><td>앱 안 캘린더는 읽기 전용 월 뷰 하나</td><td>두 원장을 만들지 않는다</td></tr>
-    <tr><td class="num">4</td><td>알림은 로컬 알림</td><td>서버 푸시는 서버가 할 일을 알아야 한다 (ADR-8)</td></tr>
-    <tr><td class="num">5</td><td>시간 지정 1시간 전 · 종일 당일 09:00 · 공통 하루 전 20:00</td><td>예약은 이동이 필요하고, 종일 일은 하루 시작에 한 번</td></tr>
-    <tr><td class="num">6</td><td>OCR 은 온디바이스 Vision 이 기본</td><td>원본 이미지가 기기를 떠나지 않는다</td></tr>
-    <tr><td class="num">7</td><td>문맥 해석은 초기 OpenAI, 이후 교체 가능하게</td><td>기준선 없이 온디바이스로 가면 품질을 비교할 수 없다 (ADR-10)</td></tr>
-    <tr><td class="num">8</td><td>OpenAI 호출은 앱이 아닌 백엔드가 한다</td><td>앱 번들의 문자열은 누구나 꺼낸다 (ADR-5)</td></tr>
-    <tr><td class="num">9</td><td>홈은 마감 급한 순 지갑 스타일 스택</td><td>목록은 “다음에 뭘 하지”에 답하지 못한다</td></tr>
-    <tr><td class="num">10</td><td>Share Extension 은 죽어도 캡처를 잃지 않는다</td><td>담기가 분석보다 먼저다 (ADR-2)</td></tr>
-  </table></div>
-
-  <h4>MVP 범위</h4>
-  <div class="pair">
-    <div>
-      <h5>포함</h5>
-      <div class="tbl"><table class="tight">
-        <tr><td>공유 → App Group 상자</td><td><span class="st mid">실기기 대기</span></td></tr>
-        <tr><td>한국어·영어 온디바이스 OCR</td><td><span class="st on">완료</span></td></tr>
-        <tr><td>제목·마감·신뢰도·근거 제안</td><td><span class="st on">완료</span></td></tr>
-        <tr><td>확인 화면</td><td><span class="st on">완료</span></td></tr>
-        <tr><td>초안 영속화</td><td><span class="st on">완료</span></td></tr>
-        <tr><td>지갑 스택 (묶음 6개)</td><td><span class="st on">완료</span></td></tr>
-        <tr><td>로컬 마감 알림 3종</td><td><span class="st on">완료</span></td></tr>
-        <tr><td>이번 달 캘린더</td><td><span class="st on">완료</span></td></tr>
-        <tr><td>Apple 캘린더 추가·삭제</td><td><span class="st mid">실기기 대기</span></td></tr>
-      </table></div>
-    </div>
-    <div>
-      <h5>제외</h5>
-      <div class="tbl"><table class="tight">
-        <tr><td>메모 앱 직접 쓰기</td><td>원장이 또 늘어난다</td></tr>
-        <tr><td>캘린더 양방향 동기화</td><td>ADR-7</td></tr>
-        <tr><td>반복 일정</td><td>마감 하나를 먼저 제대로</td></tr>
-        <tr><td>연락처·메일 자동 실행</td><td>확인 없는 부작용</td></tr>
-        <tr><td>완전 자동 저장</td><td>원칙 2</td></tr>
-        <tr><td>서버 푸시</td><td>결정 4</td></tr>
-        <tr><td>검색·필터·중복 감지</td><td>초기에는 스택으로 충분</td></tr>
-      </table></div>
-    </div>
-  </div>
-
-  <h4>릴리스 단계</h4>
+  <h3>2.1 차별점</h3>
   <div class="tbl"><table>
-    <thead><tr><th>단계</th><th>뜻</th><th>판정</th></tr></thead>
-    <tr><td>R0</td><td>시뮬레이터에서 전체 흐름이 돈다</td><td><span class="st on">PASS</span></td></tr>
-    <tr><td>R1</td><td>실기기에서 공유 시트부터 알림까지 통과한다</td><td><span class="st mid">CONCERNS</span></td></tr>
-    <tr><td>R2</td><td>TestFlight 에 올릴 수 있다</td><td><span class="st off">FAIL</span></td></tr>
+    <thead><tr><th>항목</th><th>내용</th></tr></thead>
+    <tr><td class="k">실행 가능한 결과</td><td>범용 노트가 아니라 제목과 마감을 가진 항목을 산출한다</td></tr>
+    <tr><td class="k">긴급도 우선 표시</td><td>지갑 형태로 적층된 카드에서 지난 마감이 최상단에 위치한다</td></tr>
+    <tr><td class="k">사전 알림</td><td>로컬 알림 3종. 서버가 사용자의 할 일을 알 필요가 없다</td></tr>
+    <tr><td class="k">소유권 분리</td><td>앱 할 일이 원장, Apple 캘린더는 선택적 출력</td></tr>
+    <tr><td class="k">로컬 우선 · 확인 우선</td><td>OCR 은 기기에서 수행. AI 결과는 확인 후에만 저장</td></tr>
   </table></div>
+
+  <h3>2.2 범위 제외 결정</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>제외 항목</th><th>근거</th></tr></thead>
+    <tr><td class="k">확인 없는 자동 저장</td><td>일정 오인식 1건이 제품 전체의 신뢰를 훼손한다</td></tr>
+    <tr><td class="k">캘린더 양방향 동기화</td><td>원장이 둘이 되어 “어느 쪽이 정본인가”를 답할 수 없다</td></tr>
+    <tr><td class="k">원본 이미지 서버 전송</td><td>스크린샷에는 대화·주소·예약 정보가 포함된다</td></tr>
+    <tr><td class="k">서버 푸시 알림</td><td>서버가 사용자의 할 일과 마감을 보유해야 한다</td></tr>
+    <tr><td class="k">앱 내 완전한 캘린더</td><td>Apple 캘린더가 존재한다. 앱을 이탈하지 않을 최소 수준만 제공</td></tr>
+  </table></div>
+
+  <h3>2.3 성과 지표</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>지표</th><th class="n">목표</th><th>현재</th></tr></thead>
+    <tr><td class="k">공유 시작 → 확인 완료 중앙값</td><td class="n">15초 이내</td><td><span class="st off">미측정</span></td></tr>
+    <tr><td class="k">제안값 무수정 저장 비율</td><td class="n">80% 이상</td><td><span class="st off">미측정</span></td></tr>
+    <tr><td class="k">담은 캡처 유실률</td><td class="n">0%</td><td><span class="st on">달성</span></td></tr>
+    <tr><td class="k">마감 전 알림 후 완료 비율</td><td class="n">—</td><td><span class="st off">측정 예정</span></td></tr>
+  </table></div>
+  <p>상위 두 지표가 제품의 존립 근거다. 15초를 초과하거나 매번 수정이 필요하면 사용자는
+     직접 입력하는 편이 빠르다.</p>
 </section>
 
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════ 3 ══════════════════════ -->
 <section id="s3">
-  <h2>03</h2>
-  <h3 class="title">SRS · 기능 요구사항</h3>
-  <p class="lede">여덟 영역으로 나뉜 기능 요구사항(FR)과 불변 조건. 각 요구사항은 코드의 한 지점과 테스트 한 건에 대응한다.</p>
+  <div class="num">3</div>
+  <h2>제품 요구사항 정의 (PRD)</h2>
 
+  <h3>3.1 제품 원칙</h3>
   <div class="tbl"><table>
-    <thead><tr><th>영역</th><th>접두사</th><th class="num">개수</th><th>핵심</th></tr></thead>
-    <tr><td>캡처 수집</td><td><code>FR-CAP</code></td><td class="num">6</td><td>담기가 분석보다 먼저. 죽어도 캡처가 남는다</td></tr>
-    <tr><td>텍스트·문맥 분석</td><td><code>FR-AI</code></td><td class="num">8</td><td>OCR 은 온디바이스, 문맥은 백엔드. 한 장에서 여러 일정</td></tr>
-    <tr><td>확인</td><td><code>FR-REV</code></td><td class="num">9</td><td>저장·나중에·버리기. 확인 없는 저장 경로 없음</td></tr>
-    <tr><td>할 일 목록</td><td><code>FR-TASK</code></td><td class="num">10</td><td>마감 묶음 6개 · 급한 순 · 완료·삭제</td></tr>
-    <tr><td>마감 알림</td><td><code>FR-NOTI</code></td><td class="num">15</td><td>3종 · 식별자 충돌 금지 · 지난 시각은 걸지 않는다</td></tr>
-    <tr><td>Apple 캘린더</td><td><code>FR-CAL</code></td><td class="num">—</td><td>선택적 출력. 실패해도 할 일은 남는다</td></tr>
-    <tr><td>캘린더 뷰</td><td><code>FR-MONTH</code></td><td class="num">—</td><td>읽기 전용. 같은 원장의 다른 시점</td></tr>
-    <tr><td>저장과 복구</td><td><code>FR-STORE</code></td><td class="num">—</td><td>원자적 쓰기 · 손상 격리 · 구버전 호환</td></tr>
+    <thead><tr><th class="n">#</th><th>원칙</th><th>귀결</th></tr></thead>
+    <tr><td class="n">1</td><td class="k">캡처 보존이 자동화 속도에 우선한다</td><td>분석·캘린더·알림이 전부 실패해도 담은 스크린샷은 보존된다</td></tr>
+    <tr><td class="n">2</td><td class="k">틀린 자동 저장보다 한 번의 확인이 낫다</td><td>확인 단계를 우회하는 저장 경로가 존재하지 않는다</td></tr>
+    <tr><td class="n">3</td><td class="k">앱 할 일이 원장이고 나머지는 시점이다</td><td>캘린더·캘린더 탭·알림은 원장이 아니다</td></tr>
+    <tr><td class="n">4</td><td class="k">로컬에서 가능한 처리는 로컬에서 한다</td><td>외부로 전송되는 것은 OCR 텍스트뿐이다</td></tr>
+    <tr><td class="n">5</td><td class="k">AI 공급자는 교체 가능해야 한다</td><td>선택 지점이 단일해야 이전이 가능하다</td></tr>
+    <tr><td class="n">6</td><td class="k">실패는 가시적이어야 한다</td><td>자동 대체, 삼킨 오류, 미설치를 통과로 처리하는 검사를 만들지 않는다</td></tr>
   </table></div>
 
-  <div class="note">
-    <span class="h">불변 조건</span>
-    <p>요구사항보다 강한 것이 <strong>불변 조건 14건</strong>이다. “확인 화면을 지나지 않는 저장 경로가 존재하지 않는다”, “캡처를 지우는 코드 지점이 하나뿐이다” 같은 문장들이고, 대부분 <code>scripts/check-project-rules.sh</code> 가 매 커밋 기계적으로 확인한다.</p>
-  </div>
+  <h3>3.2 확정 결정 사항</h3>
+  <div class="tbl"><table>
+    <thead><tr><th class="n">#</th><th>결정</th><th>근거</th></tr></thead>
+    <tr><td class="n">D-1</td><td>앱 내 독립적 할 일 목록을 운영한다</td><td>원장의 소유권을 앱이 보유</td></tr>
+    <tr><td class="n">D-2</td><td>캘린더는 선택적 외부 출력이다</td><td>저장 실패가 할 일을 되돌리지 않는다 (ADR-7)</td></tr>
+    <tr><td class="n">D-3</td><td>앱 내 캘린더는 읽기 전용 월 뷰 1개</td><td>원장을 이중화하지 않는다</td></tr>
+    <tr><td class="n">D-4</td><td>알림은 로컬 알림을 사용한다</td><td>서버 푸시는 서버가 할 일을 보유해야 한다 (ADR-8)</td></tr>
+    <tr><td class="n">D-5</td><td>시간 지정 1시간 전 · 종일 당일 09:00 · 공통 하루 전 20:00</td><td>예약은 이동 시간이 필요하고, 종일 항목은 일과 시작 시 1회</td></tr>
+    <tr><td class="n">D-6</td><td>OCR 은 온디바이스 Vision 을 기본으로 한다</td><td>원본 이미지가 기기를 이탈하지 않는다</td></tr>
+    <tr><td class="n">D-7</td><td>문맥 해석은 초기 OpenAI, 이후 교체 가능하게 설계</td><td>기준선 없이 온디바이스로 이전하면 품질 비교가 불가능하다 (ADR-10)</td></tr>
+    <tr><td class="n">D-8</td><td>OpenAI 호출은 백엔드가 수행한다</td><td>앱 번들 내 문자열은 추출 가능하다 (ADR-5)</td></tr>
+    <tr><td class="n">D-9</td><td>홈 화면은 긴급도 순 지갑형 적층 구조</td><td>단순 목록은 “다음에 무엇을 할 것인가”에 답하지 못한다</td></tr>
+    <tr><td class="n">D-10</td><td>Share Extension 은 종료되어도 캡처를 유실하지 않는다</td><td>담기가 분석보다 선행한다 (ADR-2)</td></tr>
+  </table></div>
+
+  <h3>3.3 MVP 범위</h3>
+  <div class="tbl"><table>
+    <caption>포함</caption>
+    <thead><tr><th>항목</th><th>상태</th></tr></thead>
+    <tr><td class="k">공유 시트 → App Group 상자 적재</td><td><span class="st mid">실기기 검증 대기</span></td></tr>
+    <tr><td class="k">한국어·영어 온디바이스 OCR</td><td><span class="st on">완료</span></td></tr>
+    <tr><td class="k">제목·메모·마감·시각·신뢰도·근거·모호점 제안</td><td><span class="st on">완료</span></td></tr>
+    <tr><td class="k">확인 화면 (수정 · 나중에 · 버리기)</td><td><span class="st on">완료</span></td></tr>
+    <tr><td class="k">미확인 초안 영속화</td><td><span class="st on">완료</span></td></tr>
+    <tr><td class="k">긴급도 순 지갑형 적층 (묶음 6개)</td><td><span class="st on">완료</span></td></tr>
+    <tr><td class="k">완료 · 해제 · 삭제</td><td><span class="st on">완료</span></td></tr>
+    <tr><td class="k">로컬 마감 알림 3종</td><td><span class="st on">완료</span></td></tr>
+    <tr><td class="k">이번 달 캘린더 (읽기 전용)</td><td><span class="st on">완료</span></td></tr>
+    <tr><td class="k">Apple 캘린더 추가 · 삭제</td><td><span class="st mid">실기기 검증 대기</span></td></tr>
+    <tr><td class="k">권한 거절 · 오프라인 · 손상 복구</td><td><span class="st on">완료</span></td></tr>
+  </table></div>
+  <div class="tbl"><table>
+    <caption>제외</caption>
+    <thead><tr><th>항목</th><th>근거</th></tr></thead>
+    <tr><td class="k">메모 앱 직접 쓰기</td><td>원장이 추가된다</td></tr>
+    <tr><td class="k">캘린더 양방향 동기화</td><td>ADR-7</td></tr>
+    <tr><td class="k">반복 일정</td><td>단일 마감을 우선 완성한다</td></tr>
+    <tr><td class="k">연락처·메일·메시지 자동 실행</td><td>확인 없는 부작용</td></tr>
+    <tr><td class="k">완전 자동 저장</td><td>원칙 2</td></tr>
+    <tr><td class="k">서버 푸시 알림</td><td>결정 D-4</td></tr>
+    <tr><td class="k">검색 · 필터 · 중복 감지</td><td>초기 데이터 규모에서는 적층 구조로 충분</td></tr>
+  </table></div>
+
+  <h3>3.4 성공 기준</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>기준</th><th class="n">목표</th><th>현재</th></tr></thead>
+    <tr><td class="k">캡처 유실률</td><td class="n">0%</td><td><span class="st on">달성</span> 확인 전 삭제 금지</td></tr>
+    <tr><td class="k">날짜 없는 캡처의 캘린더 오저장</td><td class="n">0%</td><td><span class="st on">달성</span> 확인 화면 필수</td></tr>
+    <tr><td class="k">OCR 성공 캡처의 후보 생성률</td><td class="n">95% 이상</td><td><span class="st off">평가셋 미비</span></td></tr>
+    <tr><td class="k">공유 → 확인 완료 중앙값</td><td class="n">15초 이내</td><td><span class="st off">미측정</span></td></tr>
+    <tr><td class="k">제목 무수정 저장률</td><td class="n">80% 이상</td><td><span class="st off">미측정</span></td></tr>
+    <tr><td class="k">크래시 없는 세션</td><td class="n">99.5% 이상</td><td><span class="st off">측정 수단 없음</span></td></tr>
+  </table></div>
+  <p>6개 중 4개가 미측정 상태다. 측정은 평가셋 50건 확보와 실기기 사용으로 개시한다.</p>
 </section>
 
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════ 4 ══════════════════════ -->
 <section id="s4">
-  <h2>04</h2>
-  <h3 class="title">SRS · 비기능 요구사항</h3>
-  <p class="lede">성능·프라이버시·접근성·신뢰성·유지보수·국제화·보안. 이 중 프라이버시가 이 제품의 성격을 가장 많이 결정한다.</p>
+  <div class="num">4</div>
+  <h2>기능 요구사항 명세 (SRS · FR)</h2>
 
-  <h4>성능 (NFR-PERF)</h4>
+  <h3>4.1 요구사항 영역</h3>
   <div class="tbl"><table>
-    <thead><tr><th>ID</th><th>요구사항</th><th class="num">목표</th><th>상태</th></tr></thead>
-    <tr><td>01</td><td>공유 시트에서 “담았어요”까지</td><td class="num">1초</td><td><span class="st mid">실기기 미측정</span></td></tr>
-    <tr><td>02</td><td>스크린샷 1장 OCR</td><td class="num">1.5초</td><td><span class="st mid">미측정</span></td></tr>
-    <tr><td>03</td><td>백엔드 분석 왕복 (p50)</td><td class="num">5초</td><td><span class="st mid">미측정</span></td></tr>
-    <tr><td>04</td><td>공유 → 확인 완료 중앙값</td><td class="num">15초</td><td><span class="st mid">미측정</span></td></tr>
-    <tr><td>05</td><td>목록 스크롤</td><td class="num">60fps</td><td><span class="st mid">미측정</span></td></tr>
-    <tr><td>06</td><td>OCR·분석이 메인 스레드를 막지 않는다</td><td class="num">항상</td><td><span class="st on">확인</span></td></tr>
+    <thead><tr><th>영역</th><th>접두사</th><th class="n">건수</th><th>핵심 요구</th></tr></thead>
+    <tr><td class="k">캡처 수집</td><td><code>FR-CAP</code></td><td class="n">6</td><td>담기가 분석에 선행한다. 프로세스 종료 시에도 캡처가 보존된다</td></tr>
+    <tr><td class="k">텍스트·문맥 분석</td><td><code>FR-AI</code></td><td class="n">8</td><td>OCR 은 온디바이스, 문맥은 백엔드. 한 장에서 복수 일정 추출</td></tr>
+    <tr><td class="k">확인</td><td><code>FR-REV</code></td><td class="n">9</td><td>저장 · 나중에 · 버리기. 확인을 우회하는 저장 경로 부재</td></tr>
+    <tr><td class="k">할 일 목록</td><td><code>FR-TASK</code></td><td class="n">10</td><td>마감 묶음 6개 · 긴급도 순 · 완료 · 삭제</td></tr>
+    <tr><td class="k">마감 알림</td><td><code>FR-NOTI</code></td><td class="n">15</td><td>3종 · 식별자 충돌 금지 · 경과 시각 미예약</td></tr>
+    <tr><td class="k">Apple 캘린더</td><td><code>FR-CAL</code></td><td class="n">—</td><td>선택적 출력. 실패해도 할 일은 보존</td></tr>
+    <tr><td class="k">캘린더 뷰</td><td><code>FR-MONTH</code></td><td class="n">—</td><td>읽기 전용. 동일 원장의 다른 시점</td></tr>
+    <tr><td class="k">저장 · 복구</td><td><code>FR-STORE</code></td><td class="n">—</td><td>원자적 쓰기 · 손상 격리 · 구버전 호환</td></tr>
+    <tr><td class="k"><strong>합계</strong></td><td></td><td class="n"><strong>64</strong></td><td>불변 조건 14건 별도</td></tr>
   </table></div>
 
-  <h5>타임아웃 예산</h5>
-  <p>시간이 흐르는 방향으로 짧아진다. 안쪽이 더 길면 바깥쪽이 먼저 끊기고, 안쪽 작업은 아무도 결과를 기다리지 않는 채 계속 돈다.</p>
+  <h3>4.2 불변 조건</h3>
+  <p>요구사항보다 상위의 제약이다. 대부분 <code>scripts/check-project-rules.sh</code> 가
+     커밋 시점에 기계적으로 검증한다.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>불변 조건</th><th>검증</th></tr></thead>
+    <tr><td>확인 화면을 우회하는 저장 경로가 존재하지 않는다</td><td>코드 리뷰 · ADR-4</td></tr>
+    <tr><td>캡처를 삭제하는 코드 지점은 저장소 1개소뿐이다</td><td>규칙 5</td></tr>
+    <tr><td>신뢰도 임계값은 <code>Confidence</code> 1개소에만 존재한다</td><td>규칙 4</td></tr>
+    <tr><td>OpenAI 키가 앱·확장 바이너리에 존재하지 않는다</td><td>규칙 2</td></tr>
+    <tr><td>App Group 식별자가 코드·<code>project.yml</code>·entitlements 2개에서 일치한다</td><td>규칙 1</td></tr>
+    <tr><td>알림 예약은 지정된 2개 파일에서만 수행된다</td><td>규칙 7</td></tr>
+    <tr><td>모델 계층은 화면·플랫폼 프레임워크를 import 하지 않는다</td><td>규칙 6</td></tr>
+    <tr><td>저장·복원 실패를 <code>try?</code> 로 삼키지 않는다</td><td>규칙 8</td></tr>
+    <tr><td>파생 값(마감 묶음·정렬·격자)을 저장하지 않는다</td><td>코드 리뷰</td></tr>
+    <tr><td>저장 모델에 추가되는 신규 필드는 옵셔널이다</td><td>구버전 디코딩 테스트</td></tr>
+  </table></div>
+</section>
+
+<!-- ══════════════════════ 5 ══════════════════════ -->
+<section id="s5">
+  <div class="num">5</div>
+  <h2>비기능 요구사항 명세 (SRS · NFR)</h2>
+
+  <h3>5.1 성능 (NFR-PERF)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>ID</th><th>요구사항</th><th class="n">목표</th><th>상태</th></tr></thead>
+    <tr><td class="k">PERF-01</td><td>공유 시트에서 완료 표시까지</td><td class="n">1.0초</td><td><span class="st mid">실기기 미측정</span></td></tr>
+    <tr><td class="k">PERF-02</td><td>스크린샷 1장 OCR</td><td class="n">1.5초</td><td><span class="st mid">미측정</span></td></tr>
+    <tr><td class="k">PERF-03</td><td>백엔드 분석 왕복 (p50)</td><td class="n">5.0초</td><td><span class="st mid">미측정</span></td></tr>
+    <tr><td class="k">PERF-04</td><td>공유 → 확인 완료 중앙값</td><td class="n">15초</td><td><span class="st mid">미측정</span></td></tr>
+    <tr><td class="k">PERF-05</td><td>목록 스크롤</td><td class="n">60fps</td><td><span class="st mid">미측정</span></td></tr>
+    <tr><td class="k">PERF-06</td><td>OCR·분석이 메인 스레드를 점유하지 않는다</td><td class="n">항상</td><td><span class="st on">검증</span></td></tr>
+  </table></div>
+  <p>PERF-06 이 충족되지 않으면 나머지 지표는 의미를 상실한다. 인식이 메인 스레드에서
+     수행되면 복수 캡처를 담은 사용자에게 애플리케이션이 정지한 것으로 보인다.</p>
+
+  <h4>타임아웃 예산</h4>
+  <p>바깥쪽이 안쪽보다 길어야 한다. 반대인 경우 바깥쪽이 먼저 종료되고, 안쪽 작업은
+     결과를 수신할 주체 없이 계속 실행된다.</p>
 <pre>iOS URLRequest.timeoutInterval   20초
   └ backend → OpenAI              15초   (REQUEST_TIMEOUT_MS)</pre>
 
-  <h4>프라이버시 (NFR-PRIV)</h4>
-  <div class="tbl"><table class="tight">
-    <tr><td>01</td><td>OpenAI 키가 앱·Extension 바이너리에 존재하지 않는다</td><td><span class="st on">규칙 2 강제</span></td></tr>
-    <tr><td>02</td><td>OCR 은 온디바이스. 원본 이미지는 기기를 떠나지 않는다</td><td><span class="st on">확인</span></td></tr>
-    <tr><td>03</td><td>백엔드는 <code>store:false</code> 로 호출해 원문이 남지 않게 한다</td><td><span class="st on">확인</span></td></tr>
-    <tr><td>04</td><td>서버 로그에 인식 원문을 기본 저장하지 않는다</td><td><span class="st on">확인</span></td></tr>
-    <tr><td>05</td><td>담아 둔 스크린샷은 확인이 끝나면 지운다</td><td><span class="st on">확인</span></td></tr>
-    <tr><td>06</td><td>원본 보존 기간을 사용자가 정한다</td><td><span class="st off">미결정 D-2</span></td></tr>
-  </table></div>
-  <blockquote><p>스크린샷은 이 앱이 다루는 가장 민감한 데이터다. 메신저 대화·예약 정보·주소가 그대로 들어 있다. 그래서 기본값은 언제나 “보내지 않는다”이고, 보내는 것은 OCR 로 뽑은 텍스트뿐이다.</p></blockquote>
-
-  <h4>접근성 · 유지보수 · 보안</h4>
-  <div class="tbl"><table class="tight">
-    <tr><td>접근성</td><td>접근성 글자 크기에서는 겹침을 포기하고 목록으로 · 모션 줄이기 · 대비 높이기 · 색만으로 정보를 전달하지 않음 · 알림 탭 라우팅</td></tr>
-    <tr><td>유지보수</td><td>화면 파일 500줄 이내(NFR-MNT-05) · 파생 값을 저장하지 않음 · 계산은 순수 함수</td></tr>
-    <tr><td>국제화</td><td>한국어 전용 앱. <code>CFBundleDevelopmentRegion: ko</code> 를 선언하지 않으면 영어 기기에서 날짜만 영어로 나온다</td></tr>
-    <tr><td>보안</td><td>클라이언트 공유 비밀 · IP·일일 요청 한도 · 비루프백 바인딩 시 키 필수</td></tr>
-  </table></div>
-</section>
-
-<!-- ══════════════════════════════════════════ -->
-<section id="s5">
-  <h2>05</h2>
-  <h3 class="title">기능 명세 — 우선순위와 수용 기준</h3>
-  <p class="lede">기능 21개, 수용 기준 78건. 우선순위는 기능의 크기가 아니라 <strong>“없으면 제품이 무너지는가”</strong>로 나눈다.</p>
-
+  <h3>5.2 프라이버시 (NFR-PRIV)</h3>
   <div class="tbl"><table>
-    <thead><tr><th>우선순위</th><th>주제</th><th class="num">기능</th><th class="num">AC</th></tr></thead>
-    <tr><td>P0</td><td>캡처가 사라지지 않는다 · 틀린 것을 조용히 저장하지 않는다 · 급한 것이 먼저 보인다</td><td class="num">7</td><td class="num">36</td></tr>
-    <tr><td>P1</td><td>마감을 놓치지 않는다 · 다른 각도에서 본다</td><td class="num">5</td><td class="num">35</td></tr>
-    <tr><td>P2</td><td>분석 품질을 확인한다</td><td class="num">2</td><td class="num">7</td></tr>
-    <tr><td>P3</td><td>다음</td><td class="num">7</td><td class="num">—</td></tr>
-    <tr><td><strong>합계</strong></td><td></td><td class="num"><strong>21</strong></td><td class="num"><strong>78</strong></td></tr>
+    <thead><tr><th>ID</th><th>요구사항</th><th>상태</th></tr></thead>
+    <tr><td class="k">PRIV-01</td><td>OpenAI 키가 앱·확장 바이너리에 존재하지 않는다</td><td><span class="st on">규칙 2</span></td></tr>
+    <tr><td class="k">PRIV-02</td><td>OCR 은 온디바이스. 원본 이미지가 기기를 이탈하지 않는다</td><td><span class="st on">검증</span></td></tr>
+    <tr><td class="k">PRIV-03</td><td>백엔드는 <code>store:false</code> 로 호출한다</td><td><span class="st on">검증</span></td></tr>
+    <tr><td class="k">PRIV-04</td><td>서버 로그에 인식 원문을 기본 저장하지 않는다</td><td><span class="st on">검증</span></td></tr>
+    <tr><td class="k">PRIV-05</td><td>담은 스크린샷은 확인 완료 후 삭제한다</td><td><span class="st on">검증</span></td></tr>
+    <tr><td class="k">PRIV-06</td><td>원본 보존 기간을 사용자가 설정한다</td><td><span class="st off">미결정</span></td></tr>
+  </table></div>
+  <blockquote><p>스크린샷은 이 제품이 취급하는 가장 민감한 데이터다. 메신저 대화·예약
+     정보·주소가 원형 그대로 포함된다. 따라서 기본값은 항상 “전송하지 않는다”이며,
+     전송 대상은 OCR 로 추출한 텍스트에 한정된다.</p></blockquote>
+
+  <h3>5.3 접근성 (NFR-A11Y)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>요구사항</th><th>구현</th></tr></thead>
+    <tr><td class="k">접근성 글자 크기 대응</td><td>접근성 크기부터 적층을 해제하고 목록으로 전환한다</td></tr>
+    <tr><td class="k">모션 줄이기 존중</td><td>펼침·접기 애니메이션 제거. 전이는 페이드만 사용</td></tr>
+    <tr><td class="k">대비 높이기 존중</td><td>그림자를 비활성화하고 1pt 테두리로 대체한다</td></tr>
+    <tr><td class="k">색 단독 정보 전달 금지</td><td>모든 상태에 기호 또는 텍스트를 병기한다</td></tr>
+    <tr><td class="k">비활성 컨트롤의 사유 표시</td><td>사유 없는 비활성은 고장으로 인지된다</td></tr>
+    <tr><td class="k">알림 탭 라우팅</td><td>해당 할 일로 이동하고 카드를 펼친다</td></tr>
   </table></div>
 
-  <h4>P0 기능</h4>
-  <div class="tbl"><table class="tight">
-    <thead><tr><th>ID</th><th>기능</th><th>핵심 수용 기준</th></tr></thead>
-    <tr><td>F-01</td><td>공유 시트로 담기</td><td>이미지 최대 10장 · <code>SharedInbox.enqueue</code> 가 분석보다 먼저</td></tr>
-    <tr><td>F-02</td><td>앱으로 돌아오면 자동으로 꺼낸다</td><td><code>scenePhase → active</code> 마다 재수집. 이미 처리한 것은 다시 분석하지 않는다</td></tr>
-    <tr><td>F-03</td><td>잃지 않는 저장</td><td>원자적 쓰기 · 손상 파일은 지우지 않고 격리 · 구버전 JSON 이 계속 열린다</td></tr>
-    <tr><td>F-04</td><td>확인 화면</td><td>제목·마감·시간·알림 수정 가능 · 근거와 모호점 표시</td></tr>
-    <tr><td>F-05</td><td>나중에 · 버리기</td><td>“나중에”는 초안 유지(재분석 없음), “버리기”는 초안과 캡처를 함께 삭제</td></tr>
-    <tr><td>F-06</td><td>지갑 스타일 마감 스택</td><td>묶음 6개 · 지난 마감이 맨 위 · 하나만 펼침</td></tr>
-    <tr><td>F-07</td><td>완료 · 삭제</td><td>완료하면 그 할 일의 알림이 전부 취소된다</td></tr>
-  </table></div>
-
-  <h4>P1 기능</h4>
-  <div class="tbl"><table class="tight">
-    <tr><td>F-08</td><td>로컬 마감 알림</td><td>시간 지정 1시간 전 · 종일 당일 09:00 · 공통 하루 전 20:00 · 지난 시각은 걸지 않는다</td></tr>
-    <tr><td>F-08.1</td><td>확인 요청 알림</td><td>식별자 앞에 <code>capture#</code> — 마감 알림과 겹치면 앱이 앞에 있을 때 마감 알림까지 사라진다</td></tr>
-    <tr><td>F-08.2</td><td>알림 켜기</td><td>첫 저장 시 권한을 여쭙는다</td></tr>
-    <tr><td>F-09</td><td>Apple 캘린더 추가</td><td>선택적 출력 · 실패해도 할 일은 남는다</td></tr>
-    <tr><td>F-10</td><td>이번 달 캘린더</td><td>읽기 전용 · 마감이 있는 날에 점 · 날짜를 누르면 그날의 일정</td></tr>
+  <h3>5.4 신뢰성 · 유지보수 · 국제화 · 보안</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>영역</th><th>요구사항</th></tr></thead>
+    <tr><td class="k">신뢰성</td><td>원자적 쓰기 · 손상 파일 격리(삭제 금지) · 구버전 파일 호환 · 권한 거절 시 기능 축소 동작</td></tr>
+    <tr><td class="k">유지보수</td><td>화면 파일 500줄 이내(MNT-05) · 파생 값 미저장 · 계산은 순수 함수 · 경로 지식을 7개소로 한정</td></tr>
+    <tr><td class="k">국제화</td><td>한국어 전용. <code>CFBundleDevelopmentRegion: ko</code> 미선언 시 영어 기기에서 날짜만 영어로 출력된다</td></tr>
+    <tr><td class="k">보안</td><td>클라이언트 공유 비밀 · IP당 분당 10회 · 일일 500회 · 비루프백 바인딩 시 키 필수</td></tr>
   </table></div>
 </section>
 
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════ 6 ══════════════════════ -->
 <section id="s6">
-  <h2>06</h2>
-  <h3 class="title">정보 구조와 화면 설계</h3>
-  <p class="lede">iOS 는 탭 둘, macOS 는 사이드바 하나. 화면은 플랫폼마다 다르지만 <strong>보여 주는 원장은 하나다.</strong></p>
+  <div class="num">6</div>
+  <h2>기능 명세 및 수용 기준</h2>
 
+  <h3>6.1 우선순위 체계</h3>
+  <p>우선순위는 기능의 규모가 아니라 <strong>부재 시 제품이 성립하는가</strong>로 구분한다.</p>
   <div class="tbl"><table>
-    <thead><tr><th>ID</th><th>화면</th><th>파일</th><th>플랫폼</th></tr></thead>
-    <tr><td>S1</td><td>탭 컨테이너</td><td><code>apps/ios/Views/RootView.swift</code></td><td>iOS</td></tr>
-    <tr><td>S2</td><td>마감 스택 (홈)</td><td><code>apps/ios/Views/DueStackView.swift</code></td><td>iOS</td></tr>
-    <tr><td>S3</td><td>할 일 카드</td><td><code>apps/ios/Views/TaskCard.swift</code></td><td>iOS</td></tr>
-    <tr><td>S4</td><td>이번 달 캘린더</td><td><code>apps/ios/Views/MonthCalendarView.swift</code></td><td>iOS</td></tr>
-    <tr><td>S5</td><td>할 일 확인</td><td><code>apps/ios/Views/TaskReviewView.swift</code></td><td>iOS</td></tr>
-    <tr><td>S6</td><td>텍스트 분석 · 설정</td><td><code>ManualCaptureSheet</code> · <code>SettingsSheet</code></td><td>iOS</td></tr>
-    <tr><td>M1</td><td>물방울</td><td><code>apps/macos/Views/DropletView.swift</code></td><td>macOS</td></tr>
-    <tr><td>M2</td><td>대시보드 (사이드바 + 목록)</td><td><code>DashboardView</code> · <code>DashboardSidebar</code> · <code>TaskListPane</code></td><td>macOS</td></tr>
-    <tr><td>M3</td><td>월 캘린더 + 그날의 일정</td><td><code>apps/macos/Views/MonthCalendarPane.swift</code></td><td>macOS</td></tr>
-    <tr><td>M4</td><td>결과 배너 (되돌리기)</td><td><code>apps/macos/Views/FiledBanner.swift</code></td><td>macOS</td></tr>
+    <thead><tr><th>등급</th><th>주제</th><th class="n">기능</th><th class="n">수용 기준</th></tr></thead>
+    <tr><td class="k">P0</td><td>캡처 보존 · 오저장 방지 · 긴급도 우선 표시</td><td class="n">7</td><td class="n">36</td></tr>
+    <tr><td class="k">P1</td><td>마감 미인지 방지 · 다른 시점 제공</td><td class="n">5</td><td class="n">35</td></tr>
+    <tr><td class="k">P2</td><td>분석 품질 확인 수단</td><td class="n">2</td><td class="n">7</td></tr>
+    <tr><td class="k">P3</td><td>후속</td><td class="n">7</td><td class="n">—</td></tr>
+    <tr><td class="k"><strong>합계</strong></td><td></td><td class="n"><strong>21</strong></td><td class="n"><strong>78</strong></td></tr>
   </table></div>
 
-  <h4>마감 묶음 — 순서가 곧 의미다</h4>
-<pre>지난 마감 → 오늘 → 앞으로 7일 → 그 뒤 → 날짜 없음 → 완료</pre>
-  <p>위에 있을수록 급하다. 순서의 유일한 근거는 <code>DueBucket</code> 의 <strong>선언 순서</strong>다. 화면은 정렬을 다시 하지 않는다 — 정렬 지점이 둘로 갈라지면 “왜 이게 위에 있지”를 아무도 설명하지 못하게 된다.</p>
-  <p>시간이 명시된 할 일은 그 시각이 지나면 <strong>같은 날이라도 지난 마감</strong>이다. 날짜만 비교하면 “오후 2시 예약”이 오후 6시에도 오늘 할 일로 남는다.</p>
+  <h3>6.2 P0 기능</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>ID</th><th>기능</th><th>핵심 수용 기준</th></tr></thead>
+    <tr><td class="k">F-01</td><td>공유 시트로 담기</td><td>이미지 최대 10장 · <code>SharedInbox.enqueue</code> 가 분석에 선행</td></tr>
+    <tr><td class="k">F-02</td><td>복귀 시 자동 수집</td><td><code>scenePhase → active</code> 마다 재수집. 처리 완료분은 재분석하지 않는다</td></tr>
+    <tr><td class="k">F-03</td><td>유실 없는 저장</td><td>원자적 쓰기 · 손상 파일 격리 · 구버전 JSON 호환</td></tr>
+    <tr><td class="k">F-04</td><td>확인 화면</td><td>제목·마감·시각·알림 수정 가능 · 근거와 모호점 표시</td></tr>
+    <tr><td class="k">F-05</td><td>나중에 · 버리기</td><td>“나중에”는 초안 유지(재분석 없음), “버리기”는 초안과 캡처를 함께 삭제</td></tr>
+    <tr><td class="k">F-06</td><td>지갑형 마감 적층</td><td>묶음 6개 · 지난 마감 최상단 · 단일 펼침</td></tr>
+    <tr><td class="k">F-07</td><td>완료 · 삭제</td><td>완료 시 해당 할 일의 알림이 전부 취소된다</td></tr>
+  </table></div>
+
+  <h3>6.3 P1 기능</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>ID</th><th>기능</th><th>핵심 수용 기준</th></tr></thead>
+    <tr><td class="k">F-08</td><td>로컬 마감 알림</td><td>시간 지정 1시간 전 · 종일 당일 09:00 · 공통 하루 전 20:00 · 경과 시각 미예약</td></tr>
+    <tr><td class="k">F-08.1</td><td>확인 요청 알림</td><td>식별자 접두사 <code>capture#</code>. 마감 알림과 충돌 시 마감 알림이 소실된다</td></tr>
+    <tr><td class="k">F-08.2</td><td>알림 권한 요청</td><td>최초 저장 시점에 요청한다</td></tr>
+    <tr><td class="k">F-09</td><td>Apple 캘린더 추가</td><td>선택적 출력 · 실패해도 할 일은 보존</td></tr>
+    <tr><td class="k">F-10</td><td>이번 달 캘린더</td><td>읽기 전용 · 마감일 표식 · 날짜 선택 시 해당일 일정 표시</td></tr>
+  </table></div>
+
+  <h3>6.4 P2 기능</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>ID</th><th>기능</th><th>핵심 수용 기준</th></tr></thead>
+    <tr><td class="k">F-11</td><td>텍스트 직접 입력 분석</td><td>스크린샷 없이 분석 품질만 확인하는 경로</td></tr>
+    <tr><td class="k">F-12</td><td>백엔드 없이 흐름 확인</td><td><code>CAPTURETASK_OFFLINE=1</code> · 규칙 기반 분석기 사용</td></tr>
+  </table></div>
 </section>
 
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════ 7 ══════════════════════ -->
 <section id="s7">
-  <h2>07</h2>
-  <h3 class="title">유저 플로우</h3>
-  <p class="lede">스크린샷 한 장이 할 일이 되기까지. <strong>캡처가 지워지는 자리가 두 곳뿐인 것</strong>이 이 흐름의 핵심이다.</p>
+  <div class="num">7</div>
+  <h2>정보 구조 및 화면 설계</h2>
 
+  <h3>7.1 화면 목록</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>ID</th><th>화면</th><th>구현 파일</th><th>플랫폼</th></tr></thead>
+    <tr><td class="k">S1</td><td>탭 컨테이너</td><td><code>apps/ios/Views/RootView.swift</code></td><td>iOS</td></tr>
+    <tr><td class="k">S2</td><td>마감 적층 (홈)</td><td><code>apps/ios/Views/DueStackView.swift</code></td><td>iOS</td></tr>
+    <tr><td class="k">S3</td><td>할 일 카드</td><td><code>apps/ios/Views/TaskCard.swift</code></td><td>iOS</td></tr>
+    <tr><td class="k">S4</td><td>이번 달 캘린더</td><td><code>apps/ios/Views/MonthCalendarView.swift</code></td><td>iOS</td></tr>
+    <tr><td class="k">S5</td><td>할 일 확인</td><td><code>apps/ios/Views/TaskReviewView.swift</code></td><td>iOS</td></tr>
+    <tr><td class="k">S6</td><td>텍스트 분석 · 설정</td><td><code>ManualCaptureSheet</code> · <code>SettingsSheet</code></td><td>iOS</td></tr>
+    <tr><td class="k">M1</td><td>플로팅 물방울</td><td><code>apps/macos/Views/DropletView.swift</code></td><td>macOS</td></tr>
+    <tr><td class="k">M2</td><td>대시보드 (사이드바 + 목록)</td><td><code>DashboardView</code> · <code>DashboardSidebar</code> · <code>TaskListPane</code></td><td>macOS</td></tr>
+    <tr><td class="k">M3</td><td>월 캘린더 + 일정</td><td><code>apps/macos/Views/MonthCalendarPane.swift</code></td><td>macOS</td></tr>
+    <tr><td class="k">M4</td><td>결과 배너 (되돌리기)</td><td><code>apps/macos/Views/FiledBanner.swift</code></td><td>macOS</td></tr>
+    <tr><td class="k">M5</td><td>메뉴바 항목</td><td><code>apps/macos/Views/MenuBarIcon.swift</code></td><td>macOS</td></tr>
+  </table></div>
+
+  <h3>7.2 마감 묶음</h3>
+  <p>상위에 위치할수록 긴급하다. 순서의 유일한 근거는 <code>DueBucket</code> 의
+     <strong>선언 순서</strong>이며, 화면 계층은 정렬을 재수행하지 않는다. 정렬 지점이
+     둘로 분기하면 표시 순서의 근거를 설명할 수 없게 된다.</p>
+<pre>지난 마감 → 오늘 → 앞으로 7일 → 그 뒤 → 날짜 없음 → 완료</pre>
+  <div class="tbl"><table>
+    <thead><tr><th>묶음</th><th>판정 기준</th></tr></thead>
+    <tr><td class="k">지난 마감</td><td>마감일이 오늘 이전 · <strong>또는</strong> 시각이 명시된 항목의 시각이 경과</td></tr>
+    <tr><td class="k">오늘</td><td>마감일이 오늘</td></tr>
+    <tr><td class="k">앞으로 7일</td><td>마감일이 1~7일 후</td></tr>
+    <tr><td class="k">그 뒤</td><td>마감일이 8일 이후</td></tr>
+    <tr><td class="k">날짜 없음</td><td>마감일 미설정</td></tr>
+    <tr><td class="k">완료</td><td>완료 처리됨</td></tr>
+  </table></div>
+  <p>시각이 명시된 항목은 해당 시각 경과 시 <strong>동일 날짜라도 지난 마감</strong>으로
+     분류한다. 날짜만 비교하면 “오후 2시 예약”이 오후 6시에도 오늘 할 일로 잔존한다.</p>
+
+  <h3>7.3 플랫폼별 표현 차이</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>항목</th><th>iOS</th><th>macOS</th></tr></thead>
+    <tr><td class="k">진입 경로</td><td>공유 시트 · 사진 고르기</td><td>물방울 드롭 · 다른 앱으로 열기 · 파일 고르기</td></tr>
+    <tr><td class="k">확인</td><td>확인 화면을 반드시 경유</td><td>명확하면 즉시 등록 후 되돌리기 제공</td></tr>
+    <tr><td class="k">목록</td><td>지갑형 적층</td><td>사이드바 + 평면 목록</td></tr>
+    <tr><td class="k">상시 존재</td><td>없음</td><td>메뉴바 + 플로팅 물방울</td></tr>
+  </table></div>
+  <p>공유 대상은 <code>core/swift</code> 전체이며, 화면(<code>Views</code>)만 플랫폼별로
+     분기한다.</p>
+</section>
+
+<!-- ══════════════════════ 8 ══════════════════════ -->
+<section id="s8">
+  <div class="num">8</div>
+  <h2>유저 플로우 및 유스케이스</h2>
+
+  <h3>8.1 주 플로우</h3>
 <pre>사진 앱 / 메신저
   │ 스크린샷을 공유 시트로
   ▼
-┌─────────────────────┐
-│ Share Extension     │  ← 별도 프로세스. 담기가 **먼저**
-│ "담는 중이에요…"     │
-└─────────┬───────────┘
-          │ 이미지 + 메타데이터를 원자적으로 쓴다
+┌──────────────────────┐
+│ Share Extension      │  별도 프로세스. 담기가 분석에 선행
+│ "담는 중이에요…"      │
+└─────────┬────────────┘
+          │ 이미지 + 메타데이터를 원자적으로 기록
           ▼
-   App Group 상자 ─────────────────────────┐
-          │ 사용자가 앱을 연다              │ (안 열면 1시간 뒤 한 번 더 알린다)
-          ▼                                │
-   이미 할 일이 됐나? ──── 예 ──→ 상자에서 치움 ─┘
+   App Group 상자 ────────────────────────────┐
+          │ 사용자가 앱을 실행                 │ 미실행 시 1시간 후 재알림
+          ▼                                   │
+   이미 할 일로 변환됨? ── 예 ──→ 상자에서 제거 ─┘
           │ 아니오
           ▼
-   확인 대기 초안이 있나? ── 예 ──→ 다시 분석하지 않는다
+   미확인 초안 존재? ── 예 ──→ 재분석하지 않음
           │ 아니오
           ▼
-┌─────────────────────┐
-│ Vision OCR (배경 큐) │──실패──→ "글자를 찾지 못했어요" · 캡처는 남는다
-└─────────┬───────────┘
+┌──────────────────────┐
+│ Vision OCR (배경 큐) │──실패──→ 사유 표시 · 캡처 보존
+└─────────┬────────────┘
           ▼
-┌─────────────────────┐
-│ 백엔드 분석          │──실패──→ 원인별 문구 · 캡처는 남는다
-│ POST /v1/analyze-…  │
-└─────────┬───────────┘
+┌──────────────────────┐
+│ 백엔드 분석          │──실패──→ 원인별 사유 표시 · 캡처 보존
+│ POST /v1/analyze-…   │
+└─────────┬────────────┘
           ▼
-   TaskDraft 저장 (디스크에도)
+   TaskDraft 저장 (디스크 포함)
           ▼
-┌─────────────────────┐
+┌──────────────────────┐
 │ 할 일 확인 (모달)    │
-└─┬────────┬────────┬─┘
-  │저장     │나중에   │버리기
-  ▼         ▼        ▼
-할 일 저장  초안 유지  초안 + 캡처 삭제
-  ├──→ 알림 예약 (마감이 있고 켜 뒀으면)
-  ├──→ 캘린더 저장 (켜 뒀으면) ──실패──→ "할 일은 저장했어요"
-  └──→ 캡처 삭제 ← **여기서 처음 지운다**</pre>
+└─┬─────────┬────────┬─┘
+  │저장      │나중에   │버리기
+  ▼          ▼        ▼
+할 일 저장   초안 유지  초안 + 캡처 삭제
+  ├──→ 알림 예약 (마감 존재 및 활성화 시)
+  ├──→ 캘린더 저장 (활성화 시) ──실패──→ "할 일은 저장했어요"
+  └──→ 캡처 삭제 ← 최초 삭제 지점</pre>
+  <p><strong>캡처가 삭제되는 지점은 저장 성공과 버리기 두 곳뿐이다.</strong>
+     그 외 모든 실패 경로에서 캡처는 상자에 보존된다.</p>
 
-  <div class="note">
-    <span class="h">macOS 는 흐름이 다르다</span>
-    <p>맥에서는 물방울에 떨어뜨리면 <strong>분명할 때 바로 넣고</strong> “넣었어요 · 실행 취소 · 고치기” 배너를 8초 띄운다. 모호하면 확인 창을 연다. 확인을 버린 것이 아니라 <em>저장 전 확인</em>과 <em>저장 후 되돌리기</em>로 나눈 것이고, 판단 기준은 <code>AutoFilePolicy</code> 한 곳이다.</p>
-  </div>
+  <h3>8.2 macOS 플로우 차이</h3>
+  <p>macOS 에서는 물방울에 드롭하면 <strong>명확한 경우 즉시 등록</strong>하고
+     “넣었어요 · 실행 취소 · 고치기” 배너를 8초간 표시한다. 모호한 경우 확인 창을 연다.
+     확인 단계를 제거한 것이 아니라 <em>저장 전 확인</em>과 <em>저장 후 되돌리기</em>로
+     분기한 것이며, 판정 기준은 <code>AutoFilePolicy</code> 단일 지점에 있다.</p>
+<pre>날짜 없음                  →  확인 요청 ("날짜를 찾지 못했어요")
+ambiguities 비어 있지 않음  →  확인 요청 (해당 모호점을 그대로 표시)
+confidence &lt; 0.80           →  확인 요청
+그 외                       →  즉시 등록 + 되돌리기 배너</pre>
+  <p><code>ambiguities</code> 를 <code>confidence</code> 보다 먼저 평가한다. 실제 호출에서
+     confidence 가 0.9~1.0 구간에만 분포하여 판별력을 갖지 못하기 때문이다 (§16).</p>
 
-  <h4>유스케이스</h4>
-  <div class="tbl"><table class="tight">
-    <thead><tr><th>ID</th><th>상황</th><th>결과</th></tr></thead>
-    <tr><td>UC-1</td><td>예약 확정 문자를 할 일로</td><td>제목·마감·근거가 채워진 확인 화면 → 저장 → 알림 예약</td></tr>
-    <tr><td>UC-2</td><td>광고 스크린샷을 잘못 담았다</td><td>“버리기” — 초안과 캡처가 함께 사라진다</td></tr>
-    <tr><td>UC-3</td><td>앱을 안 열고 여러 장을 담았다</td><td>상자에 쌓이고, 1시간 뒤 확인 요청 알림이 한 번 더 온다</td></tr>
-    <tr><td>UC-4</td><td>캘린더 권한을 거절했다</td><td>할 일은 저장된다. 캘린더만 건너뛴다</td></tr>
-    <tr><td>UC-5</td><td>저장 파일이 깨졌다</td><td>지우지 않고 <code>corrupt-*.json</code> 으로 격리하고 사용자에게 알린다</td></tr>
-    <tr><td>UC-6</td><td>백엔드가 꺼져 있다</td><td>원인을 말한다. <strong>조용히 규칙 기반으로 떨어지지 않는다</strong></td></tr>
+  <h3>8.3 유스케이스</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>ID</th><th>상황</th><th>기대 동작</th></tr></thead>
+    <tr><td class="k">UC-1</td><td>예약 확정 문자를 할 일로 변환</td><td>제목·마감·근거가 채워진 확인 화면 → 저장 → 알림 예약</td></tr>
+    <tr><td class="k">UC-2</td><td>광고 스크린샷을 오인 담기</td><td>“버리기” 선택 시 초안과 캡처가 함께 삭제된다</td></tr>
+    <tr><td class="k">UC-3</td><td>앱 미실행 상태에서 복수 담기</td><td>상자에 누적되고 1시간 후 확인 요청 알림이 1회 발송된다</td></tr>
+    <tr><td class="k">UC-4</td><td>캘린더 권한 거절</td><td>할 일은 저장되고 캘린더 단계만 생략된다</td></tr>
+    <tr><td class="k">UC-5</td><td>저장 파일 손상</td><td>삭제하지 않고 <code>corrupt-*.json</code> 으로 격리 후 사용자에게 통지</td></tr>
+    <tr><td class="k">UC-6</td><td>백엔드 중단</td><td>원인을 표시한다. 규칙 기반으로 자동 전환하지 않는다</td></tr>
   </table></div>
 </section>
 
-<!-- ══════════════════════════════════════════ -->
-<section id="s8">
-  <h2>08</h2>
-  <h3 class="title">화면 — 실제 실행 결과</h3>
-  <p class="lede">아래는 문서의 그림이 아니라 <strong>이 보고서를 쓰면서 실제로 띄워 찍은 화면</strong>이다. iOS 는 시뮬레이터, macOS 는 서명해 실행한 앱이다.</p>
-
-  <h4>iOS</h4>
-  <div class="shots">
-    <figure>{{IMG:ios-home}}<figcaption><b>홈 · 마감 스택.</b> 지난 마감 3건이 맨 위, 그 아래 오늘 1건. 카드가 지갑처럼 겹쳐 쌓인다.</figcaption></figure>
-    <figure>{{IMG:ios-calendar}}<figcaption><b>캘린더.</b> 마감이 있는 날에 점, 날짜를 누르면 그날의 일정. “여기서는 보기만 해요”를 화면이 직접 말한다.</figcaption></figure>
-    <figure>{{IMG:ios-settings}}<figcaption><b>설정 · 분석 엔진.</b> 백엔드 / 규칙 기반 / 온디바이스. 고르는 지점이 한 곳이다.</figcaption></figure>
-    <figure>{{IMG:ios-text}}<figcaption><b>텍스트로 시험하기.</b> 스크린샷 없이 분석 품질만 확인하는 경로.</figcaption></figure>
-  </div>
-
-  <div class="note">
-    <span class="h">이 화면에서 발견한 것</span>
-    <p>홈의 “치과 정기 검진” 카드에서 <strong>마감 두 번째 줄(<code>14:00</code>)이 다음 카드에 가려진다.</strong> 겹침 높이(<code>peekHeight</code>)가 한 줄을 전제하는데 “2026년 7월 31일 14:00” 이 두 줄로 넘친 것이다. 접근성 글자 크기에서는 목록으로 전환해 해결했지만, <em>기본 크기에서도 날짜가 길면 같은 일이 생긴다.</em> 회고에 남긴 규칙 — “화면이 걸린 변경은 테스트가 초록이어도 한 번은 눈으로 본다” — 이 다시 확인된 사례다.</p>
-  </div>
-
-  <h4>macOS</h4>
-  <figure>{{IMG:dash4}}<figcaption><b>대시보드.</b> 왼쪽에서 마감 묶음을 고르고 오른쪽에서 목록을 본다. 사이드바 숫자(3+1+3+2+2=11)와 목록 길이는 같은 함수가 센다. 아래 상태 줄은 담기 상태·오류·분석 엔진을 창 어디서든 같은 자리에 보여준다.</figcaption></figure>
-  <div class="pair">
-    <figure>{{IMG:dash-overdue4}}<figcaption><b>지난 마감.</b> 색과 기호를 함께 쓴다 — 색만으로 알리지 않는다.</figcaption></figure>
-    <figure>{{IMG:calendar-day5b}}<figcaption><b>캘린더.</b> 8월 5일을 고른 상태. 오늘(2일)은 옅은 원으로 남는다.</figcaption></figure>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════ 9 ══════════════════════ -->
 <section id="s9">
-  <h2>09</h2>
-  <h3 class="title">기술 — 아키텍처와 결정</h3>
-  <p class="lede">의존은 한 방향뿐이다. 모델은 화면도 플랫폼도 모른다 — 그래야 계산을 테스트하려고 화면을 띄우지 않아도 된다.</p>
+  <div class="num">9</div>
+  <h2>사용자 인터페이스 (실행 화면)</h2>
+  <p>본 절의 화면은 문서용 도해가 아니라 <strong>실제 실행 결과를 캡처한 것</strong>이다.
+     iOS 는 시뮬레이터(iPhone 17 Pro · iOS 26), macOS 는 서명 후 실행한 애플리케이션이다.
+     표본 데이터 13건을 주입한 상태다.</p>
 
-<pre>apps/ios/Views          apps/macos/Views
-       ↘                       ↙
-          core/swift/Store          상태 · 영속화 · 유스케이스 조율
-                ↓
-          core/swift/Services       프로토콜 → 플랫폼 · API 어댑터
-                ↓
-          core/swift/Models         ← 아무것도 모른다 (Foundation 제외)</pre>
+  <h3>9.1 iOS</h3>
+  <div class="shots">
+    <figure>{{IMG:ios-home}}<figcaption><b>S2 · 마감 적층 (홈).</b> 지난 마감 3건이
+      최상단, 하위에 오늘 1건. 카드가 지갑 형태로 적층된다.</figcaption></figure>
+    <figure>{{IMG:ios-calendar}}<figcaption><b>S4 · 이번 달 캘린더.</b> 마감일에 표식,
+      날짜 선택 시 해당일 일정. “여기서는 보기만 해요”를 화면이 명시한다.</figcaption></figure>
+    <figure>{{IMG:ios-settings}}<figcaption><b>S6 · 설정.</b> 분석 엔진 3종 중 선택.
+      선택 지점이 단일하다.</figcaption></figure>
+    <figure>{{IMG:ios-text}}<figcaption><b>F-11 · 텍스트 직접 입력.</b> 스크린샷 없이
+      분석 품질만 확인하는 경로.</figcaption></figure>
+  </div>
 
-  <h4>아키텍처 결정 기록 (ADR)</h4>
-  <div class="tbl"><table class="tight">
-    <thead><tr><th>ADR</th><th>결정</th></tr></thead>
-    <tr><td>1</td><td>계산은 모델의 순수 함수로 유지한다</td></tr>
-    <tr><td>2</td><td>Share Extension 은 죽어도 캡처를 잃지 않는다 — 담기가 분석보다 먼저</td></tr>
-    <tr><td>3</td><td>문맥 분석기는 프로토콜 뒤에서 교체한다</td></tr>
-    <tr><td>4</td><td>AI 는 제안만 한다</td></tr>
-    <tr><td>5</td><td>API 키는 백엔드에만 둔다</td></tr>
-    <tr><td>6</td><td>구조화 출력은 경계일 뿐 진실이 아니다 — 받은 뒤에도 검증한다</td></tr>
-    <tr><td>7</td><td>앱 할 일이 원장이고 나머지는 시점이다</td></tr>
-    <tr><td>8</td><td>알림은 로컬 알림이다</td></tr>
-    <tr><td>9</td><td>저장 실패를 삼키지 않고 손상 파일을 격리한다</td></tr>
-    <tr><td>10</td><td>온디바이스 LLM 은 기본 엔진으로 아직 권하지 않는다</td></tr>
-  </table></div>
+  <div class="note">
+    <span class="h">본 검증에서 발견된 결함</span>
+    <p>홈 화면의 “치과 정기 검진” 카드에서 <strong>마감 표시의 두 번째 줄(<code>14:00</code>)이
+      다음 카드에 가려진다.</strong> 적층 노출 높이(<code>peekHeight</code>)가 마감 표시를
+      1행으로 전제하는데, “2026년 7월 31일 14:00” 이 2행으로 확장된 것이다. 접근성 글자
+      크기에서는 목록 전환으로 해소했으나 <em>기본 크기에서도 문자열이 길면 동일 현상이
+      발생한다.</em> 잔여 과제로 등록한다 (§17).</p>
+  </div>
 
-  <h4>알림 세 종류 — 목적이 다르고 소유자도 다르다</h4>
-  <div class="tbl"><table class="tight">
-    <thead><tr><th>종류</th><th>언제</th><th>소유</th></tr></thead>
-    <tr><td>마감 알림</td><td>시간 지정 1시간 전 · 종일 당일 09:00 · 공통 하루 전 20:00. 이미 지난 시각은 걸지 않는다</td><td><code>ReminderSchedule</code> 계산 · <code>LocalNotificationService</code> 예약</td></tr>
-    <tr><td>등록 알림</td><td>공유 직후 “언제 무슨 일정이 등록되었습니다”</td><td><code>CaptureNotice.postFiled</code></td></tr>
-    <tr><td>확인 요청</td><td>분석 실패·모호할 때 · 미확인 초안은 앱을 나간 뒤 1시간</td><td><code>CaptureNotice</code> — 식별자 앞에 <code>capture#</code></td></tr>
-  </table></div>
-  <p><strong>두 알림의 식별자가 겹치면 안 된다.</strong> 겹치면 앱이 앞에 있을 때 마감 알림까지 조용히 사라진다.</p>
-
-  <h4>분석 엔진</h4>
-  <p>엔진을 고르는 지점은 <code>AnalysisEngine</code> 과 <code>ContextUnderstanding.make(_:)</code> <strong>두 파일뿐</strong>이다. 온디바이스로 옮길 때 화면·저장소·테스트는 그대로다.</p>
-  <div class="tbl"><table class="tight">
-    <tr><td>백엔드 (OpenAI)</td><td>가장 정확. 인식한 글자만 서버로 가고 스크린샷은 기기에 남는다</td></tr>
-    <tr><td>규칙 기반 (오프라인)</td><td><code>NSDataDetector</code> 로 날짜만. 문맥을 모르므로 언제나 확인을 요청한다</td></tr>
-    <tr><td>온디바이스</td><td>Apple Foundation Models. 자리는 있으나 기본값으로 권하지 않는다 (ADR-10)</td></tr>
-  </table></div>
+  <h3>9.2 macOS</h3>
+  <figure>{{IMG:dash4}}<figcaption><b>M2 · 대시보드.</b> 좌측에서 마감 묶음을 선택하고
+    우측에서 목록을 확인한다. 사이드바 표시 건수(3+1+3+2+2=11)와 목록 길이는 동일 함수가
+    산출한다. 하단 상태 줄은 담기 상태·오류·분석 엔진을 창 위치와 무관하게 동일 지점에
+    표시한다.</figcaption></figure>
+  <div class="pair">
+    <figure>{{IMG:dash-overdue4}}<figcaption><b>지난 마감 선택 상태.</b> 색과 기호를
+      병기한다 — 색 단독으로 정보를 전달하지 않는다.</figcaption></figure>
+    <figure>{{IMG:calendar-day5b}}<figcaption><b>M3 · 캘린더.</b> 8월 5일 선택 상태.
+      당일(2일)은 옅은 원으로 구분된다.</figcaption></figure>
+  </div>
+  <div class="pair">
+    <figure>{{IMG:droplet-final}}<figcaption><b>M1 · 플로팅 물방울.</b> 정원 · 지름 44pt
+      (대기 시). 배경이 투과된다. 상태는 크기로만 표현한다.</figcaption></figure>
+    <figure>{{IMG:menubar-final}}<figcaption><b>M5 · 메뉴바 항목</b> (좌측 첫 번째).
+      맺힌 윤곽과 광점. 템플릿 이미지이므로 시스템이 색을 결정한다.</figcaption></figure>
+  </div>
 </section>
 
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════ 10 ══════════════════════ -->
 <section id="s10">
-  <h2>10</h2>
-  <h3 class="title">저장소 구조</h3>
-  <p class="lede">플랫폼이 늘어도 <code>apps/</code> 아래 폴더 하나만 늘어나도록 짰다. 화면만 플랫폼별로 갈리고, 나머지는 하나다.</p>
+  <div class="num">10</div>
+  <h2>시스템 아키텍처</h2>
 
+  <h3>10.1 계층과 의존 방향</h3>
+  <p>의존은 단방향이다. 모델 계층은 화면도 플랫폼 프레임워크도 알지 못한다.
+     그래야 계산을 검증하기 위해 화면을 기동할 필요가 없다.</p>
+<pre>apps/ios/Views              apps/macos/Views
+        ↘                          ↙
+              core/swift/Store         상태 · 영속화 · 유스케이스 조율
+                    ↓
+              core/swift/Services      프로토콜 → 플랫폼 · API 어댑터
+                    ↓
+              core/swift/Models        Foundation 외 어떤 것도 import 하지 않는다</pre>
+
+  <h3>10.2 구성 요소</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>구성 요소</th><th>책임</th><th>기술</th></tr></thead>
+    <tr><td class="k">iOS 앱</td><td>담기 · 확인 · 목록 · 캘린더 · 알림</td><td>Swift 5 · SwiftUI</td></tr>
+    <tr><td class="k">iOS Share Extension</td><td>담기 (분석·등록까지 수행하나 담기가 선행)</td><td>Swift 5 · UIKit</td></tr>
+    <tr><td class="k">macOS 앱</td><td>플로팅 물방울 · 대시보드 · 메뉴바</td><td>Swift 5 · SwiftUI + AppKit</td></tr>
+    <tr><td class="k">macOS Share Extension</td><td>파일 URL 수신 후 메인 앱 기동</td><td>Swift 5</td></tr>
+    <tr><td class="k">공용 코어</td><td>모델 · 서비스 · 저장소 · 앱↔확장 브리지</td><td>Swift 5 · 외부 의존성 0</td></tr>
+    <tr><td class="k">분석 백엔드</td><td>OCR 텍스트 → 할 일 초안 변환</td><td>Node 22 · <code>node:http</code> · 외부 의존성 0</td></tr>
+  </table></div>
+
+  <h3>10.3 아키텍처 결정 기록 (ADR)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th class="n">ADR</th><th>결정</th><th>근거 요약</th></tr></thead>
+    <tr><td class="n">1</td><td>계산은 모델의 순수 함수로 유지한다</td><td>화면 없이 검증 가능해야 한다</td></tr>
+    <tr><td class="n">2</td><td>Share Extension 은 종료되어도 캡처를 유실하지 않는다</td><td>시스템은 확장을 임의로 종료한다</td></tr>
+    <tr><td class="n">3</td><td>문맥 분석기는 프로토콜 뒤에서 교체한다</td><td>공급자 이전 시 단일 지점만 변경</td></tr>
+    <tr><td class="n">4</td><td>AI 는 제안만 한다</td><td>일정 오인식은 실제 약속을 훼손한다</td></tr>
+    <tr><td class="n">5</td><td>API 키는 백엔드에만 둔다</td><td>앱 번들 문자열은 추출 가능하다</td></tr>
+    <tr><td class="n">6</td><td>구조화 출력은 경계일 뿐 진실이 아니다</td><td>수신 후에도 범위를 검증한다</td></tr>
+    <tr><td class="n">7</td><td>앱 할 일이 원장이고 나머지는 시점이다</td><td>원장 이중화를 방지한다</td></tr>
+    <tr><td class="n">8</td><td>알림은 로컬 알림이다</td><td>서버가 할 일을 보유하지 않는다</td></tr>
+    <tr><td class="n">9</td><td>저장 실패를 삼키지 않고 손상 파일을 격리한다</td><td>사용자는 유실 후에 인지한다</td></tr>
+    <tr><td class="n">10</td><td>온디바이스 LLM 을 기본 엔진으로 채택하지 않는다</td><td>비교 기준선이 없다</td></tr>
+  </table></div>
+
+  <h3>10.4 분석 엔진</h3>
+  <p>엔진 선택 지점은 <code>AnalysisEngine</code> 과 <code>ContextUnderstanding.make(_:)</code>
+     <strong>2개 파일에 한정</strong>된다. 온디바이스로 이전할 때 화면·저장소·테스트는
+     변경되지 않는다.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>엔진</th><th>특성</th><th>상태</th></tr></thead>
+    <tr><td class="k">백엔드 (OpenAI)</td><td>최고 정확도. 인식 텍스트만 전송되며 원본은 기기에 잔류</td><td><span class="st on">기본값</span></td></tr>
+    <tr><td class="k">규칙 기반 (오프라인)</td><td><code>NSDataDetector</code> 로 날짜만 추출. 문맥 미해석이므로 항상 확인 요청</td><td><span class="st mid">선택 가능</span></td></tr>
+    <tr><td class="k">온디바이스</td><td>Apple Foundation Models</td><td><span class="st off">기본값 비권장</span></td></tr>
+  </table></div>
+  <p><strong>백엔드 장애 시 규칙 기반으로 자동 전환하지 않는다.</strong> 조용한 품질 저하는
+     사용자가 인지하지 못하고, 운영 측도 장애를 인지하지 못한다.</p>
+</section>
+
+<!-- ══════════════════════ 11 ══════════════════════ -->
+<section id="s11">
+  <div class="num">11</div>
+  <h2>저장소 구조 및 확장 규칙</h2>
+
+  <h3>11.1 디렉터리 구조</h3>
 <pre>apps/
-  ios/     App/ Views/ Resources/ Share/          ← 화면은 여기서만 갈린다
+  ios/     App/ Views/ Resources/ Share/            화면은 여기서만 분기한다
   macos/   App/ Views/ Windows/ Resources/ Share/
 core/
-  swift/   Models/ Services/ Store/ Shared/       ← 두 앱과 두 확장이 전부 쓴다
-tests/swift/     124건
-server/          모든 플랫폼이 부르는 단 하나의 백엔드 · 외부 패키지 0
-config/apple/    entitlements · Secrets.xcconfig (커밋 안 됨)
-docs/            product/ engineering/ platform/ plans/
-scripts/         verify · 규칙 검사 · 문서 링크 검사 · 배포</pre>
+  swift/   Models/ Services/ Store/ Shared/         두 앱과 두 확장이 공유한다
+tests/swift/     130건
+server/          전 플랫폼이 호출하는 단일 백엔드 · 외부 의존성 0
+config/apple/    entitlements 4개 · Secrets.xcconfig (미커밋)
+docs/            product/ engineering/ platform/ plans/ report/
+scripts/         verify · 규칙 검사 · 문서 링크 검사 · 배포 · 보고서 생성
+project.yml      XcodeGen 정의 — .xcodeproj 는 생성물이다</pre>
 
-  <div class="tbl"><table class="tight">
-    <thead><tr><th>왜 이렇게</th><th></th></tr></thead>
-    <tr><td><code>core/swift</code> 의 <code>swift</code></td><td>우연이 아니다. Kotlin 이 필요해지면 <code>core/kotlin/</code> 이 형제로 들어온다</td></tr>
-    <tr><td><code>server/</code> 가 <code>apps/</code> 밖</td><td>서버는 어느 한 앱의 것이 아니다. 안드로이드가 붙는 날 “왜 iOS 폴더 안의 서버를 부르지”가 된다</td></tr>
-    <tr><td><code>config/apple/</code></td><td>entitlements 와 xcconfig 는 애플 빌드에만 쓰인다. Android 가 붙으면 <code>config/android/</code> 가 형제로</td></tr>
-  </table></div>
-
-  <div class="note">
-    <span class="h">경로를 아는 곳은 일곱 군데뿐</span>
-    <p><code>project.yml</code> · <code>check-project-rules.sh</code>(맨 위 여섯 줄) · <code>verify.sh</code> · <code>.swiftlint.yml</code> · <code>lefthook.yml</code> · <code>.gitignore</code> · CI. 구조를 바꾸면 여기가 전부 따라 바뀌어야 한다. 규칙 검사기는 <strong>자기 자신을 먼저 검사한다</strong> — 대상 디렉터리가 없거나 훑은 파일이 15개 미만이면 실패한다. 경로가 어긋난 채 초록불이 나는 것을 막는 유일한 장치다.</p>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════ -->
-<section id="s11">
-  <h2>11</h2>
-  <h3 class="title">백엔드와 API 계약</h3>
-  <p class="lede">Node 22 · <code>node:http</code> · <strong>외부 패키지 0</strong>. Cloud Run(서울)에 배포되어 있다.</p>
-
-  <h5><code>POST /v1/analyze-capture</code></h5>
-<pre>요청  { "recognized_text": "…", "locale": "ko-KR",
-       "timezone": "Asia/Seoul", "now": "2026-08-01T12:00:00+09:00" }
-
-응답  [TaskDraft]  — 한 장에 일정이 여럿일 수 있다</pre>
-
-  <div class="tbl"><table class="tight">
-    <thead><tr><th class="num">코드</th><th>이름</th><th>언제</th></tr></thead>
-    <tr><td class="num">200</td><td>—</td><td>성공</td></tr>
-    <tr><td class="num">400</td><td><code>invalid_request</code></td><td>빈 원문, 해석 불가 JSON</td></tr>
-    <tr><td class="num">401</td><td><code>unauthorized</code></td><td>클라이언트 키 없음·틀림</td></tr>
-    <tr><td class="num">413</td><td><code>payload_too_large</code></td><td>본문 128KB 초과</td></tr>
-    <tr><td class="num">429</td><td><code>rate_limited</code></td><td>OpenAI 한도 <strong>또는</strong> 우리 요청 한도</td></tr>
-    <tr><td class="num">502</td><td><code>analysis_failed</code></td><td>OpenAI 오류·연결 실패·응답 검증 실패</td></tr>
-    <tr><td class="num">504</td><td><code>upstream_timeout</code></td><td>OpenAI 응답 15초 초과</td></tr>
-  </table></div>
-
-  <h5>클라이언트 인증</h5>
-  <p>앱이 <code>X-CaptureTask-Key</code> 헤더에 공유 비밀(최소 24자)을 실어 보내고, 서버는 <code>timingSafeEqual</code> 로 비교한다. <code>/health</code> 는 인증 밖이다 — Cloud Run 상태 확인이 키를 모른다.</p>
-  <div class="note">
-    <span class="h">이 비밀은 앱 번들을 뜯으면 나온다 — 그걸 알고 쓰는 방식이다</span>
-    <p>새는 것이 OpenAI 키가 <strong>아니라</strong> 이 값이라 교체하면 끝난다. 새기 전까지 무작위 스캐너를 전부 막고, 새더라도 요청 한도가 금액 피해를 제한한다. 진짜로 앱만 통과시키려면 App Attest 가 필요하고 그건 MVP 범위 밖이다.</p>
-    <p>안전장치 둘 — 루프백이 아닌 주소에 바인딩하면 키를 <strong>반드시</strong> 요구하고 없으면 서버가 시작을 거부한다. 클라이언트 키에 <code>sk-</code> 로 시작하는 값을 넣어도 시작을 거부한다(백엔드를 둔 이유가 통째로 무너지므로).</p>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════ -->
-<section id="s12">
-  <h2>12</h2>
-  <h3 class="title">품질 — 검증 하네스</h3>
-  <p class="lede">사람 · AI · Git Hook · CI 가 <strong>모두 같은 명령 하나</strong>를 쓴다. 검증이 사람마다 다르면 그 검증은 곧 아무도 안 믿게 된다.</p>
-
-<pre>./scripts/verify.sh</pre>
-
+  <h3>11.2 구조 결정 근거</h3>
   <div class="tbl"><table>
-    <thead><tr><th>검사</th><th>무엇을</th><th class="num">개수</th></tr></thead>
-    <tr><td>프로젝트 규칙</td><td>기성 린터가 모르는 것. 전부 실제로 한 번씩 사고를 낸 규칙이다</td><td class="num">12</td></tr>
-    <tr><td>문서 링크</td><td>모든 상대 링크가 실제 파일을 가리키는가</td><td class="num">143</td></tr>
-    <tr><td>swift-format</td><td>포맷 (경고)</td><td class="num">—</td></tr>
-    <tr><td>SwiftLint</td><td>심각도는 설정이 정한다 — <code>--strict</code> 를 쓰지 않는다</td><td class="num">—</td></tr>
-    <tr><td>백엔드 테스트</td><td>HTTP 계약·스키마·인증·요청 한도·타임아웃</td><td class="num">46</td></tr>
-    <tr><td>iOS 테스트</td><td>순수 계산·저장 계약·유스케이스·서비스 계약</td><td class="num">124</td></tr>
-    <tr><td>macOS 빌드</td><td>공유 코드를 고쳤을 때 여기가 먼저 깨진다</td><td class="num">—</td></tr>
+    <thead><tr><th>결정</th><th>근거</th></tr></thead>
+    <tr><td class="k"><code>core/swift</code> 의 언어 하위 디렉터리</td><td>Kotlin 등 다른 언어의 공용 코드가 필요해지면 <code>core/kotlin/</code> 이 형제로 추가된다</td></tr>
+    <tr><td class="k"><code>server/</code> 가 <code>apps/</code> 외부</td><td>백엔드는 특정 앱에 종속되지 않는다</td></tr>
+    <tr><td class="k"><code>config/apple/</code></td><td>entitlements 와 xcconfig 는 애플 빌드 전용이다</td></tr>
+    <tr><td class="k">화면만 플랫폼별 분기</td><td>계산·저장·어댑터는 전 플랫폼 동일 코드를 사용한다</td></tr>
   </table></div>
 
-  <h4>프로젝트 규칙이 잡는 것</h4>
-  <div class="tbl"><table class="tight">
-    <tr><td class="num">0</td><td>검사기 자신을 검사한다 — 훑은 파일이 15개 미만이면 실패</td></tr>
-    <tr><td class="num">1</td><td>App Group 식별자가 코드·<code>project.yml</code>·entitlements 두 파일에서 같은가</td></tr>
-    <tr><td class="num">2</td><td>OpenAI 키·직접 호출이 앱·Extension 에 없는가</td></tr>
-    <tr><td class="num">3</td><td>Share Extension 이 분석 전에 캡처를 담는가</td></tr>
-    <tr><td class="num">4</td><td>신뢰도 임계값이 <code>Confidence</code> 한 곳에만 있는가</td></tr>
-    <tr><td class="num">5</td><td>캡처를 지우는 지점이 저장소 하나뿐인가</td></tr>
-    <tr><td class="num">6</td><td>모델이 화면·플랫폼을 모르는가</td></tr>
-    <tr><td class="num">7</td><td>알림 예약이 정해진 두 파일에서만 일어나는가</td></tr>
-    <tr><td class="num">8</td><td>저장 실패를 <code>try?</code> 로 삼키지 않는가</td></tr>
-    <tr><td class="num">9</td><td>화면 파일 500줄 이내인가</td></tr>
-    <tr><td class="num">10</td><td>백엔드 기본 모델이 실재하는 이름인가</td></tr>
-    <tr><td class="num">11</td><td>공유 비밀이 커밋되지 않았는가</td></tr>
+  <h3>11.3 플랫폼 추가 절차</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>구분</th><th>절차</th></tr></thead>
+    <tr><td class="k">동일 언어<br>(visionOS 등)</td><td>1. <code>apps/&lt;platform&gt;/</code> 생성 · 2. <code>project.yml</code> 타깃 추가(소스에 <code>core/swift</code> 포함) · 3. entitlements 추가 · 4. 규칙 검사기 경로 묶음에 추가 · 5. <code>verify.sh</code> 에 빌드 추가</td></tr>
+    <tr><td class="k">다른 언어<br>(Android 등)</td><td>1. <code>apps/android/</code> · 2. <code>core/kotlin/</code> 에 동일 규칙 재구현 · 3. <code>tests/kotlin/</code> 에서 <strong>동일 경계값</strong> 검증 · 4. <code>config/android/</code> · 5. <code>server/</code> 는 그대로 사용</td></tr>
+  </table></div>
+  <p>다른 언어로 재구현할 때 두 구현이 분기하는 지점은 언제나 테스트가 다를 때다.
+     마감 묶음 순서·알림 시각·신뢰도 임계값이 플랫폼마다 다르면 동일 스크린샷이
+     기기마다 다른 할 일이 된다.</p>
+
+  <h3>11.4 경로를 인지하는 지점</h3>
+  <p>구조 변경 시 아래 7개소가 동시에 갱신되어야 한다. 하나라도 누락되면 해당 검사는
+     대상 없이 수행되고 <strong>거짓 통과</strong>를 반환한다.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>파일</th><th>인지 대상</th></tr></thead>
+    <tr><td class="k"><code>project.yml</code></td><td>타깃별 sources · info.path · entitlements.path · configFiles</td></tr>
+    <tr><td class="k"><code>scripts/check-project-rules.sh</code></td><td>상단 경로 묶음 6줄 (다른 위치에 경로를 기재하지 않는다)</td></tr>
+    <tr><td class="k"><code>scripts/verify.sh</code></td><td>포맷 대상 · Secrets.xcconfig 위치</td></tr>
+    <tr><td class="k"><code>.swiftlint.yml</code></td><td>included · excluded</td></tr>
+    <tr><td class="k"><code>lefthook.yml</code></td><td>포맷 대상 · 서버 테스트 glob</td></tr>
+    <tr><td class="k"><code>.gitignore</code></td><td><code>server/.env</code> · <code>config/apple/Secrets.xcconfig</code></td></tr>
+    <tr><td class="k"><code>.github/workflows/ci.yml</code></td><td>working-directory</td></tr>
+  </table></div>
+  <p>규칙 검사기는 <strong>자기 자신을 먼저 검사한다</strong>(규칙 0). 대상 디렉터리가
+     존재하지 않거나 주사한 파일이 15개 미만이면 실패한다.</p>
+
+  <h3>11.5 생성물</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>대상</th><th>정책</th></tr></thead>
+    <tr><td class="k"><code>CaptureTask.xcodeproj/</code></td><td>미커밋. <code>project.yml</code> 에서 생성한다</td></tr>
+    <tr><td class="k"><code>build/</code> · <code>DerivedData/</code></td><td>미커밋</td></tr>
+    <tr><td class="k"><code>config/apple/Secrets.xcconfig</code></td><td>미커밋. 배포 주소와 공유 비밀을 포함한다</td></tr>
+    <tr><td class="k"><code>server/.env</code></td><td>미커밋. OpenAI 키를 포함한다</td></tr>
+    <tr><td class="k"><code>output/</code></td><td>커밋. 도구 없이 열람 가능해야 하는 산출물</td></tr>
+  </table></div>
+</section>
+
+<!-- ══════════════════════ 12 ══════════════════════ -->
+<section id="s12">
+  <div class="num">12</div>
+  <h2>API 명세</h2>
+  <p>전체 규격은 <code>docs/engineering/21-API.md</code> 에 있다. 본 절은 계약의 요약이다.</p>
+
+  <h3>12.1 엔드포인트</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>메서드</th><th>경로</th><th>인증</th><th>설명</th></tr></thead>
+    <tr><td class="k">GET</td><td><code>/health</code></td><td>불필요</td><td>상태 확인</td></tr>
+    <tr><td class="k">POST</td><td><code>/v1/analyze-capture</code></td><td>필요</td><td>인식 텍스트를 할 일 초안으로 변환</td></tr>
   </table></div>
 
+  <h3>12.2 요청</h3>
+<pre>POST /v1/analyze-capture
+Content-Type: application/json
+X-CaptureTask-Key: &lt;공유 비밀&gt;
+
+{
+  "recognized_text": "8월 12일 오후 3시 정기검진 예약이 확정되었습니다.",
+  "locale": "ko-KR",
+  "timezone": "Asia/Seoul",
+  "now": "2026-08-02T12:00:00+09:00"
+}</pre>
+  <div class="tbl"><table>
+    <thead><tr><th>필드</th><th>타입</th><th>필수</th><th>기본값</th><th>제약</th></tr></thead>
+    <tr><td class="k">recognized_text</td><td>string</td><td>예</td><td>—</td><td>공백만이면 거부 · 50,000자 이하</td></tr>
+    <tr><td class="k">locale</td><td>string</td><td>아니오</td><td><code>ko-KR</code></td><td>40자 이하</td></tr>
+    <tr><td class="k">timezone</td><td>string</td><td>아니오</td><td><code>Asia/Seoul</code></td><td>80자 이하</td></tr>
+    <tr><td class="k">now</td><td>string</td><td>아니오</td><td>서버 현재 시각</td><td>ISO 8601 · 80자 이하</td></tr>
+  </table></div>
+  <p>본문 전체는 128 KB 를 초과할 수 없다. <code>now</code> 를 클라이언트가 전송하는 이유는
+     “다음 주 화요일” 등 상대 날짜 해석에 기준 시점이 필요하기 때문이다.</p>
+
+  <h3>12.3 응답 (200)</h3>
+<pre>{
+  "tasks": [
+    {
+      "title": "정기검진 방문",
+      "notes": "8월 12일 오후 3시 정기검진 예약이 확정되었습니다.",
+      "due_at": "2026-08-12T15:00:00+09:00",
+      "has_explicit_time": true,
+      "confidence": 1.0,
+      "evidence": ["8월 12일 오후 3시", "정기검진 예약이 확정"],
+      "ambiguities": []
+    }
+  ]
+}</pre>
+  <div class="tbl"><table>
+    <thead><tr><th>필드</th><th>타입</th><th>제약 · 의미</th></tr></thead>
+    <tr><td class="k">title</td><td>string</td><td>120자 이하</td></tr>
+    <tr><td class="k">notes</td><td>string</td><td>4,000자 이하</td></tr>
+    <tr><td class="k">due_at</td><td>string | null</td><td>오프셋 포함 ISO 8601. 날짜 부재 시 <code>null</code></td></tr>
+    <tr><td class="k">has_explicit_time</td><td>boolean</td><td>원문에 구체적 시각이 있을 때만 <code>true</code></td></tr>
+    <tr><td class="k">confidence</td><td>number</td><td>0 이상 1 이하</td></tr>
+    <tr><td class="k">evidence</td><td>string[]</td><td>최대 8개 · 각 300자 이하</td></tr>
+    <tr><td class="k">ambiguities</td><td>string[]</td><td>최대 8개. <strong>동작을 결정한다</strong> (§8.2)</td></tr>
+  </table></div>
+  <p>한 장에서 최대 8건을 반환한다. 예약 확정 문자에 검진과 재방문이 함께 오거나 공지
+     하나에 접수 마감과 발표일이 병기되는 경우가 있으며, 단일 항목만 반환하면 나머지를
+     사용자가 재입력해야 한다.</p>
+
+  <h3>12.4 오류</h3>
+  <div class="tbl"><table>
+    <thead><tr><th class="n">상태</th><th>code</th><th>발생 조건</th></tr></thead>
+    <tr><td class="n">400</td><td><code>invalid_request</code></td><td>빈 원문 · 해석 불가 JSON · 길이 초과</td></tr>
+    <tr><td class="n">401</td><td><code>unauthorized</code></td><td>키 부재 · 키 불일치</td></tr>
+    <tr><td class="n">404</td><td><code>not_found</code></td><td>미정의 경로·메서드</td></tr>
+    <tr><td class="n">413</td><td><code>payload_too_large</code></td><td>본문 128 KB 초과</td></tr>
+    <tr><td class="n">429</td><td><code>rate_limited</code></td><td>자체 요청 한도 또는 OpenAI 한도 초과</td></tr>
+    <tr><td class="n">502</td><td><code>analysis_failed</code></td><td>OpenAI 오류 · 연결 실패 · 응답 검증 실패</td></tr>
+    <tr><td class="n">504</td><td><code>upstream_timeout</code></td><td>OpenAI 응답 15초 초과</td></tr>
+  </table></div>
+  <p>업스트림 상태 코드를 그대로 전달하지 않는다. OpenAI 의 401 을 그대로 반환하면
+     클라이언트가 사용자 과실로 오인한다.</p>
+
+  <h3>12.5 인증 및 요청 한도</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>항목</th><th>값</th></tr></thead>
+    <tr><td class="k">헤더</td><td><code>X-CaptureTask-Key</code> · 최소 24자 · <code>timingSafeEqual</code> 비교</td></tr>
+    <tr><td class="k">검증 시점</td><td>본문 수신 전 (미인증 요청으로 메모리를 소비하지 않는다)</td></tr>
+    <tr><td class="k">로컬 예외</td><td>루프백 바인딩 시에만 키 없이 기동 가능. 그 외에는 기동 거부</td></tr>
+    <tr><td class="k">기동 거부 조건</td><td>비루프백+키 부재 · 키 24자 미만 · 키가 <code>sk-</code> 로 시작</td></tr>
+    <tr><td class="k">요청 한도</td><td>IP당 10회/분 · 인스턴스 500회/일 (금액 상한)</td></tr>
+  </table></div>
+  <p>본 비밀은 앱 번들 분석으로 노출 가능하며, 그 전제에서 채택한 방식이다. 노출되는
+     것이 OpenAI 키가 아니므로 교체로 복구되고, 노출 전까지 무작위 스캐너를 차단하며,
+     노출 후에도 요청 한도가 금액 피해를 제한한다. 앱만 통과시키려면 App Attest 가
+     필요하며 MVP 범위 밖이다.</p>
+</section>
+
+<!-- ══════════════════════ 13 ══════════════════════ -->
+<section id="s13">
+  <div class="num">13</div>
+  <h2>데이터 모델 및 영속화</h2>
+
+  <h3>13.1 핵심 모델</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>타입</th><th>역할</th><th>주요 필드</th></tr></thead>
+    <tr><td class="k">AssistantTask</td><td>확인을 거친 할 일. <strong>원장</strong></td><td>id · title · notes · dueDate · hasExplicitTime · state · origin · confidence · sourceCaptureID · calendarEventIdentifier · remindersEnabled · createdAt</td></tr>
+    <tr><td class="k">TaskDraft</td><td>확인 대기 중인 AI 제안</td><td>id · title · notes · dueDate · hasExplicitTime · confidence · evidence · ambiguities · sourceCaptureID</td></tr>
+    <tr><td class="k">PendingCapture</td><td>App Group 상자에 적재된 캡처</td><td>id · imageFilename · recognizedText(캐시)</td></tr>
+    <tr><td class="k">DueBucket</td><td>마감 묶음 6종. 선언 순서가 긴급도다</td><td>overdue · today · within7Days · later · someday · done</td></tr>
+    <tr><td class="k">TaskScope</td><td>대시보드 사이드바 묶음. <code>DueBucket</code> + 전체</td><td>all · due(DueBucket)</td></tr>
+  </table></div>
+
+  <h3>13.2 저장 위치</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>대상</th><th>위치</th><th>형식</th></tr></thead>
+    <tr><td class="k">할 일</td><td>App Group 컨테이너 <code>CaptureTask/tasks.json</code></td><td>JSON · 원자적 쓰기</td></tr>
+    <tr><td class="k">미확인 초안</td><td>동일 위치 <code>drafts.json</code></td><td>JSON · 원자적 쓰기</td></tr>
+    <tr><td class="k">캡처 이미지</td><td>App Group <code>Inbox/</code></td><td>원본 바이트</td></tr>
+    <tr><td class="k">설정 (분석 엔진)</td><td><code>UserDefaults</code></td><td>—</td></tr>
+  </table></div>
+  <p>App Group 을 사용할 수 없는 환경에서는 애플리케이션 전용 Application Support 로
+     대체한다. <strong>대체 위치는 실제 생성 가능 여부를 확인한 후 선택한다.</strong>
+     <code>containerURL(forSecurityApplicationGroupIdentifier:)</code> 는 권한이 없어도
+     경로를 반환하므로, 검증 없이 사용하면 <code>fileExists</code> 가 항상 <code>false</code> 가 되어
+     애플리케이션이 매 실행마다 최초 실행 상태로 동작한다.</p>
+
+  <h3>13.3 호환성 규칙</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>규칙</th><th>근거</th></tr></thead>
+    <tr><td class="k">신규 필드는 반드시 옵셔널</td><td>기본값이 있어도 해당 필드가 없던 구버전 파일이 <code>keyNotFound</code> 로 열리지 않는다</td></tr>
+    <tr><td class="k">신규 필드마다 구버전 디코딩 테스트</td><td>회귀 방지</td></tr>
+    <tr><td class="k">날짜 읽기는 관대하게, 쓰기는 단일 형식</td><td>초기 빌드가 숫자 형식으로 저장했다. 읽기를 관대하게 두면 그 시점의 데이터를 보존한다</td></tr>
+    <tr><td class="k">손상 파일은 삭제하지 않고 격리</td><td><code>corrupt-&lt;타임스탬프&gt;.json</code> 으로 이름을 변경하고 사용자에게 통지</td></tr>
+    <tr><td class="k">저장·복원 실패를 삼키지 않는다</td><td>사용자는 유실 후에 인지한다</td></tr>
+  </table></div>
+</section>
+
+<!-- ══════════════════════ 14 ══════════════════════ -->
+<section id="s14">
+  <div class="num">14</div>
+  <h2>알림 명세</h2>
+
+  <h3>14.1 알림 3종</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>종류</th><th>발송 시점</th><th>소유 모듈</th></tr></thead>
+    <tr><td class="k">마감 알림</td><td>시각 지정 항목 1시간 전 · 종일 항목 당일 09:00 · 공통 하루 전 20:00</td><td><code>ReminderSchedule</code> 계산 · <code>LocalNotificationService</code> 예약</td></tr>
+    <tr><td class="k">등록 알림</td><td>macOS 즉시 등록 직후 — “언제 무슨 일정이 등록되었습니다”</td><td><code>CaptureNotice.postFiled</code></td></tr>
+    <tr><td class="k">확인 요청</td><td>분석 실패·모호 시 · 미확인 초안은 앱 이탈 후 1시간</td><td><code>CaptureNotice</code></td></tr>
+  </table></div>
+
+  <h3>14.2 제약</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>제약</th><th>근거</th></tr></thead>
+    <tr><td class="k">예약은 지정된 2개 파일에서만 수행한다</td><td>화면이 직접 예약하면 취소 지점이 분기하여 완료된 항목이 계속 알림을 발생시킨다</td></tr>
+    <tr><td class="k">확인 요청 식별자에 <code>capture#</code> 접두사</td><td>마감 알림과 충돌 시 앱이 전면에 있을 때 마감 알림까지 소실된다</td></tr>
+    <tr><td class="k">경과 시각은 예약하지 않는다</td><td>iOS 가 폐기하거나 즉시 발송한다. 두 결과 모두 고장으로 인지된다</td></tr>
+    <tr><td class="k">완료·삭제 시 해당 항목의 알림을 전부 취소한다</td><td>완료된 항목의 알림은 신뢰를 훼손한다</td></tr>
+    <tr><td class="k">앱 전면 시 확인 요청을 발송하지 않는다</td><td>확인 화면이 이미 표시되어 있다</td></tr>
+    <tr><td class="k">등록 알림 문구에 시점과 내용을 모두 포함한다</td><td>부재 시 앱을 실행해 확인해야 하므로 단계 축소의 의미가 없다</td></tr>
+  </table></div>
+</section>
+
+<!-- ══════════════════════ 15 ══════════════════════ -->
+<section id="s15">
+  <div class="num">15</div>
+  <h2>품질 보증 및 검증 체계</h2>
+
+  <h3>15.1 단일 검증 명령</h3>
+  <p>담당자·자동화 도구·Git Hook·CI 가 <strong>동일한 명령 하나</strong>를 사용한다.
+     검증 절차가 주체마다 상이하면 그 검증은 신뢰의 근거가 되지 못한다.</p>
+<pre>./scripts/verify.sh            전체
+./scripts/verify.sh --quick    iOS 테스트 제외</pre>
+  <div class="tbl"><table>
+    <thead><tr><th>검사</th><th>대상</th><th class="n">건수</th><th>차단 여부</th></tr></thead>
+    <tr><td class="k">프로젝트 규칙</td><td>범용 린터가 검출하지 못하는 구조 위반</td><td class="n">12</td><td><span class="st on">차단</span></td></tr>
+    <tr><td class="k">문서 링크</td><td>모든 상대 링크의 대상 존재 여부</td><td class="n">147</td><td><span class="st on">차단</span></td></tr>
+    <tr><td class="k">swift-format</td><td>포맷</td><td class="n">—</td><td><span class="st off">경고</span></td></tr>
+    <tr><td class="k">SwiftLint</td><td>심각도는 설정이 결정한다 (<code>--strict</code> 미사용)</td><td class="n">—</td><td><span class="st mid">설정 기준</span></td></tr>
+    <tr><td class="k">백엔드 테스트</td><td>HTTP 계약 · 스키마 · 인증 · 요청 한도 · 타임아웃</td><td class="n">46</td><td><span class="st on">차단</span></td></tr>
+    <tr><td class="k">iOS 테스트</td><td>순수 계산 · 저장 계약 · 유스케이스 · 서비스 계약</td><td class="n">130</td><td><span class="st on">차단</span></td></tr>
+    <tr><td class="k">macOS 빌드</td><td>공용 코드 변경 시 최초로 파손되는 지점</td><td class="n">—</td><td><span class="st on">차단</span></td></tr>
+  </table></div>
+
+  <h3>15.2 테스트 구성</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>계층</th><th>대상</th><th class="n">건수</th><th>스위트</th></tr></thead>
+    <tr><td class="k">순수 계산</td><td>마감 묶음 · 알림 시각 · 월 격자 · 지갑 배치 · 초안 판정</td><td class="n">49</td><td>DueGrouping · ReminderSchedule · MonthGrid · WalletStackLayout · TaskDraft</td></tr>
+    <tr><td class="k">묶음·개수</td><td>사이드바 표시 건수와 목록 길이의 일치</td><td class="n">6</td><td>TaskScope</td></tr>
+    <tr><td class="k">플로팅 UI 규칙</td><td>상태별 크기와 창 경계 불변식</td><td class="n">6</td><td>DropletAppearance</td></tr>
+    <tr><td class="k">자동 등록 판정</td><td>즉시 등록 / 확인 요청 분기</td><td class="n">9</td><td>AutoFilePolicy</td></tr>
+    <tr><td class="k">알림 식별자</td><td>확인 요청과 마감 알림의 충돌 방지</td><td class="n">6</td><td>CaptureNotice</td></tr>
+    <tr><td class="k">저장 계약</td><td>왕복 · 구버전 · 손상 격리 · 저장 위치 선택</td><td class="n">13</td><td>TaskStorage</td></tr>
+    <tr><td class="k">유스케이스</td><td>저장 · 버리기 · 완료 · 삭제 · 알림 연동 · 재시작</td><td class="n">13</td><td>TaskStore</td></tr>
+    <tr><td class="k">서비스 계약</td><td>백엔드 요청/응답 파싱 · 오류 매핑</td><td class="n">6</td><td>BackendContextUnderstandingService</td></tr>
+    <tr><td class="k">분석 엔진</td><td>엔진 선택 · 저장된 선택 복원</td><td class="n">11</td><td>AnalysisEngine</td></tr>
+    <tr><td class="k">온디바이스</td><td>가용성 판정 · 응답 파싱</td><td class="n">11</td><td>OnDeviceAnalysis</td></tr>
+    <tr><td class="k">백엔드</td><td>HTTP · 스키마 · 인증 · 요청 한도</td><td class="n">46</td><td><code>server/test/</code></td></tr>
+    <tr><td class="k"><strong>합계</strong></td><td>iOS 130 · 백엔드 46</td><td class="n"><strong>176</strong></td><td></td></tr>
+  </table></div>
+
+  <h3>15.3 프로젝트 규칙</h3>
+  <p>전 항목이 <strong>실제 장애 이력에 근거한다.</strong></p>
+  <div class="tbl"><table>
+    <thead><tr><th class="n">#</th><th>검사 내용</th></tr></thead>
+    <tr><td class="n">0</td><td>검사기 자신을 검사한다 — 주사 파일이 15개 미만이면 실패</td></tr>
+    <tr><td class="n">1</td><td>App Group 식별자가 코드·<code>project.yml</code>·entitlements 2개에서 일치하는가</td></tr>
+    <tr><td class="n">2</td><td>OpenAI 키·직접 호출이 앱·확장에 존재하지 않는가</td></tr>
+    <tr><td class="n">3</td><td>Share Extension 이 분석 전에 캡처를 적재하는가</td></tr>
+    <tr><td class="n">4</td><td>신뢰도 임계값이 <code>Confidence</code> 1개소에만 존재하는가</td></tr>
+    <tr><td class="n">5</td><td>캡처 삭제 지점이 저장소 1개소뿐인가</td></tr>
+    <tr><td class="n">6</td><td>모델이 화면·플랫폼 프레임워크를 import 하지 않는가</td></tr>
+    <tr><td class="n">7</td><td>알림 예약이 지정된 2개 파일에서만 수행되는가</td></tr>
+    <tr><td class="n">8</td><td>저장 실패를 <code>try?</code> 로 삼키지 않는가</td></tr>
+    <tr><td class="n">9</td><td>화면 파일이 500줄 이내인가</td></tr>
+    <tr><td class="n">10</td><td>백엔드 기본 모델이 실재하는 이름인가</td></tr>
+    <tr><td class="n">11</td><td>공유 비밀이 커밋되지 않았는가</td></tr>
+  </table></div>
   <div class="note">
     <span class="h">규칙 1의 유래</span>
-    <p>두 entitlements 파일이 빈 <code>&lt;dict/&gt;</code> 인 채로 R0 을 통과한 적이 있다. 담기는 <strong>성공</strong>하고 도착만 실패하므로, 사용자에게는 “담았어요” 뒤에 아무 일도 일어나지 않은 것으로 보였다. 그래서 이 값은 매 커밋 네 곳을 대조한다.</p>
+    <p>entitlements 2개 파일이 빈 <code>&lt;dict/&gt;</code> 인 상태로 R0 을 통과한 이력이 있다.
+      담기는 <strong>성공</strong>하고 도착만 실패하므로, 사용자에게는 “담았어요” 표시 후
+      아무 일도 발생하지 않은 것으로 관측된다. 이후 해당 값은 매 커밋마다 4개소를
+      대조한다.</p>
   </div>
 
-  <h4>커밋 위생</h4>
-  <p>커밋 기록에는 사람만 남는다. AI 협업자 트레일러는 <code>.githooks/commit-msg</code> 가 지우고, 제목 형식(Conventional Commits · 영문 명령형 소문자 · 72자)은 같은 훅과 CI 가 강제한다. PR 은 squash 로 병합하므로 <strong>PR 제목부터</strong> 이 형식을 지킨다.</p>
-</section>
-
-<!-- ══════════════════════════════════════════ -->
-<section id="s13">
-  <h2>13</h2>
-  <h3 class="title">분석 품질 평가</h3>
-  <p class="lede">배포하고 실제로 불러 보니 <code>confidence</code> 가 이상했다. 그런데 <strong>고칠 수 없었다</strong> — 프롬프트를 바꾼 뒤 좋아졌는지 나빠졌는지 잴 방법이 없었기 때문이다.</p>
-
-  <h4>평가셋 15건</h4>
-  <div class="tbl"><table class="tight">
-    <thead><tr><th>종류</th><th class="num">개수</th><th>예</th></tr></thead>
-    <tr><td>명확</td><td class="num">3</td><td>“8월 12일 오후 3시 정기검진 예약이 확정되었습니다”</td></tr>
-    <tr><td>상대 날짜</td><td class="num">4</td><td>“다음 주 화요일까지”, “이번 달 말일까지”</td></tr>
-    <tr><td>모호</td><td class="num">3</td><td>“3월 5일 2시에 봐요” (연도·오전오후 없음)</td></tr>
-    <tr><td>날짜 없음</td><td class="num">3</td><td>광고 · 장보기 목록 · 날씨</td></tr>
-    <tr><td>지난 날짜</td><td class="num">1</td><td>“7월 20일 오후 2시 상담 예약”</td></tr>
-    <tr><td>OCR 잡음</td><td class="num">1</td><td>예약 앱 스크린샷의 구분선·버튼 텍스트</td></tr>
-  </table></div>
-  <p>실제 스크린샷은 개인정보가 있어 넣지 않는다. <strong>익명화한 원문만</strong> 남긴다.</p>
-
-  <h4>첫 측정 (2026-08-02)</h4>
-  <p>같은 프롬프트로 세 번 돌렸다.</p>
-<pre>정확도    87%  ·  87%  ·  73%
-confidence 최소   0.60 · 0.80 · 0.60</pre>
-  <blockquote><p>실행 간 편차가 개선폭보다 크다. <strong>정확도 하나로는 아무 판단도 할 수 없다는 뜻이다.</strong></p></blockquote>
-  <p>그래서 다음 목표가 50건이다. 지금 15건은 <em>방향을 보는 데까지</em>만 쓴다. 그래도 3회 모두 일관된 것은 믿을 수 있다.</p>
-
-  <div class="tbl"><table class="tight">
-    <thead><tr><th>케이스</th><th>3회 결과</th><th>판단</th></tr></thead>
-    <tr><td>“오늘 날씨: 맑음, 최고 31도”</td><td>3/3 실패</td><td><strong>진짜 결함</strong> — “오늘”을 마감으로 잡는다</td></tr>
-    <tr><td>“7월 20일 오후 2시 상담 예약” (지난 날짜)</td><td>3/3 실패</td><td><strong>진짜 결함</strong> — 지난 날짜인데 모호하다고 하지 않는다</td></tr>
-    <tr><td>명확 3건</td><td>3/3 통과 · conf 1.00</td><td>안정적</td></tr>
-    <tr><td>모호 3건</td><td>3/3 통과</td><td>안정적</td></tr>
-  </table></div>
-  <p><strong>이 평가는 <code>verify.sh</code> 에 넣지 않았다.</strong> 실제 OpenAI 를 부르므로 요금이 나간다 — 사람이 부를 때만 돈다.</p>
-</section>
-
-<!-- ══════════════════════════════════════════ -->
-<section id="s14">
-  <h2>14</h2>
-  <h3 class="title">현재 상태와 남은 것</h3>
-
-  <h4>되는 것</h4>
-  <div class="tbl"><table class="tight">
-    <tr><td>iOS</td><td>공유 시트로 담기 → OCR → 분석 → 확인 → 할 일·알림·캘린더. 지갑 스택 · 월 캘린더 · 사진 고르기 · 텍스트 시험 · 오프라인 모드 · 접근성 4건</td></tr>
-    <tr><td>macOS</td><td>떠 있는 물방울로 받기 · 분명하면 바로 넣고 되돌리기 배너 · 사이드바 대시보드 · 월 캘린더 · 메뉴바</td></tr>
-    <tr><td>백엔드</td><td>Cloud Run(서울) 배포 · 공유 비밀 인증 · IP/일일 요청 한도 · 평가셋</td></tr>
-    <tr><td>하네스</td><td><code>verify.sh</code> 하나 · 규칙 12건 · 문서 링크 검사 · lefthook · CI 2개 · 커밋 위생 강제</td></tr>
-  </table></div>
-
-  <h4>막고 있는 것</h4>
+  <h3>15.4 CI 및 커밋 위생</h3>
   <div class="tbl"><table>
-    <thead><tr><th>항목</th><th>막는 것</th></tr></thead>
-    <tr><td>실기기 공유 시트 확인</td><td>Bundle ID · App Group 프로비저닝 (미결정 D-1)</td></tr>
-    <tr><td><code>confidence</code> 가 눈금 역할을 못 함</td><td>실제 호출에서 전부 0.9~1.0. 평가셋 50건이 먼저</td></tr>
-    <tr><td>중복 감지 · 검색</td><td>무엇을 중복으로 볼지 미결정 (D-5)</td></tr>
-    <tr><td>온디바이스 LLM 기본화</td><td>비교할 기준선이 없다 (ADR-10)</td></tr>
-    <tr><td>홈 카드의 두 줄 마감 잘림</td><td>이 보고서에서 새로 발견 — §08 참조</td></tr>
+    <thead><tr><th>항목</th><th>정책</th></tr></thead>
+    <tr><td class="k">CI 구성</td><td>규칙·서버 테스트는 ubuntu(전 푸시) · iOS·macOS 빌드는 macOS 러너(PR·수동)</td></tr>
+    <tr><td class="k">커밋 메시지</td><td>Conventional Commits · 영문 명령형 소문자 · 72자 이내 · 본문은 한국어</td></tr>
+    <tr><td class="k">강제 수단</td><td><code>.githooks/check-commit-format.sh</code> 를 훅과 CI 가 공유</td></tr>
+    <tr><td class="k">병합 방식</td><td>squash. PR 제목이 커밋 제목이 되므로 PR 제목부터 동일 형식을 적용한다</td></tr>
+    <tr><td class="k">기여자 표기</td><td>커밋 기록에는 사람만 남긴다. AI 협업자 트레일러는 훅이 제거하고 CI 가 강제한다</td></tr>
+  </table></div>
+</section>
+
+<!-- ══════════════════════ 16 ══════════════════════ -->
+<section id="s16">
+  <div class="num">16</div>
+  <h2>분석 품질 평가</h2>
+
+  <h3>16.1 목적</h3>
+  <p>배포 후 실제 호출에서 <code>confidence</code> 의 이상이 확인되었으나
+     <strong>수정할 수 없었다.</strong> 프롬프트 변경 후 개선 여부를 판정할 수단이
+     없었기 때문이다. 단일 사례로 확인하면 해당 사례에만 최적화된다. 기준선이 선행되어야 한다.</p>
+
+  <h3>16.2 측정 항목</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>항목</th><th>내용</th></tr></thead>
+    <tr><td class="k">날짜 정확도</td><td><code>due_at</code> 이 기대한 날짜·시각과 일치하는가</td></tr>
+    <tr><td class="k">종일 판정</td><td><code>has_explicit_time</code> 의 정확성</td></tr>
+    <tr><td class="k">모호성 인지</td><td>모호한 입력을 모호하다고 보고하는가 <strong>(최우선)</strong></td></tr>
+    <tr><td class="k">신뢰도 분포</td><td>최소·평균·최대와 분포 폭</td></tr>
+    <tr><td class="k">지연</td><td>중앙값 · 최대</td></tr>
+  </table></div>
+  <p>모호성 인지가 최우선인 이유는 macOS 가 <code>ambiguities</code> 가 비어 있을 때
+     확인 없이 캘린더에 등록하기 때문이다. 역방향 오류(명확한데 모호하다고 보고)도
+     함께 측정한다.</p>
+
+  <h3>16.3 평가셋</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>분류</th><th class="n">건수</th><th>예시</th></tr></thead>
+    <tr><td class="k">명확</td><td class="n">3</td><td>“8월 12일 오후 3시 정기검진 예약이 확정되었습니다”</td></tr>
+    <tr><td class="k">상대 날짜</td><td class="n">4</td><td>“다음 주 화요일까지”, “이번 달 말일까지”</td></tr>
+    <tr><td class="k">모호</td><td class="n">3</td><td>“3월 5일 2시에 봐요” (연도·오전오후 미기재)</td></tr>
+    <tr><td class="k">날짜 없음</td><td class="n">3</td><td>광고 · 장보기 목록 · 날씨</td></tr>
+    <tr><td class="k">지난 날짜</td><td class="n">1</td><td>“7월 20일 오후 2시 상담 예약”</td></tr>
+    <tr><td class="k">OCR 잡음</td><td class="n">1</td><td>예약 앱 스크린샷의 구분선·버튼 텍스트</td></tr>
+    <tr><td class="k"><strong>합계</strong></td><td class="n"><strong>15</strong></td><td>익명화된 원문만 보관한다</td></tr>
   </table></div>
 
-  <h4>다음</h4>
+  <h3>16.4 측정 결과 (2026-08-02)</h3>
+  <p>동일 프롬프트로 3회 실행했다.</p>
+<pre>정확도            87%   ·   87%   ·   73%
+confidence 최소   0.60  ·   0.80  ·   0.60</pre>
+  <blockquote><p>실행 간 편차가 개선 폭보다 크다. 정확도 단일 지표로는 판정이 불가능하다.</p></blockquote>
+  <p>따라서 다음 목표는 50건이며, 현재 15건은 <em>방향 확인 용도로만</em> 사용한다.
+     3회 모두 일관된 결과는 신뢰할 수 있다.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>케이스</th><th>3회 결과</th><th>판정</th></tr></thead>
+    <tr><td class="k">“오늘 날씨: 맑음, 최고 31도”</td><td>3/3 실패</td><td><span class="st mid">결함 확정</span> “오늘”을 마감으로 인식한다</td></tr>
+    <tr><td class="k">“7월 20일 오후 2시 상담 예약” (지난 날짜)</td><td>3/3 실패</td><td><span class="st mid">결함 확정</span> 지난 날짜를 모호로 보고하지 않는다</td></tr>
+    <tr><td class="k">명확 3건</td><td>3/3 통과 · conf 1.00</td><td><span class="st on">안정</span></td></tr>
+    <tr><td class="k">모호 3건</td><td>3/3 통과</td><td><span class="st on">안정</span></td></tr>
+  </table></div>
+  <p>본 평가는 <code>verify.sh</code> 에 포함하지 않는다. 실제 OpenAI 를 호출하므로 비용이
+     발생하며, 담당자가 명시적으로 실행할 때만 수행한다.</p>
+</section>
+
+<!-- ══════════════════════ 17 ══════════════════════ -->
+<section id="s17">
+  <div class="num">17</div>
+  <h2>릴리스 판정 및 잔여 과제</h2>
+
+  <h3>17.1 릴리스 게이트</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>단계</th><th>정의</th><th>판정</th><th>차단 요인</th></tr></thead>
+    <tr><td class="k">R0</td><td>시뮬레이터에서 전체 흐름이 동작한다</td><td><span class="st on">PASS</span></td><td>—</td></tr>
+    <tr><td class="k">R1</td><td>실기기에서 공유 시트부터 알림까지 통과한다</td><td><span class="st mid">CONCERNS</span></td><td>실기기 서명 · App Group 프로비저닝</td></tr>
+    <tr><td class="k">R2</td><td>TestFlight 배포 가능</td><td><span class="st off">FAIL</span></td><td>평가셋 50건 미확보</td></tr>
+  </table></div>
+
+  <h3>17.2 구현 완료 범위</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>영역</th><th>내용</th></tr></thead>
+    <tr><td class="k">iOS</td><td>공유 시트 담기 → OCR → 분석 → 확인 → 할 일·알림·캘린더 · 지갑형 적층 · 월 캘린더 · 사진 선택 · 텍스트 분석 · 오프라인 모드 · 접근성 4건</td></tr>
+    <tr><td class="k">macOS</td><td>플로팅 물방울 · 즉시 등록 및 되돌리기 배너 · 사이드바 대시보드 · 월 캘린더 · 메뉴바 항목</td></tr>
+    <tr><td class="k">백엔드</td><td>Cloud Run(서울) 배포 · 공유 비밀 인증 · 요청 한도 · 평가셋</td></tr>
+    <tr><td class="k">검증 체계</td><td>단일 검증 명령 · 규칙 12건 · 문서 링크 검사 · lefthook · CI 2종 · 커밋 위생 강제</td></tr>
+  </table></div>
+
+  <h3>17.3 잔여 과제</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>과제</th><th>차단 요인</th><th>우선순위</th></tr></thead>
+    <tr><td class="k">실기기 공유 시트 검증</td><td>Bundle ID · App Group 프로비저닝 미결정</td><td>높음</td></tr>
+    <tr><td class="k">평가셋 50건 확보</td><td>—</td><td>높음 (나머지 지표가 종속된다)</td></tr>
+    <tr><td class="k"><code>confidence</code> 판별력 확보</td><td>실제 호출에서 0.9~1.0 구간에만 분포</td><td>높음</td></tr>
+    <tr><td class="k">홈 카드 2행 마감 표시 잘림</td><td>본 보고서에서 신규 확인 (§9.1)</td><td>중간</td></tr>
+    <tr><td class="k">중복 감지 · 검색</td><td>중복 판정 기준 미결정</td><td>낮음</td></tr>
+    <tr><td class="k">온디바이스 LLM 기본화</td><td>비교 기준선 부재</td><td>낮음</td></tr>
+    <tr><td class="k">원본 보존 기간 설정</td><td>정책 미결정</td><td>낮음</td></tr>
+  </table></div>
+
+  <h3>17.4 후속 실행 순서</h3>
   <ol>
-    <li><strong>평가셋 50건</strong> — 나머지 지표가 전부 여기에 걸려 있다</li>
-    <li><strong>D-1 결정</strong> — 제품명 · Bundle ID · App Group 확정</li>
-    <li><strong>실기기 공유 E2E</strong> — R1 게이트</li>
+    <li><strong>평가셋 50건 확보</strong> — 미측정 지표 4건이 여기에 종속된다</li>
+    <li><strong>제품명 · Bundle ID · App Group 확정</strong></li>
+    <li><strong>실기기 공유 E2E 검증</strong> — R1 게이트 해소</li>
   </ol>
 </section>
 
-<!-- ══════════════════════════════════════════ -->
+<!-- ══════════════════════ 18 ══════════════════════ -->
+<section id="s18">
+  <div class="num">18</div>
+  <h2>문서 목록</h2>
+  <p>저장소에 포함된 전체 문서다. 본 보고서는 아래 문서를 근거로 작성되었다.</p>
+
+  <h3>18.1 제품 (docs/product)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th class="n">#</th><th>문서</th><th>내용</th></tr></thead>
+    <tr><td class="n">00</td><td class="k">00-PRODUCT-BRIEF.md</td><td>문제 정의 · 대상 사용자 · 차별점 · 제외 결정 · 성과 지표</td></tr>
+    <tr><td class="n">01</td><td class="k">01-PRD.md</td><td>제품 원칙 6 · 확정 결정 10 · MVP 범위 · 성공 기준 · 릴리스 단계</td></tr>
+    <tr><td class="n">02</td><td class="k">02-SRS-기능요구사항.md</td><td>기능 요구사항 64건 · 불변 조건 14건</td></tr>
+    <tr><td class="n">03</td><td class="k">03-SRS-비기능요구사항.md</td><td>성능 · 프라이버시 · 접근성 · 신뢰성 · 유지보수 · 국제화 · 보안</td></tr>
+    <tr><td class="n">04</td><td class="k">04-SRS-기능명세서.md</td><td>P0~P3 우선순위 · 기능 21건 · 수용 기준 78건</td></tr>
+    <tr><td class="n">05</td><td class="k">05-IA.md</td><td>사이트맵 · 내비게이션 · 용어 사전</td></tr>
+    <tr><td class="n">06</td><td class="k">06-화면설계서.md</td><td>화면 6종 · 디자인 시스템</td></tr>
+    <tr><td class="n">07</td><td class="k">07-유저플로우.md</td><td>플로우 4종 · 유스케이스 6건 · 상태 전이도 3종</td></tr>
+    <tr><td class="n">08</td><td class="k">08-와이어프레임.md</td><td>화면 ↔ 구현 대응 · 미해소 차이</td></tr>
+  </table></div>
+
+  <h3>18.2 엔지니어링 (docs/engineering)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th class="n">#</th><th>문서</th><th>내용</th></tr></thead>
+    <tr><td class="n">09</td><td class="k">09-SPEC.md</td><td>도메인 · 묶음 · 알림 · 저장 · API 계약 · 추적 매트릭스</td></tr>
+    <tr><td class="n">10</td><td class="k">10-ARCHITECTURE-SPINE.md</td><td>ADR 10건 · 모듈 구조 · 후속 과제</td></tr>
+    <tr><td class="n">11</td><td class="k">11-EPICS-STORIES.md</td><td>에픽 10 · 스토리 87</td></tr>
+    <tr><td class="n">12</td><td class="k">12-IMPLEMENTATION-READINESS.md</td><td>PASS / CONCERNS / FAIL 판정 근거</td></tr>
+    <tr><td class="n">13</td><td class="k">13-TEST-STRATEGY.md</td><td>위험 26건 · 테스트 레벨 · 릴리스 게이트</td></tr>
+    <tr><td class="n">14</td><td class="k">14-SPRINT.md</td><td>스프린트 계획 · 완료 정의</td></tr>
+    <tr><td class="n">15</td><td class="k">15-RETROSPECTIVE.md</td><td>회고 · 규칙으로 승격된 항목 9건</td></tr>
+    <tr><td class="n">16</td><td class="k">16-ENGINEERING-PLAYBOOK.md</td><td>TDD · 디버깅 · 검증 · 리뷰 규율</td></tr>
+    <tr><td class="n">19</td><td class="k">19-EVAL.md</td><td>평가셋 · 측정 결과 · confidence 정정</td></tr>
+    <tr><td class="n">20</td><td class="k">20-REPO-LAYOUT.md</td><td>저장소 구조 · 플랫폼 추가 절차 · 경로 인지 지점</td></tr>
+    <tr><td class="n">21</td><td class="k">21-API.md</td><td><strong>API 명세서</strong> — 엔드포인트 · 인증 · 요청 한도 · 오류 · 스키마</td></tr>
+  </table></div>
+
+  <h3>18.3 플랫폼 (docs/platform)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th class="n">#</th><th>문서</th><th>내용</th></tr></thead>
+    <tr><td class="n">17</td><td class="k">17-ONDEVICE-LLM-RESEARCH.md</td><td>온디바이스 LLM 비교 분석 (구현 전 조사)</td></tr>
+    <tr><td class="n">18</td><td class="k">18-MACOS.md</td><td>물방울 · 즉시 등록과 되돌리기 · 대시보드 · 샌드박스 · 앱 아이콘</td></tr>
+  </table></div>
+
+  <h3>18.4 계획 및 기타</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>문서</th><th>내용</th></tr></thead>
+    <tr><td class="k">docs/README.md</td><td>문서 색인 · BMAD 워크플로 대응</td></tr>
+    <tr><td class="k">docs/project-context.md</td><td>5분 요약 — 신규 참여자·에이전트용</td></tr>
+    <tr><td class="k">docs/sprint-status.yaml</td><td>기계 판독용 스프린트 상태 (숫자의 원본)</td></tr>
+    <tr><td class="k">docs/INTEGRATED-DEVELOPMENT-PLAN.md</td><td>통합 기획서 원문</td></tr>
+    <tr><td class="k">docs/plans/S-4.3-지갑스택홈.md</td><td>지갑형 적층 홈 구현 계획</td></tr>
+    <tr><td class="k">docs/plans/S-5.1-마감알림.md</td><td>마감 알림 구현 계획</td></tr>
+    <tr><td class="k">docs/plans/S-5.10-확인요청알림.md</td><td>확인 요청 알림 구현 계획</td></tr>
+    <tr><td class="k">docs/plans/S-9-접근성.md</td><td>접근성 대응 계획</td></tr>
+    <tr><td class="k">docs/report/template.html</td><td>본 보고서 원본</td></tr>
+    <tr><td class="k">README.md</td><td>저장소 개요 · 시작하기 · 검증</td></tr>
+    <tr><td class="k">CLAUDE.md</td><td>작업 규칙 (담당자·에이전트 공용) — 규칙의 원본</td></tr>
+    <tr><td class="k">AGENTS.md</td><td>CLAUDE.md 로의 이정표</td></tr>
+    <tr><td class="k">server/README.md</td><td>백엔드 구조 · API 키 설정 · 배포</td></tr>
+    <tr><td class="k">.claude/skills/verify/SKILL.md</td><td>완료 판정 절차</td></tr>
+  </table></div>
+
+  <h3>18.5 실행 스크립트</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>스크립트</th><th>용도</th></tr></thead>
+    <tr><td class="k">scripts/verify.sh</td><td>전체 검증 — 담당자·훅·CI 공용</td></tr>
+    <tr><td class="k">scripts/check-project-rules.sh</td><td>프로젝트 전용 규칙 12건 (<code>--list</code> 로 목록 출력)</td></tr>
+    <tr><td class="k">scripts/check-doc-links.sh</td><td>문서 상대 링크 유효성 검사</td></tr>
+    <tr><td class="k">scripts/build-report.py</td><td>본 보고서 생성</td></tr>
+    <tr><td class="k">scripts/build_development_plan.py</td><td>통합 기획서 HTML · PDF 생성</td></tr>
+    <tr><td class="k">scripts/deploy-backend.sh</td><td>Cloud Run 배포</td></tr>
+    <tr><td class="k">scripts/select-simulator.sh</td><td>테스트용 시뮬레이터 선택</td></tr>
+    <tr><td class="k">scripts/icon/MakeIcon.swift</td><td>앱 아이콘 생성</td></tr>
+  </table></div>
+</section>
+
+<!-- ══════════════════════ 부록 A ══════════════════════ -->
 <section id="sA">
-  <h2>부록 A</h2>
-  <h3 class="title">물방울 아이콘 — 기술 검토</h3>
-  <p class="lede">요청은 둘이다. ① 메뉴바 아이콘을 <strong>유리에 맺힌 물방울</strong>로 — 완벽한 원이 아닌, 자연스럽게 맺힌 모양. ② 떠 있는 물방울을 스테인리스 고리가 아니라 <strong>밑 화면이 비치고 빛이 굴절되는 진짜 물방울</strong>로.<br>답을 추측하지 않고 <strong>실험 네 개</strong>를 돌렸다.</p>
+  <div class="num">부록 A</div>
+  <h2>플로팅 UI 요소 기술 검토</h2>
+  <p>macOS 앱의 플로팅 물방울과 메뉴바 항목에 대한 디자인 요구사항의 <strong>구현
+     가능성을 검증하고 대안을 제시</strong>한다. 추정이 아니라 실측에 근거한다 —
+     검증 실험 4건을 수행했으며 결과 이미지는 전부 실제 화면 캡처다.</p>
+</section>
 
-  <hr>
-
-  <h4>A-1 · 메뉴바 아이콘 — 가능하다. 단, 모양뿐이다.</h4>
-  <p>메뉴바 아이콘은 <strong>템플릿 이미지</strong>다. 시스템이 알파 채널만 보고 색을 스스로 칠한다 — 밝은 메뉴바에서는 검정, 어두운 메뉴바에서는 흰색, 눌리면 반전. 그래서 여기서 정할 수 있는 것은 <strong>실루엣 하나뿐</strong>이고, 굴절도 색도 그라디언트도 들어가지 않는다.</p>
-  <p>“완벽한 원이 아닌, 맺힌 물방울”은 그 제약 안에서 표현할 수 있다. 실제 물방울은 표면장력과 중력이 함께 만든 모양이라 <strong>아래가 조금 넓고 평평하고, 위가 더 둥글고, 좌우가 완전히 대칭이 아니다.</strong> 그 미세한 어긋남이 “그려진 원”과 “맺힌 물”을 가른다.</p>
-  <figure>{{IMG:menubar-candidates}}<figcaption><b>후보 네 가지.</b> 위는 ×8 확대, 아래는 실제 크기(18pt)를 밝은 메뉴바와 어두운 메뉴바에서 본 것. 네 후보 모두 정원이 아니라 아래가 눌린 형태다.</figcaption></figure>
-  <div class="tbl"><table class="tight">
-    <thead><tr><th>후보</th><th>성격</th><th>18pt 에서</th></tr></thead>
-    <tr><td>A · 윤곽만</td><td>가장 조용하다. 물방울보다 “원”으로 읽힐 위험</td><td>선명하나 밋밋</td></tr>
-    <tr><td>B · 윤곽 + 광점</td><td>광점 하나가 “젖은 것”을 만든다</td><td><strong>권장</strong> — 작아져도 광점이 살아남는다</td></tr>
-    <tr><td>C · 채움 + 광점 파냄</td><td>가장 눈에 띈다. 메뉴바에서 다소 무겁다</td><td>또렷하나 존재감이 과하다</td></tr>
-    <tr><td>D · 유리에 닿음</td><td>“유리에 맺혔다”는 서사가 가장 강하다</td><td>선이 둘이라 작을수록 뭉갠다</td></tr>
+<section id="sA1">
+  <div class="num">A.1</div>
+  <h2>요구사항 정의</h2>
+  <div class="tbl"><table>
+    <thead><tr><th class="n">#</th><th>요구사항</th><th>판정</th></tr></thead>
+    <tr><td class="n">R-1</td><td>메뉴바 아이콘을 “유리에 맺힌 물방울”로 변경. 완전한 원이 아닌 자연스러운 형태</td><td><span class="st on">구현 완료</span></td></tr>
+    <tr><td class="n">R-2</td><td>플로팅 물방울의 배경이 투과되고 <strong>빛의 굴절</strong>이 나타날 것</td><td><span class="st mid">부분 구현</span></td></tr>
+    <tr><td class="n">R-3</td><td>플로팅 물방울 크기 축소</td><td><span class="st on">구현 완료</span></td></tr>
+    <tr><td class="n">R-4</td><td>클릭·이동 시 크기 확대</td><td><span class="st on">구현 완료</span></td></tr>
   </table></div>
-  <div class="verdict">
-    <div class="k">판정</div>
-    <div class="v">가능 — 오늘 바로 바꿀 수 있다</div>
-    <p>현재 <code>MenuBarExtra("CaptureTask", systemImage: "drop.fill")</code> 로 SF Symbol 을 쓰고 있다. 커스텀 템플릿 이미지로 교체하는 작업이며 코드 변경은 작다. 권장은 <strong>B</strong>. 색을 넣고 싶다면 <code>isTemplate = false</code> 로 가능하지만, 메뉴바에서 색을 쓰는 앱은 시스템과 어울리지 않아 보이므로 권하지 않는다.</p>
-  </div>
+  <p>R-2 의 “굴절”은 공개 API 로 구현할 수 없음을 확인했다. 근거는 A.3, 대안과 결과는
+     A.4 에 기술한다.</p>
+</section>
 
-  <hr>
+<section id="sA2">
+  <div class="num">A.2</div>
+  <h2>메뉴바 아이콘</h2>
 
-  <h4>A-2 · 떠 있는 물방울의 “진짜 굴절” — 공개 API 로는 불가능하다</h4>
-  <p>먼저 결론을 말하고 근거를 붙인다. <strong>macOS 에는 “내 창 뒤에 있는 다른 앱의 화면을 굴절시키는” 공개 API 가 없다.</strong> 흐림(blur)은 있고, 굴절은 없다.</p>
+  <h3>A.2.1 플랫폼 제약</h3>
+  <p>메뉴바 아이콘은 <strong>템플릿 이미지</strong>다. 시스템이 알파 채널만 참조하여 색을
+     결정한다 — 밝은 메뉴바에서는 검정, 어두운 메뉴바에서는 흰색, 선택 시 반전.
+     따라서 설계 가능한 요소는 <strong>실루엣 하나</strong>이며 색·그라디언트·굴절은
+     적용되지 않는다.</p>
 
-  <h5>실험 1 — <code>CALayer.backgroundFilters</code> + <code>CIBumpDistortion</code></h5>
-  <p>이 API 는 이름 그대로 “레이어 뒤에 있는 것”에 Core Image 필터를 건다. 창이 투명하면 그 뒤는 다른 창이니, 된다면 진짜 굴절이다. 격자 무늬 창을 깔고 그 위에 필터를 건 투명 패널을 띄웠다.</p>
-  <figure>{{IMG:spike}}<figcaption><b>결과 — 아무 일도 일어나지 않는다.</b> 빨간 테두리가 필터 창의 위치다. 격자가 <strong>한 픽셀도 휘지 않았다.</strong> <code>backgroundFilters</code> 는 창 경계를 넘어 적용되지 않는다.</figcaption></figure>
+  <h3>A.2.2 형태 설계</h3>
+  <p>실제 물방울은 표면장력과 중력의 결과로 <strong>하단이 넓고 평탄하며, 상단이 더
+     둥글고, 좌우가 완전히 대칭이 아니다.</strong> 이 비대칭이 도형과 액체를 구분한다.</p>
+  <figure>{{IMG:menubar-candidates}}<figcaption><b>후보 4종.</b> 상단은 8배 확대,
+    하단은 실제 크기(18pt)를 밝은 메뉴바와 어두운 메뉴바에서 렌더링한 것이다.
+    4종 모두 정원이 아니라 하단이 눌린 형태다.</figcaption></figure>
+  <div class="tbl"><table>
+    <thead><tr><th>후보</th><th>특성</th><th>18pt 렌더링 평가</th></tr></thead>
+    <tr><td class="k">A · 윤곽만</td><td>가장 절제되나 “원”으로 인지될 위험</td><td>선명하나 특성 부족</td></tr>
+    <tr><td class="k">B · 윤곽 + 광점</td><td>광점이 액체 표면을 표현한다</td><td><span class="st on">채택</span> 축소 시에도 광점이 유지된다</td></tr>
+    <tr><td class="k">C · 채움 + 광점 음각</td><td>시인성이 가장 높으나 메뉴바에서 과중하다</td><td>존재감 과다</td></tr>
+    <tr><td class="k">D · 접촉면 표현</td><td>“유리에 맺힘”의 서사가 가장 강하다</td><td>선 요소 2개로 축소 시 뭉개진다</td></tr>
+  </table></div>
 
-  <h5>실험 2 — <code>NSVisualEffectView</code> 와 macOS 26 Liquid Glass</h5>
-  <p>Apple 이 제공하는 “유리” 두 가지를 같은 배경 위에 놓고 비교했다. 굴절은 <strong>직선이 휘는 것</strong>으로만 증명된다 — 흐림·틴트·가장자리 하이라이트는 굴절이 아니다.</p>
-  <figure>{{IMG:glass}}<figcaption><b>셋을 나란히.</b> 왼쪽 <code>NSVisualEffectView(.hudWindow)</code> — 배경이 아예 읽히지 않는다. 가운데 <code>.glassEffect(.regular.interactive())</code> — 뒤가 비치고 파란 대각선이 지나가는데 <strong>휘지 않는다.</strong> 오른쪽은 대조군(테두리만).</figcaption></figure>
-  <figure>{{IMG:glass2}}<figcaption><b>크게 놓고 다시.</b> 왼쪽 <code>.glassEffect(.regular)</code>, 오른쪽 <code>.regular.interactive()</code>. 가로선과 세로선이 공에 들어간 자리 그대로 나온다 — <strong>밀림이 0 이다.</strong></figcaption></figure>
-  <p>즉 Liquid Glass 는 <em>서리 낀 유리</em>이지 <em>렌즈</em>가 아니다. 사용자가 요청한 “밑의 화면이 자연스럽게 보이고 빛의 굴절이 보이는” 것과는 다르다.</p>
+  <h3>A.2.3 구현 결과</h3>
+  <figure>{{IMG:menubar-final}}<figcaption><b>적용 결과</b> (좌측 첫 번째). 기존
+    <code>drop.fill</code> SF Symbol 을 대체했다. 중앙의 물방울 형태 아이콘은 별도로
+    실행 중인 이전 빌드다.</figcaption></figure>
+  <div class="tbl"><table>
+    <thead><tr><th>설계 결정</th><th>근거</th></tr></thead>
+    <tr><td class="k"><code>drop.fill</code> 미사용</td><td>해당 심볼은 <em>낙하하는</em> 물방울이라 꼬리가 있다. 본 제품의 물방울은 표면에 맺힌 형태다</td></tr>
+    <tr><td class="k">광점을 음각이 아닌 양각으로</td><td>18pt 에서 윤곽 내부를 파내면 선과 구멍 사이 간격이 1pt 미만이 되어 뭉개진다</td></tr>
+    <tr><td class="k">광점을 중심 방향으로 0.82 배 이동</td><td>초기 구현에서 광점이 윤곽선과 접하여 단일 형상으로 인지되었다</td></tr>
+    <tr><td class="k"><code>NSImage(size:flipped:drawingHandler:)</code> 사용</td><td><code>lockFocus</code> 는 생성 시점의 배율로 고정된다. 배율이 다른 디스플레이로 이동 시 흐려진다</td></tr>
+  </table></div>
+</section>
 
-  <hr>
+<section id="sA3">
+  <div class="num">A.3</div>
+  <h2>굴절 구현 가능성 검증</h2>
+  <p><strong>결론 — macOS 에는 자신의 창 뒤에 있는 다른 애플리케이션의 화면을 굴절시키는
+     공개 API 가 존재하지 않는다.</strong> 흐림(blur)은 제공되며, 굴절은 제공되지 않는다.</p>
 
-  <h4>A-3 · 남은 유일한 길 — 뒤를 우리가 캡처해서 우리가 왜곡한다</h4>
-  <p>시스템이 굴절시켜 주지 않는다면, 뒤 화면을 직접 얻어서 우리가 렌즈를 계산해 그리면 된다. 순서는 이렇다.</p>
+  <h3>A.3.1 실험 1 — <code>CALayer.backgroundFilters</code></h3>
+  <p>해당 API 는 레이어 배후 콘텐츠에 Core Image 필터를 적용한다. 창이 투명하면 배후는
+     다른 창이므로, 동작할 경우 굴절이 성립한다. 격자 무늬 창 위에
+     <code>CIBumpDistortion</code> 을 적용한 투명 패널을 배치했다.</p>
+  <figure>{{IMG:spike}}<figcaption><b>결과 — 변화 없음.</b> 적색 테두리가 필터 창의
+    위치다. 격자가 <strong>1픽셀도 왜곡되지 않았다.</strong>
+    <code>backgroundFilters</code> 는 창 경계를 넘어 적용되지 않는다.</figcaption></figure>
+
+  <h3>A.3.2 실험 2 — <code>NSVisualEffectView</code> 및 macOS 26 Liquid Glass</h3>
+  <p>Apple 이 제공하는 유리 재질 2종을 동일 배경에서 비교했다. 굴절은
+     <strong>직선의 변위</strong>로만 입증된다 — 흐림·틴트·가장자리 하이라이트는 굴절이
+     아니다.</p>
+  <figure>{{IMG:glass}}<figcaption><b>3종 비교.</b> 좌측 <code>NSVisualEffectView(.hudWindow)</code>
+    — 배경이 판독되지 않는다. 중앙 <code>.glassEffect(.regular.interactive())</code> —
+    배경이 투과되나 청색 대각선이 <strong>변위 없이</strong> 통과한다. 우측은 대조군.</figcaption></figure>
+  <figure>{{IMG:glass2}}<figcaption><b>확대 재측정.</b> 좌측 <code>.glassEffect(.regular)</code>,
+    우측 <code>.regular.interactive()</code>. 가로선과 세로선이 진입 위치 그대로 진출한다 —
+    <strong>변위량 0</strong>.</figcaption></figure>
+  <p>즉 Liquid Glass 는 <em>서리 유리</em>이며 <em>렌즈</em>가 아니다.</p>
+
+  <h3>A.3.3 실험 3 — 자체 캡처 후 왜곡</h3>
+  <p>시스템이 굴절을 제공하지 않으므로, 배후 화면을 직접 취득하여 렌즈 왜곡을 계산해
+     렌더링하는 방식이 유일한 대안이다. 절차는 다음과 같다.</p>
   <ol>
-    <li><strong>ScreenCaptureKit</strong> 으로 물방울이 덮고 있는 화면 영역을 실시간 캡처한다. 이때 <code>SCContentFilter(display:excludingWindows:)</code> 로 <strong>물방울 창 자신을 반드시 제외</strong>해야 한다 — 아니면 물방울이 물방울을 비추는 무한 되먹임이 생긴다.</li>
-    <li>그 이미지에 Core Image 로 렌즈 왜곡을 건다 (<code>CIBumpDistortion</code> 또는 커스텀 Metal 셰이더).</li>
-    <li>맺힌 물방울 모양으로 마스크하고, 어두운 가장자리·림라이트·하이라이트를 얹는다.</li>
-    <li>매 프레임 다시 그린다.</li>
+    <li><strong>ScreenCaptureKit</strong> 으로 물방울이 점유한 영역을 실시간 캡처한다.
+      이때 <code>SCContentFilter(display:excludingWindows:)</code> 로
+      <strong>물방울 창 자신을 반드시 제외</strong>해야 한다. 미제외 시 무한 되먹임이 발생한다.</li>
+    <li>취득한 이미지에 Core Image 로 렌즈 왜곡을 적용한다.</li>
+    <li>물방울 형태로 마스킹하고 가장자리 음영·림라이트·하이라이트를 합성한다.</li>
+    <li>매 프레임 재렌더링한다.</li>
   </ol>
-  <p>2~4단계의 광학이 실제로 통하는지 먼저 확인했다. 캡처 대신 이미 있는 화면 이미지를 배경으로 넣고 같은 파이프라인을 돌렸다.</p>
-  <figure>{{IMG:lens-on-grid}}<figcaption><b>실험 3 — 광학은 통한다.</b> 가로선이 부풀고 세로선이 휜다. 실험 1·2 와 같은 배경, 같은 크기인데 결과가 완전히 다르다.</figcaption></figure>
-  <figure>{{IMG:droplet-on-calendar}}<figcaption><b>실험 4 — 실제 앱 화면 위의 물방울.</b> 정원이 아닌 맺힌 모양, 굴절(<code>11</code>·<code>18</code>·<code>25</code> 가 밀리고 커진다), 어두운 가장자리, 왼쪽 위 하이라이트. <strong>흰 배경에서는 어두운 가장자리가 물방울을 보이게 한다</strong> — 흰 림라이트만 쓰면 통째로 사라진다.</figcaption></figure>
+  <p>2~4단계의 광학적 타당성을 먼저 검증했다. 캡처 대신 기존 화면 이미지를 배경으로
+     동일 파이프라인을 실행했다.</p>
+  <figure>{{IMG:lens-on-grid}}<figcaption><b>결과 — 광학은 성립한다.</b> 가로선이 팽창하고
+    세로선이 만곡한다. 실험 1·2 와 동일 배경·동일 크기에서 결과가 명확히 구분된다.</figcaption></figure>
+  <figure>{{IMG:droplet-on-calendar}}<figcaption><b>실제 애플리케이션 화면 위 시뮬레이션.</b>
+    굴절(<code>11</code>·<code>18</code>·<code>25</code> 가 변위·확대된다), 가장자리 음영,
+    좌상단 하이라이트. <strong>백색 배경에서는 가장자리 음영이 형상을 성립시킨다</strong> —
+    백색 림라이트만 사용하면 형상이 소실된다.</figcaption></figure>
 
-  <h5>대가</h5>
+  <h3>A.3.4 채택 비용</h3>
   <div class="tbl"><table>
-    <thead><tr><th>비용</th><th>내용</th></tr></thead>
-    <tr><td><strong>화면 기록 권한</strong></td><td>시스템 설정에서 사용자가 직접 켜야 하고, 최근 macOS 는 주기적으로 재확인을 요구한다. 68pt 장식 하나를 위해 <strong>“이 앱이 화면 전체를 봅니다”</strong> 를 승인받아야 한다</td></tr>
-    <tr><td><strong>제품 원칙과 충돌</strong></td><td>이 앱은 “원본 이미지는 기기를 떠나지 않는다”를 팔고 있다. 그 앱이 상시 화면 캡처 권한을 요구하는 것은 <em>설명하기 어려운 모순</em>이다. 기술적으로 안전해도 사용자가 그렇게 읽지 않는다</td></tr>
-    <tr><td>지속 비용</td><td>물방울은 <strong>항상 떠 있다.</strong> 상시 캡처 + 매 프레임 GPU 합성은 유휴 상태의 배터리·발열에 그대로 들어간다</td></tr>
-    <tr><td>되먹임</td><td>자기 창 제외를 놓치면 즉시 무한 반사. 다중 디스플레이·해상도 변경·Space 이동마다 필터를 다시 만들어야 한다</td></tr>
-    <tr><td>샌드박스</td><td>현재 macOS 타깃은 샌드박스에 <code>files.user-selected.read-only</code> 만 있다. 화면 캡처 권한은 별개의 TCC 승인이다</td></tr>
+    <thead><tr><th>항목</th><th>내용</th></tr></thead>
+    <tr><td class="k">화면 기록 권한</td><td>사용자가 시스템 설정에서 직접 승인해야 하며, 최근 macOS 는 주기적 재확인을 요구한다. 44pt 장식 요소를 위해 <strong>“이 앱이 화면 전체를 봅니다”</strong> 를 승인받아야 한다</td></tr>
+    <tr><td class="k">제품 원칙과의 충돌</td><td>본 제품은 “원본 이미지는 기기를 떠나지 않는다”를 핵심 가치로 제시한다. 동일 제품이 상시 화면 캡처 권한을 요구하는 것은 <strong>설명 가능한 구성이 아니다.</strong> 기술적으로 안전하더라도 사용자 인식은 다르다</td></tr>
+    <tr><td class="k">지속 비용</td><td>물방울은 <strong>상시 표시된다.</strong> 상시 캡처와 매 프레임 GPU 합성이 유휴 상태의 전력·발열에 직접 반영된다</td></tr>
+    <tr><td class="k">되먹임 위험</td><td>자기 창 제외를 누락하면 즉시 무한 반사가 발생한다. 다중 디스플레이·해상도 변경·Space 이동마다 필터를 재구성해야 한다</td></tr>
+    <tr><td class="k">샌드박스</td><td>현재 macOS 타깃은 <code>files.user-selected.read-only</code> 만 보유한다. 화면 캡처는 별도의 TCC 승인 대상이다</td></tr>
   </table></div>
 
   <div class="verdict">
     <div class="k">판정</div>
-    <div class="v">기술적으로 가능하다 — 그러나 권하지 않는다</div>
-    <p>“진짜 굴절”은 구현할 수 있고, 위 실험 3·4 가 그 결과물을 보여준다. 다만 얻는 것은 <strong>장식</strong>이고 치르는 것은 <strong>화면 전체 접근 권한과 이 제품의 프라이버시 서사</strong>다. 교환비가 맞지 않는다.</p>
-  </div>
-
-  <hr>
-
-  <h4>A-4 · 권고 — 권한 없이 “물방울”에 도달하는 세 단계</h4>
-  <p>굴절 자체보다 <strong>물방울로 읽히게 하는 것</strong>이 목표라면, 권한 없이 갈 수 있는 곳이 생각보다 멀다. 실험 4 에서 확인한 것은 물방울의 인상을 만드는 것이 굴절이 아니라 <strong>모양 · 어두운 가장자리 · 하이라이트</strong>였다는 점이다.</p>
-  <div class="tbl"><table>
-    <thead><tr><th>단계</th><th>무엇</th><th>권한</th><th>비용</th></tr></thead>
-    <tr><td>1</td><td><strong>모양을 물방울로.</strong> 스테인리스 고리를 버리고 맺힌 윤곽 + 어두운 가장자리 + 하이라이트 둘. 가운데는 지금처럼 완전 투명이라 뒤가 그대로 보인다</td><td>없음</td><td>작음</td></tr>
-    <tr><td>2</td><td><strong>유리를 더한다.</strong> 가운데를 macOS 26 <code>.glassEffect()</code> 로 아주 옅게 채운다. 굴절은 없지만 “물이 고여 있다”가 생긴다. <code>macOS 26</code> 미만은 1단계로 떨어진다</td><td>없음</td><td>작음</td></tr>
-    <tr><td>3</td><td><strong>드롭할 때만 진짜 굴절.</strong> 끌어다 놓기가 시작될 때 한 번만 뒤를 캡처해 굴절시키고, 놓으면 되돌린다. 상시 캡처가 아니라 <em>사용자 행동에 붙은 일회 캡처</em>라 설명이 된다</td><td>화면 기록</td><td>중간</td></tr>
-  </table></div>
-  <p><strong>1단계만으로도 지금보다 훨씬 물방울에 가깝다.</strong> 지금 화면에 있는 것은 금속 고리이고, 사용자가 “스테인리스 원이 아니라”고 말한 대상이 정확히 그것이다. 2단계까지는 권한도 지속 비용도 없다.</p>
-
-  <div class="note">
-    <span class="h">실험 재현</span>
-    <p>이 부록의 네 실험은 모두 이 저장소 밖의 임시 스크립트로 돌렸고, 각각 <code>swiftc</code> 로 컴파일되는 단일 파일이다. 결과 이미지는 전부 실제 화면 캡처이며 합성하지 않았다. 코드를 저장소에 남기길 원하면 <code>docs/platform/</code> 아래 스파이크로 넣을 수 있다.</p>
+    <div class="v">기술적으로 구현 가능하나 채택하지 않는다</div>
+    <p>“진짜 굴절”은 구현 가능하며 실험 3 이 그 결과물을 제시한다. 다만 획득하는 것은
+      <strong>장식적 효과</strong>이고 지불하는 것은 <strong>화면 전체 접근 권한과 제품의
+      프라이버시 포지셔닝</strong>이다. 교환비가 성립하지 않는다.</p>
   </div>
 </section>
 
-<p class="foot">CaptureTask 개발 보고서 · 2026-08-02 · iOS 테스트 124 · 백엔드 테스트 46 · 프로젝트 규칙 12 · 문서 링크 143 · 빌드 경고 0<br>
-숫자의 원본은 <code>./scripts/verify.sh</code> 의 출력이다. 이 문서와 어긋나면 그쪽이 맞다.</p>
+<section id="sA4">
+  <div class="num">A.4</div>
+  <h2>대안 및 구현 결과</h2>
+
+  <h3>A.4.1 단계별 대안</h3>
+  <p>실험 3 에서 확인된 사실은 물방울의 인지를 결정하는 요소가 굴절이 아니라
+     <strong>형태 · 가장자리 음영 · 하이라이트</strong>라는 점이다. 이에 따라 권한 없이
+     도달 가능한 3단계 대안을 도출했다.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>단계</th><th>내용</th><th>권한</th><th>비용</th><th>상태</th></tr></thead>
+    <tr><td class="k">1</td><td>형태를 물방울로 전환. 금속 링을 제거하고 가장자리 음영과 하이라이트 2종을 적용. 중앙은 완전 투명이므로 배경이 그대로 투과된다</td><td>불필요</td><td>낮음</td><td><span class="st on">적용</span></td></tr>
+    <tr><td class="k">2</td><td>중앙을 macOS 26 <code>.glassEffect()</code> 로 옅게 채운다. 굴절은 없으나 액체의 인상이 형성된다. macOS 26 미만은 1단계로 동작한다</td><td>불필요</td><td>낮음</td><td><span class="st on">적용</span></td></tr>
+    <tr><td class="k">3</td><td>드래그 개시 시점에 1회만 배후를 캡처하여 굴절을 적용하고 종료 시 복원한다. 상시 캡처가 아니라 <em>사용자 행동에 결합된 단발 캡처</em>이므로 권한 요청의 설명이 성립한다</td><td>화면 기록</td><td>중간</td><td><span class="st off">미적용</span></td></tr>
+  </table></div>
+
+  <h3>A.4.2 적용 결과</h3>
+  <figure>{{IMG:droplet-final}}<figcaption><b>플로팅 물방울 최종 형태.</b> 정원 · 지름 44pt.
+    배경 텍스트가 투과된다. 하단은 배경 화면 위에 표시된 상태다.</figcaption></figure>
+  <div class="tbl"><table>
+    <thead><tr><th>구성</th><th>구현</th><th>근거</th></tr></thead>
+    <tr><td class="k">형태</td><td>정원 (메뉴바 아이콘은 맺힌 윤곽 유지)</td><td>18pt 에서 비대칭은 특성으로 인지되나, 44pt 에서는 결함으로 인지된다</td></tr>
+    <tr><td class="k">1층 · 유리</td><td><code>.glassEffect(.clear)</code> (macOS 26+)</td><td><code>.regular</code> 는 배경을 차폐하여 불투명 형상으로 인지된다</td></tr>
+    <tr><td class="k">2층 · 가장자리 음영</td><td>중앙 투명 → 테두리로 갈수록 농도 증가</td><td>백색 배경에서 형상을 성립시키는 유일한 요소다</td></tr>
+    <tr><td class="k">3층 · 내부 하이라이트 선</td><td>얇은 밝은 테두리</td><td>표면 접촉면 경계</td></tr>
+    <tr><td class="k">4층 · 하이라이트</td><td>좌상단 주광 · 우하단 환경광</td><td>액체 인지를 형성하는 핵심 요소</td></tr>
+  </table></div>
+
+  <h3>A.4.3 크기 규칙 (R-3 · R-4)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>상태</th><th class="n">지름</th><th>근거</th></tr></thead>
+    <tr><td class="k">대기</td><td class="n">44pt</td><td>상시 표시 요소는 작을수록 화면 점유가 적다</td></tr>
+    <tr><td class="k">처리 중</td><td class="n">48pt</td><td>진행 표시자를 함께 표시한다</td></tr>
+    <tr><td class="k">누름 · 이동 중</td><td class="n">52pt</td><td>접촉 사실만 표현한다. 누름에서 이동으로 전환될 때 크기가 재차 변하면 조작 오류로 인지된다</td></tr>
+    <tr><td class="k">수신 대기 (드래그 진입)</td><td class="n">58pt</td><td>조준 중에는 목표가 확대되어야 조작이 용이하다</td></tr>
+    <tr><td class="k">창</td><td class="n">72pt 고정</td><td>창이 함께 확대되면 조준 중 드롭 영역이 이동하여 커서가 경계를 반복 통과한다</td></tr>
+  </table></div>
+  <p>이 값들은 상호 종속적이므로 화면 계층이 아니라 <code>DropletAppearance</code>
+     (순수 함수)에 정의하고 테스트 6건으로 불변식을 검증한다. 최대 크기가 창을 초과하면
+     가장자리가 절단되며, 절단된 형상은 물방울로 인지되지 않는다.</p>
+  <p>모션 줄이기 설정은 <strong>크기 변화가 아니라 애니메이션</strong>을 비활성화한다.
+     크기는 이 요소의 유일한 상태 신호이므로 제거하면 상태를 인지할 수단이 소멸한다.</p>
+
+  <h3>A.4.4 상호작용 (R-4)</h3>
+  <p>누름 · 이동 · 탭을 단일 <code>DragGesture(minimumDistance: 0)</code> 로 처리한다.
+     제스처를 분리하면 탭과 드래그가 상호 간섭한다. 이동 임계값은 3pt 다.</p>
+  <div class="note">
+    <span class="h">구현 중 확인된 결함</span>
+    <p>초기 구현은 제스처가 제공하는 <code>translation</code> 으로 창을 이동시켰다.
+      해당 값은 뷰의 좌표계를 기준으로 산출되는데, 창을 이동시키면 뷰도 함께 이동하여
+      이동량이 상쇄된다. <strong>967pt 를 드래그했을 때 창은 483pt 만 이동했다 —
+      정확히 절반이다.</strong> 화면 좌표(<code>NSEvent.mouseLocation</code>)를 직접
+      참조하는 방식으로 변경하여 해소했다. AppKit 의 창 드래그와 동일한 방식이며
+      되먹임이 발생하지 않는다.</p>
+  </div>
+
+  <h3>A.4.5 검증</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>항목</th><th>결과</th></tr></thead>
+    <tr><td class="k">배경 투과</td><td><span class="st on">확인</span> 배후 텍스트가 판독된다</td></tr>
+    <tr><td class="k">드래그 이동</td><td><span class="st on">확인</span> 마우스를 1:1 추종한다</td></tr>
+    <tr><td class="k">이동 중 확대</td><td><span class="st on">확인</span> 44pt → 52pt</td></tr>
+    <tr><td class="k">탭 동작</td><td><span class="st on">확인</span> 대시보드(940×620)가 개시된다</td></tr>
+    <tr><td class="k">메뉴바 아이콘</td><td><span class="st on">확인</span> 템플릿 렌더링 정상</td></tr>
+    <tr><td class="k">전체 검증</td><td><span class="st on">통과</span> 규칙 12 · iOS 130/130 · 백엔드 46/46 · 문서 링크 147 · 경고 0</td></tr>
+  </table></div>
+  <p>검증 실험 4건은 저장소 외부의 단일 파일 Swift 스크립트로 수행했으며, 결과 이미지는
+     전부 실제 화면 캡처로 합성하지 않았다.</p>
+</section>
+
+<p class="foot">CaptureTask 개발 보고서 · 버전 1.0 · 2026-08-02<br>
+iOS 테스트 130 · 백엔드 테스트 46 · 프로젝트 규칙 12 · 문서 링크 147 · 빌드 경고 0<br>
+수치의 원본은 <code>./scripts/verify.sh</code> 의 출력이다. 본 문서와 상이한 경우 그쪽이 정본이다.</p>
 
 </div>
 </body>

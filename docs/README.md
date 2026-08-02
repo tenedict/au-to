@@ -133,6 +133,7 @@ BMAD 가 **무엇을 만들지**를 정한다면, Superpowers 는 **어떻게 �
 | — | [sprint-status.yaml](sprint-status.yaml) | **기계가 읽는 스프린트 상태 (숫자의 원본)** |
 | — | [plans/](plans/) | 스토리별 2~5분 태스크 계획 |
 | — | [INTEGRATED-DEVELOPMENT-PLAN.md](INTEGRATED-DEVELOPMENT-PLAN.md) | HTML/PDF 생성의 기준 원문 |
+| — | [report/template.html](report/template.html) | **개발 보고서** 원본 — `python3 scripts/build-report.py` 로 [한 파일 HTML](../output/report/CaptureTask-Report.html) 을 만든다 |
 
 ### 프로젝트 루트
 

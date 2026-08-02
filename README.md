@@ -151,12 +151,15 @@ brew install lefthook && lefthook install
 | [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/platform/17-ONDEVICE-LLM-RESEARCH.md) | 온디바이스 LLM 비교 분석 |
 | [`docs/project-context.md`](docs/project-context.md) | 5분 요약 — 새 세션은 여기부터 |
 | [`CLAUDE.md`](CLAUDE.md) | 작업 규칙 (사람·AI 공용) |
+| [**개발 보고서**](output/report/CaptureTask-Report.html) | 기획→PRD→SRS→플로우→기술→검증을 순서대로 · **스크린샷 포함** · 한 파일 |
 | [통합 HTML 기획서](docs/CaptureTask-Development-Plan.html) | 제품·UX·아키텍처·비용·배포를 한 문서로 |
 | [PDF](output/pdf/CaptureTask-Development-Plan.pdf) | 공유·인쇄용 A4 |
 
 ```bash
+python3 scripts/build-report.py              # 개발 보고서 재생성 (의존성 없음)
+
 python3 -m pip install -r requirements-docs.txt
-python3 scripts/build_development_plan.py    # HTML · PDF 재생성
+python3 scripts/build_development_plan.py    # 통합 기획서 HTML · PDF 재생성
 ```
 
 ---

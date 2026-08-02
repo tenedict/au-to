@@ -33,11 +33,12 @@ struct DropletView: View {
 
     var body: some View {
         ZStack {
-            // 떨어뜨릴 수 있다는 신호. 물결이 바깥으로 번진다.
+            // 떨어뜨릴 수 있다는 신호. 물결이 **안쪽으로** 모인다 —
+            // 셔터가 닫히는 방향과 같아야 한 동작으로 읽힌다.
             if isTargeted && !reduceMotion {
                 Circle()
                     .stroke(Color.accentColor.opacity(0.5), lineWidth: 2)
-                    .scaleEffect(ripple ? 1.30 : 0.94)
+                    .scaleEffect(ripple ? 0.90 : 1.32)
                     .opacity(ripple ? 0 : 1)
                     .animation(
                         .easeOut(duration: 1.1).repeatForever(autoreverses: false),
@@ -46,14 +47,19 @@ struct DropletView: View {
             }
 
             ring
+                // 바깥 지름도 조금 줄어든다. 셔터는 안으로 조이는 동작이다.
+                .scaleEffect(isTargeted && !reduceMotion ? 0.90 : 1)
+
             if store.isImporting {
                 ProgressView().controlSize(.small)
             }
         }
+        // 크기가 바뀌는 것은 **고리뿐이다.** 이 프레임과 드롭 영역은 그대로 둔다 —
+        // 겨냥하는 중에 목표가 작아지면 커서가 밖으로 나가 놓기가 풀리고,
+        // 다시 커지면 또 들어와 깜빡인다.
         .frame(width: DropletPanel.diameter, height: DropletPanel.diameter)
         .contentShape(.circle)
-        .scaleEffect(isTargeted && !reduceMotion ? 1.10 : 1)
-        .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.7),
+        .animation(reduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.82),
                    value: isTargeted)
         .onDrop(of: [.image, .fileURL], isTargeted: $isTargeted) { providers in
             Task { await handle(providers) }
@@ -85,8 +91,12 @@ struct DropletView: View {
     /// **그림자를 쓰지 않는다.** 창이 고리에 딱 맞는 68×68 이라 중심에서 모서리까지가
     /// 고리 반지름보다 가깝다. 그래서 그림자가 네 모서리에 닿고 창 경계에서 직선으로
     /// 잘려 **뿌연 네모**로 보였다. 윤곽은 그림자 대신 바깥쪽 실선으로 만든다.
+    ///
+    /// 끌고 오면 **카메라 셔터가 닫히듯 조인다.** 두께가 안쪽으로 자라 구멍이 좁아진다 —
+    /// 셔터에서 움직이는 것은 날개이지 렌즈 통이 아니다. 바깥이 아니라
+    /// **안쪽으로** 자라야 조여지는 것으로 읽힌다.
     private var ring: some View {
-        let width: CGFloat = isTargeted ? 4 : 3
+        let width: CGFloat = isTargeted ? 12 : 3
 
         return Circle()
             .strokeBorder(Self.steel, lineWidth: width)
@@ -103,7 +113,11 @@ struct DropletView: View {
             }
             .overlay {
                 if isTargeted {
-                    Circle().strokeBorder(Color.accentColor.opacity(0.85), lineWidth: 2)
+                    // 강조색은 **좁아진 구멍의 가장자리**에 둔다. 시선이 가야 할 곳은
+                    // 고리 바깥이 아니라 닫히고 있는 구멍이다.
+                    Circle()
+                        .strokeBorder(Color.accentColor.opacity(0.9), lineWidth: 2)
+                        .padding(width - 2)
                 }
             }
     }

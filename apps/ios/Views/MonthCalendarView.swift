@@ -198,18 +198,22 @@ private struct DayCell: View {
             .monospacedDigit()
             .foregroundStyle(foreground)
             .frame(width: 32, height: 32)
+            // **오늘과 고른 날을 채움 여부로 나눈다.** 색을 둘로 쓰지 않는다 —
+            // 오늘은 테두리 원, 고른 날은 채운 원 (디자인 언어 §10.8).
             .background(
-                Circle().fill(
-                    isSelected
-                        ? Color.accentColor
-                        : (isToday ? Color.accentColor.opacity(0.16) : .clear)
-                )
+                Circle()
+                    .fill(isSelected ? Palette.water : .clear)
+                    .overlay {
+                        if isToday && !isSelected {
+                            Circle().strokeBorder(Palette.water, lineWidth: 1.5)
+                        }
+                    }
             )
 
             // 점만 쓰면 색맹 사용자에게 아무 정보가 아니다. 개수를 접근성 레이블에 넣는다.
             HStack(spacing: 3) {
                 ForEach(0..<min(pendingCount, 3), id: \.self) { _ in
-                    Circle().fill(Color.accentColor).frame(width: 5, height: 5)
+                    Circle().fill(Palette.ink3).frame(width: 5, height: 5)
                 }
             }
             .frame(height: 6)
@@ -224,7 +228,7 @@ private struct DayCell: View {
 
     private var foreground: Color {
         if isSelected { return .white }
-        return isToday ? .accentColor : .primary
+        return isToday ? Palette.water : Palette.ink1
     }
 
     private var accessibilityLabel: String {
@@ -242,7 +246,7 @@ private struct DayTaskRow: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                 .font(.footnote)
-                .foregroundStyle(task.isCompleted ? Color.green : Color.secondary)
+                .foregroundStyle(task.isCompleted ? Palette.water : Palette.ink3)
             Text(task.title)
                 .font(.subheadline)
                 .strikethrough(task.isCompleted)

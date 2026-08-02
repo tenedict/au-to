@@ -134,4 +134,52 @@ final class TaskScopeTests: XCTestCase {
         XCTAssertEqual(counts[.due(.overdue)], 1)
         XCTAssertEqual(counts[.due(.today)], 0)
     }
+
+    // MARK: - 요약
+
+    /// 사이드바 최상단의 요약. 목록에 들어가기 전에 "지금 상태" 를 먼저 말한다
+    /// (일기의 Insights 타일 · 디자인 연구 §6.3).
+    func testSummaryCountsWhatNeedsAttentionNow() {
+        let tasks = [
+            task(title: "지난 마감 1", due: day(-3)),
+            task(title: "지난 마감 2", due: day(-1)),
+            task(title: "오늘", due: now),
+            task(title: "사흘 뒤", due: day(3)),
+            task(title: "끝냄", due: day(1), completed: true),
+        ]
+
+        let summary = TaskScoping.summary(for: tasks, now: now, calendar: calendar)
+
+        XCTAssertEqual(summary.overdue, 2)
+        XCTAssertEqual(summary.today, 1)
+    }
+
+    /// 요약의 숫자는 사이드바가 세는 숫자와 반드시 같아야 한다.
+    /// 두 곳이 따로 세면 같은 화면에서 다른 값이 보인다.
+    func testSummaryAgreesWithTheSidebarCounts() {
+        let tasks = [
+            task(title: "a", due: day(-2)), task(title: "b", due: day(-1)),
+            task(title: "c", due: now), task(title: "d", due: day(2)),
+        ]
+        let counts = TaskScoping.counts(for: tasks, now: now, calendar: calendar)
+        let summary = TaskScoping.summary(for: tasks, now: now, calendar: calendar)
+
+        XCTAssertEqual(summary.overdue, counts[.due(.overdue)])
+        XCTAssertEqual(summary.today, counts[.due(.today)])
+    }
+
+    /// 할 일이 없어도 요약은 0 으로 존재한다. 사라지면 자리가 움직인다.
+    func testSummaryExistsWhenThereIsNothing() {
+        let summary = TaskScoping.summary(for: [], now: now, calendar: calendar)
+        XCTAssertEqual(summary.overdue, 0)
+        XCTAssertEqual(summary.today, 0)
+        XCTAssertTrue(summary.isClear, "아무것도 없으면 '비어 있음' 이어야 합니다")
+    }
+
+    /// 지난 마감이 하나라도 있으면 비어 있는 상태가 아니다.
+    func testSummaryIsNotClearWhileSomethingIsOverdue() {
+        let summary = TaskScoping.summary(
+            for: [task(title: "지난 마감", due: day(-1))], now: now, calendar: calendar)
+        XCTAssertFalse(summary.isClear)
+    }
 }

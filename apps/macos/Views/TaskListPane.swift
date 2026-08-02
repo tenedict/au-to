@@ -61,7 +61,7 @@ struct MacTaskRow: View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Button(action: onToggle) {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(task.isCompleted ? Color.green : Color.secondary)
+                    .foregroundStyle(task.isCompleted ? Palette.water : Palette.ink3)
                     .imageScale(.large)
             }
             .buttonStyle(.plain)
@@ -106,7 +106,7 @@ struct MacTaskRow: View {
                 )
             }
             .font(.caption)
-            .foregroundStyle(isOverdue && !task.isCompleted ? Color.red : .secondary)
+            .foregroundStyle(isOverdue && !task.isCompleted ? Palette.past : Palette.ink3)
         } else {
             Text("날짜 확인 필요")
                 .font(.caption)

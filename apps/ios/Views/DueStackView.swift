@@ -106,7 +106,7 @@ struct DueStackView: View {
                     symbol: "tray.full.fill",
                     title: "확인할 할 일 \(store.pendingDrafts.count)개",
                     detail: "저장하기 전에 제목과 날짜를 확인해 주세요.",
-                    tint: .accentColor,
+                    tint: Palette.water,
                     showsChevron: true
                 )
             }
@@ -119,7 +119,7 @@ struct DueStackView: View {
                 symbol: "exclamationmark.triangle.fill",
                 title: "공유 시트로 담기를 쓸 수 없어요",
                 detail: explanation,
-                tint: .orange,
+                tint: Palette.past,
                 showsChevron: false
             )
         }
@@ -130,7 +130,7 @@ struct DueStackView: View {
                 symbol: "bell.slash.fill",
                 title: "마감 알림이 꺼져 있어요",
                 detail: explanation,
-                tint: .orange,
+                tint: Palette.past,
                 showsChevron: false
             )
         }
@@ -145,7 +145,7 @@ struct DueStackView: View {
                     symbol: "bell.badge",
                     title: "알림을 켤까요?",
                     detail: "마감 전에 알려 드리고, 스크린샷을 담으면 확인을 요청해요.",
-                    tint: .accentColor,
+                    tint: Palette.water,
                     showsChevron: true
                 )
             }
@@ -268,7 +268,8 @@ private struct SectionHeader: View {
                 .font(.headline)
             Text("\(group.count)")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .foregroundStyle(Palette.ink3)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 2)
                 .background(Capsule().fill(Color(.tertiarySystemFill)))
@@ -322,15 +323,15 @@ private struct NoticeRow: View {
 }
 
 extension DueBucket {
-    /// 색은 거들 뿐이다. 같은 정보를 기호와 글자가 항상 함께 말한다 (AGENTS 규칙 10).
+    /// 묶음의 기호 색.
+    ///
+    /// **묶음마다 색을 주지 않는다.** 여섯 색이 각각 "급함" 의 정도를 뜻하려 했지만,
+    /// **순서가 이미 그 정보를 담고 있다** — 위에 있을수록 급하다는 것이 이 화면의
+    /// 유일한 규칙이다 (결정 D-9). 색은 그 규칙을 되풀이할 뿐 새 정보를 주지 않았다.
+    ///
+    /// 대신 기호는 남긴다. 기호는 목록을 훑을 때 위치와 무관하게 묶음을 식별하게
+    /// 해 준다 (디자인 언어 §4.4).
     var tint: Color {
-        switch self {
-        case .overdue: return .red
-        case .today: return .orange
-        case .within7Days: return .accentColor
-        case .later: return .teal
-        case .someday: return .gray
-        case .done: return .green
-        }
+        self == .overdue ? Palette.past : Palette.ink3
     }
 }

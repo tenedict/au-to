@@ -17,16 +17,19 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            DashboardSidebar(counts: counts, selection: $selection)
+            DashboardSidebar(counts: counts, summary: summary, selection: $selection)
                 .navigationSplitViewColumnWidth(min: 188, ideal: 208, max: 260)
         } detail: {
             detail
                 .navigationTitle(selection.title)
                 .toolbar {
+                    // 가장 중요한 동작 하나는 그룹에서 뗀다 (디자인 언어 §10.7).
+                    // 지갑이 추가(+)만 별도 캡슐로 두는 것과 같다.
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: onPickFiles) {
                             Label("파일에서 고르기", systemImage: "photo.on.rectangle")
                         }
+                        .buttonStyle(.borderedProminent)
                         .help("스크린샷을 골라 할 일로 만들어요")
                     }
                 }
@@ -52,6 +55,10 @@ struct DashboardView: View {
         TaskScoping.counts(for: store.tasks, now: .now)
     }
 
+    private var summary: TaskScoping.Summary {
+        TaskScoping.summary(for: store.tasks, now: .now)
+    }
+
     // MARK: - 아래 상태 줄
 
     /// 분석 엔진과 담기 상태. 창 어디에 있든 같은 자리에서 보이게 아래에 붙인다.
@@ -61,7 +68,7 @@ struct DashboardView: View {
             HStack(spacing: 10) {
                 if let explanation = store.inboxAvailability.explanation {
                     Label(explanation, systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Palette.past)
                         .lineLimit(1)
                         .help(explanation)
                 }
@@ -71,7 +78,7 @@ struct DashboardView: View {
                 }
                 if let error = store.lastErrorMessage {
                     Label(error, systemImage: "exclamationmark.circle.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Palette.past)
                         .lineLimit(1)
                         .help(error)
                 }

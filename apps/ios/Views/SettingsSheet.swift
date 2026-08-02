@@ -71,7 +71,7 @@ struct SettingsSheet: View {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: engine.symbolName)
                     .font(.title3)
-                    .foregroundStyle(reason == nil ? Color.accentColor : Color.secondary)
+                    .foregroundStyle(reason == nil ? Palette.water : Palette.ink3)
                     .frame(width: 28)
 
                 VStack(alignment: .leading, spacing: 3) {
@@ -86,7 +86,7 @@ struct SettingsSheet: View {
                     if let reason {
                         Label(reason, systemImage: "hammer")
                             .font(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Palette.past)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -97,7 +97,7 @@ struct SettingsSheet: View {
                 if isSelected {
                     Image(systemName: "checkmark")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(Palette.water)
                 }
             }
             .contentShape(.rect)

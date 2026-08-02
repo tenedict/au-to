@@ -65,6 +65,33 @@ enum TaskScoping {
         }
     }
 
+    /// 사이드바 최상단의 요약.
+    ///
+    /// **목록에 들어가기 전에 "지금 상태" 를 먼저 말한다.** 일기 앱이 저널 목록 위에
+    /// 연속 기록 주수와 항목 수를 큰 숫자로 두는 것과 같은 구성이다
+    /// (디자인 연구 §6.3 · 디자인 언어 §10.6).
+    ///
+    /// 세는 것은 **지금 주의가 필요한 것 둘**뿐이다 — 지난 마감과 오늘.
+    /// 나머지는 그 아래 목록이 이미 말한다.
+    struct Summary: Equatable, Sendable {
+        let overdue: Int
+        let today: Int
+
+        /// 지금 손댈 것이 없다.
+        var isClear: Bool { overdue == 0 && today == 0 }
+    }
+
+    /// 요약은 `counts` 와 **같은 계산**을 쓴다. 따로 세면 같은 화면에서 다른 값이 보인다.
+    static func summary(
+        for tasks: [AssistantTask],
+        now: Date,
+        calendar: Calendar = .current
+    ) -> Summary {
+        Summary(
+            overdue: self.tasks(tasks, in: .due(.overdue), now: now, calendar: calendar).count,
+            today: self.tasks(tasks, in: .due(.today), now: now, calendar: calendar).count)
+    }
+
     /// 사이드바에 적히는 숫자.
     ///
     /// 할 일이 없는 묶음도 0 으로 남긴다. 항목이 일하는 동안 나타났다 사라지면

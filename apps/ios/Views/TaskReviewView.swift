@@ -59,7 +59,7 @@ struct TaskReviewView: View {
                             "AI가 날짜를 확실히 판단하지 못했어요. 저장 전에 확인해 주세요.",
                             systemImage: "exclamationmark.triangle.fill"
                         )
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Palette.past)
                     }
                 }
 
@@ -153,7 +153,7 @@ struct TaskReviewView: View {
                reminderAuthorization == .denied, wantsReminders, hasDate {
                 Label(explanation, systemImage: "bell.slash")
                     .font(.caption)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Palette.past)
             }
         }
     }

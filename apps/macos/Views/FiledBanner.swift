@@ -22,7 +22,7 @@ struct FiledBanner: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: filed.wentToCalendar ? "calendar.badge.checkmark" : "checklist")
                 .font(.title3)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(Palette.water)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(filed.wentToCalendar ? "캘린더에 넣었어요" : "할 일에 저장했어요")
@@ -37,7 +37,7 @@ struct FiledBanner: View {
                     // 사용자는 캘린더에도 들어간 줄 안다.
                     Text("캘린더에는 넣지 못했어요.")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Palette.past)
                 }
             }
 
@@ -63,7 +63,7 @@ struct FiledBanner: View {
             // 남은 시간을 눈으로 보여준다. 갑자기 사라지면 "방금 뭐였지" 가 된다.
             GeometryReader { geometry in
                 Capsule()
-                    .fill(Color.accentColor.opacity(0.5))
+                    .fill(Palette.water.opacity(0.5))
                     .frame(width: geometry.size.width * remaining, height: 2)
             }
             .frame(height: 2)

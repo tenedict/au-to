@@ -83,7 +83,7 @@ struct TaskCard: View {
             Button(action: onToggleCompletion) {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
-                    .foregroundStyle(task.isCompleted ? Color.green : Color.secondary)
+                    .foregroundStyle(task.isCompleted ? Palette.water : Palette.ink3)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(task.isCompleted ? "완료 취소" : "완료로 표시")
@@ -131,7 +131,7 @@ struct TaskCard: View {
     private var metadataItems: some View {
         Label(dueText, systemImage: dueSymbol)
             .font(.caption)
-            .foregroundStyle(bucket == .overdue ? Color.red : .secondary)
+            .foregroundStyle(bucket == .overdue ? Palette.past : Palette.ink3)
             .fixedSize(horizontal: false, vertical: true)
         if task.calendarEventIdentifier != nil {
             Label("캘린더", systemImage: "calendar.badge.checkmark")
@@ -175,7 +175,7 @@ struct TaskCard: View {
                         .font(.caption.weight(.semibold))
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(.red)
+                .foregroundStyle(Palette.past)
             }
         }
         .padding(.horizontal, 18)

@@ -16,10 +16,12 @@ struct WalletStackLayout: Equatable, Sendable {
     /// 펼친 카드의 높이.
     let expandedHeight: CGFloat
 
+    /// 값은 `CardMetrics` 에서 온다. 여기 다시 적으면 두 곳이 갈라지고,
+    /// 갈라지면 겹침이 어긋난 채로 테스트는 초록을 낸다.
     static let `default` = WalletStackLayout(
-        collapsedHeight: 92,
-        peekHeight: 64,
-        expandedHeight: 248
+        collapsedHeight: CardMetrics.collapsedHeight,
+        peekHeight: CardMetrics.peekHeight,
+        expandedHeight: CardMetrics.expandedHeight
     )
 
     /// `index` 번째 카드의 위쪽 좌표.

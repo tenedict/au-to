@@ -188,11 +188,15 @@ struct TaskCard: View {
         task.dueDate == nil ? "questionmark.circle" : "calendar"
     }
 
+    /// 접힌 카드의 마감. **좁음 등급이고 한 줄이다** (디자인 언어 §10.4 계약 C-1·C-2).
+    ///
+    /// 이 자리에 완전 서술형을 쓰면 두 줄이 되어 다음 카드에 가려진다.
     private var dueText: String {
-        guard let dueDate = task.dueDate else { return "날짜 확인 필요" }
-        return dueDate.formatted(
-            date: .abbreviated,
-            time: task.hasExplicitTime ? .shortened : .omitted
+        DueDateText.string(
+            for: task.dueDate,
+            hasExplicitTime: task.hasExplicitTime,
+            width: .narrow,
+            now: .now
         )
     }
 

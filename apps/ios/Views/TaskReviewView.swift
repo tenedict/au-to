@@ -204,7 +204,10 @@ struct TaskReviewView: View {
             return "알림을 걸 시각이 이미 지났어요. 이번에는 알림이 오지 않아요."
         }
         return plans
-            .map { $0.fireAt.formatted(date: .abbreviated, time: .shortened) }
+            .map {
+                DueDateText.string(
+                    for: $0.fireAt, hasExplicitTime: true, width: .medium, now: .now)
+            }
             .joined(separator: " · ") + "에 알려드려요."
     }
 

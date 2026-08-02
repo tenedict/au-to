@@ -84,7 +84,8 @@ enum DueDateText {
         default:
             let sameYear =
                 calendar.component(.year, from: date) == calendar.component(.year, from: now)
-            let base = sameYear
+            let base =
+                sameYear
                 ? monthDay(date, calendar: calendar)
                 : yearMonthDay(date, calendar: calendar)
             return join(base, clock)
@@ -102,6 +103,27 @@ enum DueDateText {
         // 확인 화면에서 사용자가 판단하는 근거는 날짜 자체다.
         guard calendar.isDate(date, inSameDayAs: now) else { return body }
         return "오늘 · " + body
+    }
+
+    // MARK: - 등급 밖의 두 가지
+
+    /// 달의 이름 — `2026년 8월`.
+    ///
+    /// 날짜가 아니라 **달**이라 폭 등급에 들어가지 않는다. 다만 형식을 만드는 자리는
+    /// 여기 하나여야 하므로 함께 둔다.
+    static func monthTitle(for date: Date, calendar: Calendar = .current) -> String {
+        formatter(calendar) { $0.setLocalizedDateFormatFromTemplate("yMMMM") }.string(from: date)
+    }
+
+    /// 하루 안에서의 시각 — `오후 6:00` 또는 `종일`.
+    ///
+    /// 날짜가 이미 머리글에 있는 자리(일별 일정)에서 쓴다. 시각이 없으면 빈칸이 아니라
+    /// **종일**이라고 말한다 — 빈칸은 "아직 안 정했다" 로 읽힌다.
+    static func clock(
+        for date: Date?, hasExplicitTime: Bool, calendar: Calendar = .current
+    ) -> String {
+        guard let date, hasExplicitTime else { return "종일" }
+        return formatter(calendar) { $0.timeStyle = .short }.string(from: date)
     }
 
     // MARK: - 조각

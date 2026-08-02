@@ -246,6 +246,21 @@ if [ -f config/apple/Secrets.xcconfig.example ]; then
   fi
 fi
 
+# ── 규칙 12 · 날짜 형식을 화면에서 만들지 않는다 ─────────────
+# 형식이 화면마다 흩어지면 좁은 자리에도 완전 서술형이 들어간다. 그러면 두 줄이 되고,
+# 접힌 카드에서는 넘친 줄이 다음 카드에 가려진다 — 실제로 "14:00" 이 그렇게 사라졌다.
+#
+# 형식을 만드는 자리는 `core/swift/Models/DueDateText.swift` 하나다.
+# 화면은 **폭 등급만 고른다** (디자인 언어 §9.3).
+hits=$(grep -rn '\.formatted(' --include='*.swift' "$IOS/Views" "$MAC/Views" 2>/dev/null \
+        | strip_comments)
+if [ -n "$hits" ]; then
+  report error "화면이 날짜 형식을 직접 만듦" "디자인 언어 §9.3" \
+    "DueDateText 를 쓰세요. 폭 등급은 tick · narrow · medium · full 입니다."
+  echo "$hits" | sed 's/^/      /'
+fi
+
+
 echo
 if [ $fail -eq 0 ]; then
   printf '%s✓%s 프로젝트 규칙 통과\n' "$GRN" "$OFF"

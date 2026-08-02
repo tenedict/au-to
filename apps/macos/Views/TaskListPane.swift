@@ -97,9 +97,11 @@ struct MacTaskRow: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                 }
                 Text(
-                    dueDate.formatted(
-                        date: .abbreviated,
-                        time: task.hasExplicitTime ? .shortened : .omitted
+                    DueDateText.string(
+                        for: dueDate,
+                        hasExplicitTime: task.hasExplicitTime,
+                        width: .narrow,
+                        now: .now
                     )
                 )
             }

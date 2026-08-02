@@ -39,7 +39,7 @@ struct MonthCalendarPane: View {
 
     private var monthHeader: some View {
         HStack(spacing: 12) {
-            Text(visibleMonth.formatted(.dateTime.year().month(.wide)))
+            Text(DueDateText.monthTitle(for: visibleMonth, calendar: calendar))
                 .font(.title2.weight(.semibold))
                 .contentTransition(.numericText())
 
@@ -126,8 +126,11 @@ struct MonthCalendarPane: View {
 
         return VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(selectedDay.formatted(.dateTime.month(.wide).day().weekday(.wide)))
-                    .font(.headline)
+                Text(
+                    DueDateText.string(
+                        for: selectedDay, hasExplicitTime: false, width: .medium, now: selectedDay)
+                )
+                .font(.headline)
                 Text(dayTasks.isEmpty ? "일정 없음" : "일정 \(dayTasks.count)건")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -201,17 +204,21 @@ private struct DayCell: View {
 
     var body: some View {
         VStack(spacing: 4) {
-            Text(dayNumber, format: .number.grouping(.never))
-                .font(.callout.weight(isToday ? .bold : .regular))
-                .monospacedDigit()
-                .foregroundStyle(foreground)
-                .frame(width: 30, height: 30)
-                .background(
-                    Circle().fill(
-                        isSelected ? Color.accentColor
-                            : (isToday ? Color.accentColor.opacity(0.16) : .clear)
-                    )
+            Text(
+                DueDateText.string(
+                    for: day, hasExplicitTime: false, width: .tick, now: day)
+            )
+            .font(.callout.weight(isToday ? .bold : .regular))
+            .monospacedDigit()
+            .foregroundStyle(foreground)
+            .frame(width: 30, height: 30)
+            .background(
+                Circle().fill(
+                    isSelected
+                        ? Color.accentColor
+                        : (isToday ? Color.accentColor.opacity(0.16) : .clear)
                 )
+            )
 
             // 점만 쓰면 색맹 사용자에게 아무 정보가 아니다. 개수는 접근성 레이블에 넣는다.
             HStack(spacing: 3) {
@@ -237,7 +244,8 @@ private struct DayCell: View {
     }
 
     private var accessibilityLabel: String {
-        let base = day.formatted(.dateTime.month(.abbreviated).day())
+        let base = DueDateText.string(
+            for: day, hasExplicitTime: false, width: .narrow, now: day)
         guard pendingCount > 0 else { return "\(base), 마감 없음" }
         return "\(base), 마감 \(pendingCount)개"
     }
@@ -262,9 +270,8 @@ private struct DayTaskRow: View {
                     .accessibilityLabel("캘린더에 등록됨")
             }
             Text(
-                task.hasExplicitTime
-                    ? (task.dueDate?.formatted(date: .omitted, time: .shortened) ?? "")
-                    : "종일"
+                DueDateText.clock(
+                    for: task.dueDate, hasExplicitTime: task.hasExplicitTime)
             )
             .font(.caption)
             .foregroundStyle(.secondary)

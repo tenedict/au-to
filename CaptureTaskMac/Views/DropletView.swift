@@ -44,8 +44,8 @@ struct DropletView: View {
             // 떨어뜨릴 수 있다는 신호. 물결이 바깥으로 번진다.
             if isTargeted && !reduceMotion {
                 Circle()
-                    .stroke(Color.accentColor.opacity(0.55), lineWidth: 2)
-                    .scaleEffect(ripple ? 1.28 : 0.94)
+                    .stroke(Color.accentColor.opacity(0.5), lineWidth: 2)
+                    .scaleEffect(ripple ? 1.30 : 0.94)
                     .opacity(ripple ? 0 : 1)
                     .animation(
                         .easeOut(duration: 1.1).repeatForever(autoreverses: false),
@@ -53,28 +53,13 @@ struct DropletView: View {
                     )
             }
 
-            Circle()
-                .fill(.regularMaterial)
-                .overlay(
-                    Circle().strokeBorder(
-                        isTargeted ? Color.accentColor : Color.primary.opacity(0.18),
-                        lineWidth: isTargeted ? 3 : 1
-                    )
-                )
-                .shadow(color: .black.opacity(0.28), radius: 12, y: 4)
-
-            if store.isImporting {
-                ProgressView()
-                    .controlSize(.small)
-            } else {
-                Image(systemName: phase.symbol)
-                    .font(.system(size: isTargeted ? 30 : 27, weight: .medium))
-                    .foregroundStyle(isTargeted ? Color.accentColor : Color.secondary)
-            }
+            glass
+            surfaceHighlights
+            symbol
         }
         .frame(width: DropletPanel.diameter, height: DropletPanel.diameter)
         .contentShape(.circle)
-        .scaleEffect(isTargeted && !reduceMotion ? 1.08 : 1)
+        .scaleEffect(isTargeted && !reduceMotion ? 1.10 : 1)
         .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.7),
                    value: isTargeted)
         .onDrop(of: [.image, .fileURL], isTargeted: $isTargeted) { providers in
@@ -91,6 +76,91 @@ struct DropletView: View {
         .accessibilityHint("탭하면 할 일 목록을 열어요")
         .accessibilityAddTraits(.isButton)
         .help(phase.label)
+    }
+
+    /// 물방울 본체.
+    ///
+    /// **뒤가 비쳐야 물방울이다.** `.ultraThinMaterial` 은 뒤 화면을 흐리게 통과시키고,
+    /// 그 위에 아주 옅은 파랑을 얹어 물빛을 준다. 불투명하게 채우면 그냥 원형 버튼이 된다.
+    private var glass: some View {
+        Circle()
+            .fill(.ultraThinMaterial)
+            .overlay {
+                Circle().fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.62, green: 0.83, blue: 1.0).opacity(0.28),
+                            Color(red: 0.30, green: 0.60, blue: 0.95).opacity(0.20),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            }
+            .overlay {
+                // 가장자리 — 유리의 두께. 위쪽이 밝고 아래쪽이 어둡다.
+                Circle().strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            .white.opacity(isTargeted ? 0.95 : 0.75),
+                            .white.opacity(0.15),
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: isTargeted ? 2.5 : 1.2
+                )
+            }
+            .overlay {
+                if isTargeted {
+                    Circle().strokeBorder(Color.accentColor.opacity(0.9), lineWidth: 2)
+                }
+            }
+            .shadow(color: .black.opacity(0.22), radius: 10, y: 3)
+    }
+
+    /// 표면의 빛 — 이게 있어야 유리로 읽힌다.
+    private var surfaceHighlights: some View {
+        GeometryReader { geometry in
+            let d = min(geometry.size.width, geometry.size.height)
+            ZStack {
+                // 위쪽 스페큘러
+                Ellipse()
+                    .fill(
+                        LinearGradient(
+                            colors: [.white.opacity(0.75), .white.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: d * 0.44, height: d * 0.24)
+                    .rotationEffect(.degrees(-24))
+                    .offset(x: -d * 0.13, y: -d * 0.20)
+
+                // 아래쪽 반사 — 빛이 바닥에서 한 번 더 튄다
+                Ellipse()
+                    .fill(Color.white.opacity(0.22))
+                    .frame(width: d * 0.40, height: d * 0.10)
+                    .offset(y: d * 0.26)
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+        .allowsHitTesting(false)
+    }
+
+    @ViewBuilder
+    private var symbol: some View {
+        if store.isImporting {
+            ProgressView()
+                .controlSize(.small)
+        } else {
+            Image(systemName: phase.symbol)
+                .font(.system(size: isTargeted ? 22 : 19, weight: .medium))
+                .foregroundStyle(
+                    isTargeted ? Color.accentColor : Color.primary.opacity(0.55)
+                )
+                .shadow(color: .white.opacity(0.6), radius: 1, y: 0.5)
+        }
     }
 
     /// 떨어진 것들을 순서대로 처리한다.

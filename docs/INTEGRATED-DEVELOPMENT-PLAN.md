@@ -674,7 +674,7 @@ MVP 권장안은 "생성만 연결하고 이후 수정/삭제는 사용자에게
 ### 23.1 백엔드
 
 ```bash
-cd backend
+cd server
 cp .env.example .env
 # OPENAI_API_KEY를 .env에 설정
 set -a
@@ -684,7 +684,7 @@ npm start
 ```
 
 ```bash
-cd backend
+cd server
 npm test
 ```
 

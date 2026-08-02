@@ -22,7 +22,7 @@
 # 개별 실행
 ./scripts/check-project-rules.sh          # 이 프로젝트만의 규칙
 ./scripts/check-project-rules.sh --list   # 어떤 규칙이 있는지
-cd backend && npm test                    # 백엔드만
+cd server && npm test                    # 백엔드만
 xcodegen generate && xcodebuild test -project CaptureTask.xcodeproj -scheme CaptureTask \
   -sdk iphonesimulator -destination "id=$(./scripts/select-simulator.sh)" \
   -derivedDataPath build CODE_SIGNING_ALLOWED=NO
@@ -41,7 +41,7 @@ xcodebuild build -project CaptureTask.xcodeproj -scheme CaptureTask -sdk iphones
 ```
 
 `.xcodeproj` 는 생성물이다. 프로젝트 설정은 **`project.yml` 에서만** 고친다.
-`Config/Secrets.xcconfig` 는 커밋되지 않는다. 없으면 `verify.sh` 가 예제에서 만든다.
+`config/apple/Secrets.xcconfig` 는 커밋되지 않는다. 없으면 `verify.sh` 가 예제에서 만든다.
 
 **빌드 설정 우선순위** — 타깃 설정 > 타깃 xcconfig > **프로젝트 설정** > 프로젝트 xcconfig.
 그래서 xcconfig 로 덮어써야 하는 값의 기본값은 `project.yml` 의 **프로젝트 수준**에 둔다.

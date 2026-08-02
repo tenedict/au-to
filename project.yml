@@ -16,7 +16,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    # Config/Secrets.xcconfig 가 있으면 그쪽 값이 이긴다.
+    # config/apple/Secrets.xcconfig 가 있으면 그쪽 값이 이긴다.
     CAPTURETASK_API_BASE_URL: "http://127.0.0.1:8787"
     CAPTURETASK_CLIENT_KEY: ""
     CURRENT_PROJECT_VERSION: 1
@@ -52,16 +52,16 @@ targets:
         NSCalendarsFullAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 접근이 필요해요."
         NSCalendarsWriteOnlyAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 쓰기 접근이 필요해요."
     entitlements:
-      path: Config/CaptureTask.entitlements
+      path: config/apple/CaptureTask.entitlements
       properties:
         # SharedInbox.appGroupIdentifier 와 반드시 같아야 한다 (프로젝트 규칙 1 이 대조한다).
         com.apple.security.application-groups:
           - group.com.example.capturetask
-    # 실제 값은 Config/Secrets.xcconfig 에 있고 그 파일은 커밋되지 않습니다.
+    # 실제 값은 config/apple/Secrets.xcconfig 에 있고 그 파일은 커밋되지 않습니다.
     # 없으면 아래 base 의 기본값(로컬 백엔드)이 그대로 쓰입니다.
     configFiles:
-      Debug: Config/Secrets.xcconfig
-      Release: Config/Secrets.xcconfig
+      Debug: config/apple/Secrets.xcconfig
+      Release: config/apple/Secrets.xcconfig
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask
@@ -87,7 +87,7 @@ targets:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).ShareViewController"
     entitlements:
-      path: Config/CaptureTaskShare.entitlements
+      path: config/apple/CaptureTaskShare.entitlements
       properties:
         # 한쪽만 바꾸면 담기는 성공하고 도착이 실패한다.
         com.apple.security.application-groups:
@@ -134,7 +134,7 @@ targets:
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
     entitlements:
-      path: Config/CaptureTaskMac.entitlements
+      path: config/apple/CaptureTaskMac.entitlements
       properties:
         com.apple.security.app-sandbox: true
         # 백엔드를 부른다.
@@ -143,8 +143,8 @@ targets:
         com.apple.security.files.user-selected.read-only: true
         com.apple.security.personal-information.calendars: true
     configFiles:
-      Debug: Config/Secrets.xcconfig
-      Release: Config/Secrets.xcconfig
+      Debug: config/apple/Secrets.xcconfig
+      Release: config/apple/Secrets.xcconfig
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask.mac
@@ -173,7 +173,7 @@ targets:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).MacShareViewController"
     entitlements:
-      path: Config/CaptureTaskMacShare.entitlements
+      path: config/apple/CaptureTaskMacShare.entitlements
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.files.user-selected.read-only: true

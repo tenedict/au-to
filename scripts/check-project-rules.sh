@@ -89,7 +89,7 @@ if [ -z "$group_in_code" ]; then
   report error "App Group 식별자를 코드에서 찾지 못함" "SPEC C-1" \
     "$CORE/Shared/PendingCapture.swift 의 SharedInbox.appGroupIdentifier 를 확인하세요."
 else
-  for f in project.yml Config/CaptureTask.entitlements Config/CaptureTaskShare.entitlements; do
+  for f in project.yml config/apple/CaptureTask.entitlements config/apple/CaptureTaskShare.entitlements; do
     if [ ! -f "$f" ]; then
       report error "App Group 설정 파일 없음" "SPEC C-1" "$f 가 없습니다."
     elif ! grep -q "$group_in_code" "$f"; then
@@ -214,34 +214,34 @@ done < <(find "$IOS/Views" "$MAC/Views" "$MAC/Windows" -name '*.swift' -exec wc 
 # 접두사로 두면 'gpt-5.6-luna' 가 'gpt-5' 로 시작한다는 이유로 그대로 통과한다.
 # 새 모델을 쓰려면 사람이 이 목록에 한 줄 더하며 한 번 확인하게 된다.
 KNOWN_MODELS="gpt-4.1 gpt-4.1-mini gpt-4.1-nano gpt-4o gpt-4o-mini gpt-5 gpt-5-mini gpt-5-nano o3 o4-mini"
-model=$(grep -oE 'DEFAULT_MODEL = "[^"]+"' backend/src/openai-client.mjs 2>/dev/null \
+model=$(grep -oE 'DEFAULT_MODEL = "[^"]+"' server/src/openai-client.mjs 2>/dev/null \
         | sed -E 's/.*"([^"]+)"/\1/')
 if [ -z "$model" ]; then
   report error "백엔드 기본 모델을 찾지 못함" "SPEC A-2" \
-    "backend/src/openai-client.mjs 의 DEFAULT_MODEL 을 확인하세요."
+    "server/src/openai-client.mjs 의 DEFAULT_MODEL 을 확인하세요."
 elif ! printf '%s\n' $KNOWN_MODELS | grep -qxF "$model"; then
   report error "확인되지 않은 기본 모델 ($model)" "SPEC A-2" \
     "OpenAI 가 실제로 제공하는 이름인지 확인한 뒤 이 스크립트의 KNOWN_MODELS 에 더하세요. 오타는 첫 호출에서 404 로만 드러납니다."
 fi
-grep -q "$model" backend/.env.example 2>/dev/null || \
+grep -q "$model" server/.env.example 2>/dev/null || \
   report warn "예제 환경파일의 모델이 기본값과 다름" "SPEC A-2" \
-    "backend/.env.example 의 OPENAI_MODEL 을 $model 로 맞추세요."
+    "server/.env.example 의 OPENAI_MODEL 을 $model 로 맞추세요."
 
 # ── 규칙 11 · 공유 비밀이 커밋되지 않았는가 ──────────────────
-# Config/Secrets.xcconfig 에는 배포 주소와 공유 비밀이 들어간다. 커밋되면
+# config/apple/Secrets.xcconfig 에는 배포 주소와 공유 비밀이 들어간다. 커밋되면
 # 저장소를 보는 누구나 우리 백엔드를 부를 수 있고, 되돌려도 히스토리에 남는다.
-if git ls-files --error-unmatch Config/Secrets.xcconfig >/dev/null 2>&1; then
+if git ls-files --error-unmatch config/apple/Secrets.xcconfig >/dev/null 2>&1; then
   report error "Secrets.xcconfig 가 추적되고 있음" "NFR-SEC-05" \
-    "git rm --cached Config/Secrets.xcconfig 로 빼세요. .gitignore 에 이미 있습니다."
+    "git rm --cached config/apple/Secrets.xcconfig 로 빼세요. .gitignore 에 이미 있습니다."
 fi
 
 # 예제 파일에 실제 값이 들어간 채로 커밋되는 사고도 막는다.
-if [ -f Config/Secrets.xcconfig.example ]; then
+if [ -f config/apple/Secrets.xcconfig.example ]; then
   hits=$(grep -nE '^[[:space:]]*CAPTURETASK_CLIENT_KEY[[:space:]]*=[[:space:]]*[^[:space:]]' \
-          Config/Secrets.xcconfig.example 2>/dev/null)
+          config/apple/Secrets.xcconfig.example 2>/dev/null)
   if [ -n "$hits" ]; then
     report error "예제 파일에 실제 비밀" "NFR-SEC-05" \
-      "Config/Secrets.xcconfig.example 의 CAPTURETASK_CLIENT_KEY 는 비어 있어야 합니다."
+      "config/apple/Secrets.xcconfig.example 의 CAPTURETASK_CLIENT_KEY 는 비어 있어야 합니다."
     echo "$hits" | sed 's/^/      /'
   fi
 fi

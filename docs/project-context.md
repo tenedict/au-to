@@ -65,11 +65,11 @@
 
 # 개별
 ./scripts/check-project-rules.sh --list
-cd backend && npm test
+cd server && npm test
 xcodegen generate
 
 # 백엔드 실행 (사용자가 넣을 것은 OPENAI_API_KEY 한 줄뿐)
-cd backend && cp .env.example .env
+cd server && cp .env.example .env
 #   .env 를 열어 키를 넣고
 set -a; source .env; set +a; npm start
 ```
@@ -107,7 +107,7 @@ CaptureTask/
   Views/        SwiftUI 7개
 CaptureTaskShare/   담기 전용
 CaptureTaskTests/   90건
-backend/            src 4개 · test 2개
+server/            src 4개 · test 2개
 scripts/            verify · 규칙 검사 · 시뮬레이터 선택
 docs/               BMAD 00~16 + sprint-status.yaml + plans/
 ```

@@ -121,7 +121,7 @@ BMAD 가 **무엇을 만들지**를 정한다면, Superpowers 는 **어떻게 �
 | --- | --- |
 | [`../CLAUDE.md`](../CLAUDE.md) | 작업 규칙 (사람·AI 공용) — **규칙의 원본** |
 | [`../AGENTS.md`](../AGENTS.md) | CLAUDE.md 로 가는 이정표 |
-| [`../backend/README.md`](../backend/README.md) | **백엔드 구조와 API 키를 넣는 곳** |
+| [`../server/README.md`](../server/README.md) | **백엔드 구조와 API 키를 넣는 곳** |
 | [`../scripts/verify.sh`](../scripts/verify.sh) | 사람·AI·훅·CI 가 함께 쓰는 검증 |
 | [`../scripts/check-project-rules.sh`](../scripts/check-project-rules.sh) | 이 프로젝트만의 규칙 (`--list` 로 목록) |
 | [`../.claude/skills/verify/SKILL.md`](../.claude/skills/verify/SKILL.md) | 완료 판정 스킬 |

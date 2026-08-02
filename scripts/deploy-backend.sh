@@ -57,7 +57,7 @@ for secret in OPENAI_API_KEY CAPTURETASK_CLIENT_KEY; do
     printf '%s' "\$(openssl rand -base64 32)" | \\
       gcloud secrets create CAPTURETASK_CLIENT_KEY --data-file=- --project $PROJECT
 
-    # 만든 값 확인 — Config/Secrets.xcconfig 에 같은 값을 넣어야 합니다
+    # 만든 값 확인 — config/apple/Secrets.xcconfig 에 같은 값을 넣어야 합니다
     gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY --project $PROJECT
 
 EOF
@@ -97,7 +97,7 @@ done
 # ── 배포 ────────────────────────────────────────────────────
 step "배포 ($REGION)"
 gcloud run deploy "$SERVICE" \
-  --source backend \
+  --source server \
   --project "$PROJECT" \
   --region "$REGION" \
   --allow-unauthenticated \
@@ -135,8 +135,8 @@ printf '\n%s%s배포 완료%s\n' "$GRN" "$BLD" "$OFF"
 printf '  %s\n\n' "$URL"
 cat <<EOF
 ${BLD}앱에 연결하기${OFF}
-  1. cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig   (없으면)
-  2. Config/Secrets.xcconfig 를 열어 채웁니다
+  1. cp config/apple/Secrets.xcconfig.example config/apple/Secrets.xcconfig   (없으면)
+  2. config/apple/Secrets.xcconfig 를 열어 채웁니다
 
        CAPTURETASK_HOST = ${URL#https://}
        CAPTURETASK_CLIENT_KEY = <아래 명령의 출력>

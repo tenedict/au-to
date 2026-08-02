@@ -213,7 +213,7 @@ CaptureTask/
   Views/        SwiftUI
 CaptureTaskShare/  담기 전용
 CaptureTaskTests/  90건
-backend/           Node 22 · 외부 패키지 0 · 15건
+server/           Node 22 · 외부 패키지 0 · 15건
 scripts/           verify · 규칙 검사 · 시뮬레이터 선택
 ```
 

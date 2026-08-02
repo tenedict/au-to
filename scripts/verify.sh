@@ -52,7 +52,7 @@ fi
 # iOS 테스트보다 훨씬 빠르다. --quick 에서도 돈다.
 step "백엔드 테스트"
 if command -v node >/dev/null 2>&1; then
-  if out=$(cd backend && npm test 2>&1); then
+  if out=$(cd server && npm test 2>&1); then
     ok "백엔드 $(echo "$out" | grep -E '^# pass ' | tail -1 | tr -dc '0-9')건 통과"
   else
     bad "백엔드 테스트 실패"
@@ -73,9 +73,9 @@ else
   # Secrets.xcconfig 는 커밋되지 않는다. 없으면 xcodegen 이 configFiles 를 찾지 못해
   # 실패하고, 새 체크아웃과 CI 가 전부 막힌다 — 실제로 CI 가 한 번 이걸로 죽었다.
   # 예제의 기본값은 로컬 백엔드라 그대로 복사해도 안전하다.
-  if [ ! -f Config/Secrets.xcconfig ]; then
-    cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig \
-      && printf '%s  · Config/Secrets.xcconfig 를 예제에서 만들었습니다 (로컬 백엔드)%s\n' \
+  if [ ! -f config/apple/Secrets.xcconfig ]; then
+    cp config/apple/Secrets.xcconfig.example config/apple/Secrets.xcconfig \
+      && printf '%s  · config/apple/Secrets.xcconfig 를 예제에서 만들었습니다 (로컬 백엔드)%s\n' \
            "$DIM" "$OFF"
   fi
 

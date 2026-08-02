@@ -3,7 +3,7 @@
 > **프롬프트를 고쳐도 좋아졌는지 나빠졌는지 말할 수 있게 하는 것**이 목적이다.
 > 첫 측정 2026-08-02
 
-관련 — [`backend/eval/`](../backend/eval/) · [12장 §3](12-IMPLEMENTATION-READINESS.md)
+관련 — [`server/eval/`](../server/eval/) · [12장 §3](12-IMPLEMENTATION-READINESS.md)
 
 ---
 
@@ -15,8 +15,8 @@
 한 케이스로 확인하면 그 케이스에만 맞춘 것이 된다. 기준선이 먼저다.
 
 ```bash
-node backend/eval/run.mjs                                  # 로컬 백엔드
-BASE_URL=https://… KEY=… node backend/eval/run.mjs         # 배포된 서버
+node server/eval/run.mjs                                  # 로컬 백엔드
+BASE_URL=https://… KEY=… node server/eval/run.mjs         # 배포된 서버
 ```
 
 **실제 OpenAI 를 부르므로 요금이 나간다.** 그래서 `verify.sh` 에 넣지 않았다 —

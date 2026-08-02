@@ -40,7 +40,7 @@
 ### 1. 백엔드 — **여기서 넣을 것은 API 키 한 줄뿐입니다**
 
 ```bash
-cd backend
+cd server
 cp .env.example .env
 # .env 를 열어 OPENAI_API_KEY 를 실제 값으로 바꿉니다. 나머지는 그대로 두어도 됩니다.
 
@@ -48,7 +48,7 @@ set -a; source .env; set +a
 npm start
 ```
 
-> 구조와 키를 넣는 곳은 [`backend/README.md`](backend/README.md)에 자세히 있습니다.
+> 구조와 키를 넣는 곳은 [`server/README.md`](server/README.md)에 자세히 있습니다.
 
 ### 배포 (Cloud Run · 서울)
 
@@ -63,7 +63,7 @@ npm start
 추론 계열(`gpt-5*`, `o*`)을 넣으면 `reasoning`·`verbosity` 파라미터가 자동으로 함께 붙습니다.
 
 ```bash
-cd backend && npm test        # 15건 · 실제 OpenAI 호출 없음
+cd server && npm test        # 15건 · 실제 OpenAI 호출 없음
 curl http://127.0.0.1:8787/health
 ```
 
@@ -71,7 +71,7 @@ curl http://127.0.0.1:8787/health
 
 ```bash
 brew install xcodegen                                        # 최초 1회
-cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig   # 최초 1회
+cp config/apple/Secrets.xcconfig.example config/apple/Secrets.xcconfig   # 최초 1회
 xcodegen generate                                            # .xcodeproj 는 생성물입니다
 open CaptureTask.xcodeproj
 ```
@@ -146,7 +146,7 @@ brew install lefthook && lefthook install
 | | |
 | --- | --- |
 | [`docs/README.md`](docs/README.md) | 문서 인덱스 · BMAD 워크플로 대응 |
-| [`backend/README.md`](backend/README.md) | **백엔드 구조 · API 키를 어디에 넣는지** |
+| [`server/README.md`](server/README.md) | **백엔드 구조 · API 키를 어디에 넣는지** |
 | [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/17-ONDEVICE-LLM-RESEARCH.md) | 온디바이스 LLM 비교 분석 |
 | [`docs/project-context.md`](docs/project-context.md) | 5분 요약 — 새 세션은 여기부터 |
 | [`CLAUDE.md`](CLAUDE.md) | 작업 규칙 (사람·AI 공용) |

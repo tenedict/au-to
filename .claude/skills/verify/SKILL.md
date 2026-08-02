@@ -28,7 +28,7 @@ description: CaptureTask 작업을 완료했다고 보고하기 전에 실행하
 | 프로젝트 규칙 | 목록은 `./scripts/check-project-rules.sh --list` | **차단** |
 | 코드 포맷 | `swift format lint` | 경고만 |
 | SwiftLint | 복잡도·강제 언래핑·전용 규칙 (설치 시) | 차단 |
-| 백엔드 테스트 | `cd backend && npm test` | **차단** |
+| 백엔드 테스트 | `cd server && npm test` | **차단** |
 | iOS 빌드·테스트 | `xcodebuild test` 전체 | **차단** |
 
 프로젝트 규칙은 전부 **실제로 한 번씩 사고를 낸 것**들이다. 근거는 각 지적 옆에 규칙/ADR 번호로 표시된다.

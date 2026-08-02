@@ -29,10 +29,10 @@ node_modules/
 # OpenAI 키가 들어간다. .env.example 만 올린다.
 .env
 .env.local
-backend/.env
+server/.env
 
 # 백엔드 주소와 공유 비밀. Secrets.xcconfig.example 만 올린다.
-Config/Secrets.xcconfig
+config/apple/Secrets.xcconfig
 
 # ─── macOS ────────────────────────────────────
 .DS_Store

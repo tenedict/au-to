@@ -32,7 +32,7 @@
 
 | # | 결함 | 왜 안 보였나 |
 | --- | --- | --- |
-| 1 | `Config/*.entitlements` 가 빈 `<dict/>` → App Group 전체 무효 | 빌드도 테스트도 통과한다. 공유 시트 경로는 실기기에서만 드러난다 |
+| 1 | `config/apple/*.entitlements` 가 빈 `<dict/>` → App Group 전체 무효 | 빌드도 테스트도 통과한다. 공유 시트 경로는 실기기에서만 드러난다 |
 | 2 | 파일에 App Group 을 써 넣어도 `xcodegen generate` 가 지운다 | `project.yml` 에 `path` 만 있었다 |
 | 3 | 기본 모델 `gpt-5.6-luna` 가 실재하지 않음 | 키가 없으면 호출하지 않으니 아무도 모른다 |
 | 4 | strict 스키마에 `maxLength`·`minimum`·`maxItems` | 모델/버전에 따라 400. 로컬 테스트는 통과 |

@@ -9,10 +9,10 @@ iOS 앱과 Share Extension 에는 키가 들어가지 않습니다. 앱 번들�
 
 ## 1. API 키를 어디에 넣나
 
-### 넣는 곳 — `backend/.env` 한 곳뿐입니다
+### 넣는 곳 — `server/.env` 한 곳뿐입니다
 
 ```bash
-cd backend
+cd server
 cp .env.example .env
 ```
 
@@ -54,7 +54,7 @@ OpenAI model: gpt-4.1-mini
 `sk-proj-replace-me` 를 그대로 둔 채 켜면 **시작 즉시 멈춥니다.**
 
 ```
-OPENAI_API_KEY가 아직 자리표시자입니다. backend/.env에 실제 키를 넣어 주세요.
+OPENAI_API_KEY가 아직 자리표시자입니다. server/.env에 실제 키를 넣어 주세요.
 ```
 
 이걸 막지 않으면 첫 호출에서 401 이 나고, 원인은 서버 로그에만 남습니다.
@@ -64,7 +64,7 @@ OPENAI_API_KEY가 아직 자리표시자입니다. backend/.env에 실제 키를
 ## 2. 구조
 
 ```
-backend/
+server/
 ├─ Dockerfile                Cloud Run 용. 외부 패키지가 0개라 소스만 복사한다
 ├─ src/
 │  ├─ server.mjs             켜는 자리 — 환경변수 읽기 · 조립 · listen
@@ -240,7 +240,7 @@ export function isReasoningModel(model) {
 ## 7. 테스트
 
 ```bash
-cd backend && npm test
+cd server && npm test
 ```
 
 46건 전부 **실제 OpenAI 호출 없이** 돕니다. `fetchImpl` 을 대역으로 바꿔 넣습니다.
@@ -311,11 +311,11 @@ printf '%s' "$(openssl rand -base64 32)" | \
 ### 배포 뒤 앱 연결
 
 ```bash
-cp Config/Secrets.xcconfig.example Config/Secrets.xcconfig   # 없으면
+cp config/apple/Secrets.xcconfig.example config/apple/Secrets.xcconfig   # 없으면
 gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY
 ```
 
-`Config/Secrets.xcconfig` 에 주소와 비밀을 넣고 `xcodegen generate` 를 다시 돌립니다.
+`config/apple/Secrets.xcconfig` 에 주소와 비밀을 넣고 `xcodegen generate` 를 다시 돌립니다.
 이 파일은 **커밋되지 않습니다** (프로젝트 규칙 11 이 검사합니다).
 
 ### 스크립트가 배포 뒤에 확인하는 것

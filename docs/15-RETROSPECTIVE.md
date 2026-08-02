@@ -12,7 +12,7 @@
 검증 하네스를 세우자마자, **문서에는 있고 코드에는 없던 것**이 열 건 나왔다.
 전부 빌드와 테스트를 통과하던 상태였다.
 
-가장 컸던 것은 App Group 이었다. `Config/CaptureTask.entitlements` 와
+가장 컸던 것은 App Group 이었다. `config/apple/CaptureTask.entitlements` 와
 `CaptureTaskShare.entitlements` 가 둘 다 빈 `<dict/>` 였다.
 그래서 `containerURL(forSecurityApplicationGroupIdentifier:)` 이 언제나 nil 을 돌려주고,
 공유 시트로 담은 스크린샷은 앱에 **영원히** 도착하지 않았다.

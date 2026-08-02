@@ -65,7 +65,7 @@ group.com.example.capturetask
 | `CaptureTask/Shared/PendingCapture.swift` | 두 프로세스가 컨테이너를 찾는 키 |
 | `project.yml` → `CaptureTask` 의 `entitlements.properties` | 생성물의 원본 |
 | `project.yml` → `CaptureTaskShare` 의 `entitlements.properties` | 〃 |
-| `Config/*.entitlements` (생성물) | 실제 서명에 들어가는 값 |
+| `config/apple/*.entitlements` (생성물) | 실제 서명에 들어가는 값 |
 
 **C-4.1 · `project.yml` 에 `entitlements.properties` 로 적는다.**
 `path` 만 적으면 `xcodegen generate` 가 파일을 빈 `<dict/>` 로 덮어쓴다.
@@ -318,7 +318,7 @@ OpenAI 키를 여기에 잘못 넣으면 백엔드를 둔 이유(ADR-5)가 통�
 서버가 시작 시 거부한다.
 
 **H-3.4 · 실제 값은 커밋되지 않는다.**
-`Config/Secrets.xcconfig` 는 `.gitignore` 에 있고, 프로젝트 규칙 11 이
+`config/apple/Secrets.xcconfig` 는 `.gitignore` 에 있고, 프로젝트 규칙 11 이
 추적 여부와 예제 파일의 값을 함께 검사한다.
 
 ### H-4 · 요청 한도
@@ -382,7 +382,7 @@ iOS URLRequest.timeoutInterval   20초
 | W-1 ~ W-6 | `TaskStoreTests` · 코드 리뷰 |
 | S-1 · S-2 | `TaskStorageTests` 8건 · 프로젝트 규칙 8 · SwiftLint `swallowed_storage_error` |
 | A-1 ~ A-5 | 백엔드 테스트 15건 · 프로젝트 규칙 10 |
-| H-1 · H-2 | `backend/test/app.test.mjs` · `openai-client.test.mjs` |
+| H-1 · H-2 | `server/test/app.test.mjs` · `openai-client.test.mjs` |
 | H-3 | `auth.test.mjs` 10건 · `app.test.mjs` 인증 4건 · **프로젝트 규칙 11** |
 | H-4 | `rate-limit.test.mjs` 11건 · `app.test.mjs` 한도 1건 |
 | 키 격리 | 프로젝트 규칙 2 · SwiftLint `openai_key_in_app` |

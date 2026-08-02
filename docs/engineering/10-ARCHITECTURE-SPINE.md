@@ -206,6 +206,7 @@ strict 모드가 지원하지 않는 키워드는 모델/버전에 따라 400 �
 ```
 core/swift/      두 앱과 두 확장이 전부 쓴다
   Models/        순수 값 · 순수 함수     ← 아무것도 import 하지 않는다 (Foundation 제외)
+  Design/        색 · 간격 · 치수 토큰   ← 두 플랫폼이 같은 값을 쓴다
   Services/      플랫폼 · 네트워크 어댑터
   Shared/        앱 ↔ Extension 공유     ← Extension 타깃에도 들어간다
   Store/         상태 · 영속화 · 유스케이스 조율
@@ -216,7 +217,7 @@ apps/ios/
   Share/         담기 전용
 apps/macos/
   App/ Views/ Windows/ Resources/ Share/
-tests/swift/     130건
+tests/swift/     150건
 server/          Node 22 · 외부 패키지 0 · 46건
 config/apple/    entitlements · xcconfig
 scripts/         verify · 규칙 검사 · 문서 링크 검사 · 시뮬레이터 선택

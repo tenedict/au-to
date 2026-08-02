@@ -34,6 +34,7 @@ Windows·Android 가 붙으면 `platform/` 에 문서가 하나씩 늘어난다.
 | 파일이 어디 있는지 모르겠다 | [20-REPO-LAYOUT.md](engineering/20-REPO-LAYOUT.md) |
 | **플랫폼을 하나 더 붙인다** | [20-REPO-LAYOUT.md §4](engineering/20-REPO-LAYOUT.md) |
 | 화면을 고치려 한다 | [05-IA.md](product/05-IA.md) + [06-화면설계서.md](product/06-화면설계서.md) + [08-와이어프레임.md](product/08-와이어프레임.md) |
+| **색·글자·간격을 정해야 한다** | [디자인 언어 기획서](report/design-language.html) — 근거는 [디자인 연구](report/design-research.html) |
 | 다음에 뭘 할지 알고 싶다 | [14-SPRINT.md](engineering/14-SPRINT.md) + [11-EPICS-STORIES.md](engineering/11-EPICS-STORIES.md) |
 | 릴리스해도 되는지 판단한다 | [12-IMPLEMENTATION-READINESS.md](engineering/12-IMPLEMENTATION-READINESS.md) |
 | 왜 이렇게 짰는지 궁금하다 | [15-RETROSPECTIVE.md](engineering/15-RETROSPECTIVE.md) |

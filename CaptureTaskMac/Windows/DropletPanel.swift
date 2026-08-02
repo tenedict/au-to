@@ -38,7 +38,12 @@ final class DropletPanel: NSPanel {
         // 전체 화면 앱 위에도 떠 있어야 한다. 그렇지 않으면 정작 필요할 때 사라진다.
         animationBehavior = .utilityWindow
 
-        contentView = NSHostingView(rootView: content())
+        // NSHostingView 는 기본 배경을 그린다. 이걸 비우지 않으면 고리 뒤에
+        // 옅은 네모가 남는다 — 창을 투명하게 해도 안쪽 뷰가 칠하면 소용없다.
+        let hosting = NSHostingView(rootView: content())
+        hosting.wantsLayer = true
+        hosting.layer?.backgroundColor = .clear
+        contentView = hosting
         setFrameOrigin(Self.defaultOrigin())
     }
 

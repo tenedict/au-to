@@ -45,8 +45,7 @@ struct DropletView: View {
                     )
             }
 
-            glass
-            surfaceHighlights
+            ring
             if store.isImporting {
                 ProgressView().controlSize(.small)
             }
@@ -72,75 +71,66 @@ struct DropletView: View {
         .help(phase.label)
     }
 
-    /// 물방울 본체.
+    /// 테두리만 있는 고리.
     ///
-    /// **뒤가 비쳐야 물방울이다.** `.ultraThinMaterial` 은 뒤 화면을 흐리게 통과시키고,
-    /// 그 위에 아주 옅은 파랑을 얹어 물빛을 준다. 불투명하게 채우면 그냥 원형 버튼이 된다.
-    private var glass: some View {
-        Circle()
-            .fill(.ultraThinMaterial)
+    /// **가운데는 아무것도 그리지 않는다.** 뒤 화면이 흐려짐 없이 그대로 보인다.
+    ///
+    /// 예전에는 `.ultraThinMaterial` 로 채웠는데, 그건 뒤를 **흐리게** 만드는 재질이라
+    /// 물방울 자리에 뿌연 판이 생겼다. 게다가 macOS 에서는 그 흐림이 원 밖으로 번져
+    /// 네모난 자국으로 보였다. 투명하게 하려면 채우지 않는 것이 답이다.
+    ///
+    /// 스테인리스처럼 보이는 이유는 **각도에 따라 밝기가 도는** 그라디언트 때문이다.
+    /// 금속은 한 방향에서만 빛나지 않는다 — 둘레를 돌며 밝은 띠와 어두운 띠가 번갈아 온다.
+    ///
+    /// **그림자를 쓰지 않는다.** 창이 고리에 딱 맞는 68×68 이라 중심에서 모서리까지가
+    /// 고리 반지름보다 가깝다. 그래서 그림자가 네 모서리에 닿고 창 경계에서 직선으로
+    /// 잘려 **뿌연 네모**로 보였다. 윤곽은 그림자 대신 바깥쪽 실선으로 만든다.
+    private var ring: some View {
+        let width: CGFloat = isTargeted ? 4 : 3
+
+        return Circle()
+            .strokeBorder(Self.steel, lineWidth: width)
             .overlay {
-                Circle().fill(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.62, green: 0.83, blue: 1.0).opacity(0.28),
-                            Color(red: 0.30, green: 0.60, blue: 0.95).opacity(0.20),
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+                // 바깥 윤곽 — 밝은 배경 위에서도 고리가 배경에 묻히지 않게 한다.
+                // 그림자가 하던 일을, 원 밖으로 한 픽셀도 넘지 않으면서 한다.
+                Circle().strokeBorder(.black.opacity(0.30), lineWidth: 0.5)
             }
             .overlay {
-                // 가장자리 — 유리의 두께. 위쪽이 밝고 아래쪽이 어둡다.
-                Circle().strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            .white.opacity(isTargeted ? 0.95 : 0.75),
-                            .white.opacity(0.15),
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: isTargeted ? 2.5 : 1.2
-                )
+                // 안쪽 모서리 — 그늘. 두께가 있다는 신호다.
+                Circle()
+                    .strokeBorder(.black.opacity(0.35), lineWidth: 0.75)
+                    .padding(width - 0.75)
             }
             .overlay {
                 if isTargeted {
-                    Circle().strokeBorder(Color.accentColor.opacity(0.9), lineWidth: 2)
+                    Circle().strokeBorder(Color.accentColor.opacity(0.85), lineWidth: 2)
                 }
             }
-            .shadow(color: .black.opacity(0.22), radius: 10, y: 3)
     }
 
-    /// 표면의 빛 — 이게 있어야 유리로 읽힌다.
-    private var surfaceHighlights: some View {
-        GeometryReader { geometry in
-            let d = min(geometry.size.width, geometry.size.height)
-            ZStack {
-                // 위쪽 스페큘러
-                Ellipse()
-                    .fill(
-                        LinearGradient(
-                            colors: [.white.opacity(0.75), .white.opacity(0.05)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: d * 0.44, height: d * 0.24)
-                    .rotationEffect(.degrees(-24))
-                    .offset(x: -d * 0.13, y: -d * 0.20)
-
-                // 아래쪽 반사 — 빛이 바닥에서 한 번 더 튄다
-                Ellipse()
-                    .fill(Color.white.opacity(0.22))
-                    .frame(width: d * 0.40, height: d * 0.10)
-                    .offset(y: d * 0.26)
-            }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-        }
-        .allowsHitTesting(false)
-    }
+    /// 둘레를 도는 금속 광택.
+    ///
+    /// 밝은 띠 둘, 어두운 띠 둘을 마주 보게 놓았다. 실제 원통형 금속에 조명이
+    /// 하나 있을 때 나타나는 배치다.
+    ///
+    /// **명암 차가 커야 금속으로 읽힌다.** 처음에는 0.45~1.00 을 썼는데 흰 배경 위에서는
+    /// 그냥 흰 고리로 보였다. 어두운 띠를 0.22 까지 내리니 비로소 금속이 됐다 —
+    /// 금속의 어두운 부분은 회색이 아니라 거의 검다.
+    private static let steel = AngularGradient(
+        stops: [
+            .init(color: Color(white: 0.97), location: 0.00),
+            .init(color: Color(white: 0.32), location: 0.12),
+            .init(color: Color(white: 0.72), location: 0.25),
+            .init(color: Color(white: 1.00), location: 0.38),
+            .init(color: Color(white: 0.28), location: 0.50),
+            .init(color: Color(white: 0.86), location: 0.62),
+            .init(color: Color(white: 0.22), location: 0.75),
+            .init(color: Color(white: 0.78), location: 0.88),
+            .init(color: Color(white: 0.97), location: 1.00),
+        ],
+        center: .center,
+        angle: .degrees(-35)
+    )
 
     /// 떨어진 것들을 순서대로 처리한다.
     ///

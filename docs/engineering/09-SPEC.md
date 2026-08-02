@@ -62,7 +62,7 @@ group.com.example.capturetask
 
 | 어디 | 왜 |
 | --- | --- |
-| `CaptureTask/Shared/PendingCapture.swift` | 두 프로세스가 컨테이너를 찾는 키 |
+| `core/swift/Shared/PendingCapture.swift` | 두 프로세스가 컨테이너를 찾는 키 |
 | `project.yml` → `CaptureTask` 의 `entitlements.properties` | 생성물의 원본 |
 | `project.yml` → `CaptureTaskShare` 의 `entitlements.properties` | 〃 |
 | `config/apple/*.entitlements` (생성물) | 실제 서명에 들어가는 값 |

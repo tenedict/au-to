@@ -74,7 +74,7 @@ OCR·LLM·EventKit·알림은 전부 메인 앱이 한다.
 **왜** — Extension 은 메모리·시간·수명 제약이 크고 시스템이 언제든 죽인다.
 긴 작업을 넣으면 중간에 죽고, 사용자는 담기가 실패한 줄도 모른다.
 
-**강제** — 프로젝트 규칙 3이 `CaptureTaskShare/` 와 `CaptureTask/Shared/` 에서
+**강제** — 프로젝트 규칙 3이 `apps/ios/Share/` 와 `core/swift/Shared/` 에서
 `EventKit`·`Vision`·`URLSession` 을 막는다.
 
 **예외 하나 — 로컬 알림.** 막는 기준은 "무엇을 import 했는가"가 아니라 **"얼마나 오래 걸리는가"** 다.
@@ -204,18 +204,27 @@ strict 모드가 지원하지 않는 키워드는 모델/버전에 따라 400 �
 ## 3. 모듈 구조
 
 ```
-CaptureTask/
-  App/          진입점
-  Models/       순수 값 · 순수 함수     ← 아무것도 import 하지 않는다 (Foundation 제외)
-  Services/     플랫폼 · 네트워크 어댑터
-  Shared/       앱 ↔ Extension 공유     ← Extension 타깃에도 들어간다
-  Store/        상태 · 영속화 · 유스케이스 조율
-  Views/        SwiftUI
-CaptureTaskShare/  담기 전용
-CaptureTaskTests/  90건
-server/           Node 22 · 외부 패키지 0 · 15건
-scripts/           verify · 규칙 검사 · 시뮬레이터 선택
+core/swift/      두 앱과 두 확장이 전부 쓴다
+  Models/        순수 값 · 순수 함수     ← 아무것도 import 하지 않는다 (Foundation 제외)
+  Services/      플랫폼 · 네트워크 어댑터
+  Shared/        앱 ↔ Extension 공유     ← Extension 타깃에도 들어간다
+  Store/         상태 · 영속화 · 유스케이스 조율
+apps/ios/
+  App/           진입점
+  Views/         SwiftUI
+  Resources/     Assets.xcassets
+  Share/         담기 전용
+apps/macos/
+  App/ Views/ Windows/ Resources/ Share/
+tests/swift/     115건
+server/          Node 22 · 외부 패키지 0 · 46건
+config/apple/    entitlements · xcconfig
+scripts/         verify · 규칙 검사 · 문서 링크 검사 · 시뮬레이터 선택
 ```
+
+**화면만 플랫폼별로 갈린다.** 계산·저장·어댑터는 `core/swift/` 하나이고,
+iOS·macOS 앱과 두 공유 확장이 같은 코드를 쓴다. 플랫폼이 늘어도 `apps/` 아래
+폴더 하나만 늘어난다 — 언어가 다른 공용 코드가 생기면 `core/` 아래 형제로 들어간다.
 
 **`Shared/` 가 Extension 타깃에도 들어가는 것이 중요하다.** 그래서 여기에 무거운 것을
 넣으면 ADR-2 가 깨진다. 프로젝트 규칙 3이 `Shared/` 도 함께 본다.

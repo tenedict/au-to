@@ -93,24 +93,27 @@ set -a; source .env; set +a; npm start
 ## 코드 지도
 
 ```
-CaptureTask/
-  App/          진입점
-  Models/       순수 값 · 순수 함수      ← 아무것도 import 하지 않는다
+core/swift/       두 앱과 두 확장이 전부 쓴다
+  Models/         순수 값 · 순수 함수      ← 아무것도 import 하지 않는다
     AssistantTask · TaskDraft · Confidence
     DueGrouping      마감 묶음 분류·정렬
     ReminderSchedule 알림 시각·식별자
     MonthGrid        월 격자·날짜별 묶기
     WalletStackLayout 지갑 카드 배치
-  Services/     플랫폼·네트워크 어댑터
-  Shared/       앱 ↔ Extension 공유       ← Extension 타깃에도 들어간다
-  Store/        상태·영속화·유스케이스 조율
-  Views/        SwiftUI 7개
-CaptureTaskShare/   담기 전용
-CaptureTaskTests/   90건
-server/            src 4개 · test 2개
-scripts/            verify · 규칙 검사 · 시뮬레이터 선택
-docs/               BMAD 00~16 + sprint-status.yaml + plans/
+  Services/       플랫폼·네트워크 어댑터
+  Shared/         앱 ↔ Extension 공유       ← Extension 타깃에도 들어간다
+  Store/          상태·영속화·유스케이스 조율
+apps/ios/         App/ · Views/ SwiftUI 7개 · Resources/ · Share/ 담기 전용
+apps/macos/       App/ · Views/ · Windows/ · Resources/ · Share/
+tests/swift/      115건
+server/           src 6개 · test 4개 · 46건
+config/apple/     entitlements 4개 · Secrets.xcconfig
+scripts/          verify · 규칙 검사 · 문서 링크 검사 · 시뮬레이터 선택
+docs/             product/ · engineering/ · platform/ · plans/ · sprint-status.yaml
 ```
+
+**화면만 플랫폼별로 갈린다.** 나머지는 `core/swift/` 하나다.
+플랫폼이 늘면 `apps/` 아래 폴더 하나만 늘어난다.
 
 **의존은 한 방향** — View → Store → Service 프로토콜 → 어댑터, 그리고 모두가 Model 을 안다.
 Model 은 아무도 모른다.
@@ -156,7 +159,7 @@ Model 은 아무도 모른다.
 | `confidence` 가 눈금 역할 못 함 | 실제 호출에서 전부 0.9~1.0. 평가셋(S-2.3)이 먼저 |
 | 중복 감지 | 무엇을 중복으로 볼지 미결정 (D-5) |
 | 백엔드 인증·rate limit | 배포 차단 (NFR-SEC-05) |
-| 온디바이스 LLM | 평가셋 50건 없음 (S-2.3). 비교 분석은 [17장](17-ONDEVICE-LLM-RESEARCH.md) |
+| 온디바이스 LLM | 평가셋 50건 없음 (S-2.3). 비교 분석은 [17장](platform/17-ONDEVICE-LLM-RESEARCH.md) |
 
 ---
 

@@ -350,7 +350,7 @@ gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY
 
 | | |
 | --- | --- |
-| [`docs/09-SPEC.md`](../docs/09-SPEC.md) | 계약 (A · H 절) |
-| [`docs/10-ARCHITECTURE-SPINE.md`](../docs/10-ARCHITECTURE-SPINE.md) | ADR-5 키 격리 · ADR-6 구조화 출력 |
-| [`docs/03-SRS-비기능요구사항.md`](../docs/03-SRS-비기능요구사항.md) | 성능·프라이버시·보안 |
-| [`docs/17-ONDEVICE-LLM-RESEARCH.md`](../docs/17-ONDEVICE-LLM-RESEARCH.md) | 이 서버를 언젠가 대체할 후보들 |
+| [`docs/09-SPEC.md`](../docs/engineering/09-SPEC.md) | 계약 (A · H 절) |
+| [`docs/10-ARCHITECTURE-SPINE.md`](../docs/engineering/10-ARCHITECTURE-SPINE.md) | ADR-5 키 격리 · ADR-6 구조화 출력 |
+| [`docs/03-SRS-비기능요구사항.md`](../docs/product/03-SRS-비기능요구사항.md) | 성능·프라이버시·보안 |
+| [`docs/17-ONDEVICE-LLM-RESEARCH.md`](../docs/platform/17-ONDEVICE-LLM-RESEARCH.md) | 이 서버를 언젠가 대체할 후보들 |

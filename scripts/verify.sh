@@ -23,6 +23,18 @@ skip() { printf '%s  – %s (미설치)%s\n' "$DIM" "$1" "$OFF"; skipped+=("$2")
 step "프로젝트 규칙"
 ./scripts/check-project-rules.sh || fail=1
 
+# ── 1-2. 문서 링크 ──────────────────────────────────────────
+# 문서를 옮길 때마다 링크 몇 개가 조용히 죽는다. 눌러 보는 사람은 대개
+# 이 저장소를 처음 여는 사람이라, 첫인상이 깨진 링크가 된다.
+step "문서 링크"
+if command -v python3 >/dev/null 2>&1; then
+  out=$(./scripts/check-doc-links.sh 2>&1)
+  if [ $? -eq 0 ]; then ok "$(echo "$out" | tail -1 | sed 's/^[^ ]* //')"
+  else bad "깨진 문서 링크"; echo "$out" | head -12 | sed 's/^/    /'; fi
+else
+  skip "python3" "문서 링크 검사에 필요"
+fi
+
 # ── 2. 포맷 (Xcode 내장) ────────────────────────────────────
 step "코드 포맷"
 if xcrun --find swift-format >/dev/null 2>&1; then

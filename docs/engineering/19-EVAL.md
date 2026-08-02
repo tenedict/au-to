@@ -3,7 +3,7 @@
 > **프롬프트를 고쳐도 좋아졌는지 나빠졌는지 말할 수 있게 하는 것**이 목적이다.
 > 첫 측정 2026-08-02
 
-관련 — [`server/eval/`](../server/eval/) · [12장 §3](12-IMPLEMENTATION-READINESS.md)
+관련 — [`server/eval/`](../../server/eval) · [12장 §3](12-IMPLEMENTATION-READINESS.md)
 
 ---
 
@@ -146,7 +146,7 @@ BASE_URL=https://… KEY=… node server/eval/run.mjs         # 배포된 서버
 | 1 | 케이스를 50건으로 | 15건은 편차가 개선폭보다 크다 |
 | 2 | 같은 케이스를 3회씩 돌려 평균 | 한 번 돌린 숫자는 못 믿는다 |
 | 3 | `nodate-03` · `past-01` 고치기 | 3/3 실패하는 진짜 결함 |
-| 4 | 온디바이스 모델과 나란히 돌리기 | [17장](17-ONDEVICE-LLM-RESEARCH.md) 전환 판단 |
+| 4 | 온디바이스 모델과 나란히 돌리기 | [17장](../platform/17-ONDEVICE-LLM-RESEARCH.md) 전환 판단 |
 
 ### 3번을 위한 프롬프트 후보
 

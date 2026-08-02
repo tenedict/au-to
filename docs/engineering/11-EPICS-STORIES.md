@@ -1,7 +1,7 @@
 # Epics & Stories
 
 > BMAD Phase 3 · `bmad-create-epics-and-stories`.
-> 기계가 읽는 진행 상태는 [sprint-status.yaml](sprint-status.yaml).
+> 기계가 읽는 진행 상태는 [sprint-status.yaml](../sprint-status.yaml).
 
 상태 — ✅ 완료·검증 · 🟡 완료·실기기 미확인 · ⬜ 미착수 · 🚫 결정 대기
 
@@ -169,7 +169,7 @@
 | S-9.3 | 대비 높이기 대응 | ✅ | NFR-A11Y-08 |
 | S-9.4 | 알림 탭 → 해당 카드 라우팅 | ✅ | NFR-A11Y-09 · G-4 |
 
-계획은 [plans/S-9-접근성.md](plans/S-9-접근성.md).
+계획은 [plans/S-9-접근성.md](../plans/S-9-접근성.md).
 **R2 릴리스 게이트의 접근성 차단 3건이 풀렸다.**
 
 ---
@@ -187,7 +187,7 @@
 | S-10.7 | 물방울을 진짜 물방울처럼 (유리·투명·68pt) | ✅ |
 | S-10.8 | 앱 아이콘 — 물방울에 할 일이 들어간다 | ✅ |
 
-계획과 제약은 [18-MACOS.md](18-MACOS.md).
+계획과 제약은 [18-MACOS.md](../platform/18-MACOS.md).
 
 ---
 

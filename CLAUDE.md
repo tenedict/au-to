@@ -3,7 +3,7 @@
 스크린샷을 공유하면 온디바이스 OCR과 문맥 분석으로 할 일을 만들고,
 사용자 확인 뒤 Apple 캘린더와 마감 알림까지 이어 주는 iOS 개인 비서 앱.
 
-> 자세한 맥락은 [`docs/project-context.md`](docs/project-context.md), 개발 규율은 [`docs/16-ENGINEERING-PLAYBOOK.md`](docs/16-ENGINEERING-PLAYBOOK.md).
+> 자세한 맥락은 [`docs/project-context.md`](docs/project-context.md), 개발 규율은 [`docs/16-ENGINEERING-PLAYBOOK.md`](docs/engineering/16-ENGINEERING-PLAYBOOK.md).
 
 ---
 
@@ -62,7 +62,7 @@ Share Extension → App Group inbox → 메인 앱이 꺼내서 처리
 
 **분석 엔진을 고르는 지점은 `AnalysisEngine` + `ContextUnderstanding.make(_:)` 한 곳뿐이다.**
 나중에 온디바이스를 붙일 때 건드릴 파일은 둘이고, 화면·저장소·테스트는 그대로다.
-비교 분석은 [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/17-ONDEVICE-LLM-RESEARCH.md).
+비교 분석은 [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/platform/17-ONDEVICE-LLM-RESEARCH.md).
 
 의존은 이 한 방향뿐이다. Model은 Store·View·EventKit·Vision·UserNotifications를 모른다.
 마감 분류·알림 시각·월 격자·지갑 스택 배치가 전부 `core/swift/Models/` 의 순수 함수다.
@@ -204,7 +204,7 @@ git config core.hooksPath .githooks       # 한 번만. 훅이 형식을 검사�
 | 분석이 찾은 근거 | 프롬프트 결과 |
 | 담아 둔 스크린샷 | 원본 이미지 |
 
-전체 사전: [`docs/05-IA.md §9`](docs/05-IA.md)
+전체 사전: [`docs/05-IA.md §9`](docs/product/05-IA.md)
 
 ---
 

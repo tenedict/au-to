@@ -147,7 +147,7 @@ brew install lefthook && lefthook install
 | --- | --- |
 | [`docs/README.md`](docs/README.md) | 문서 인덱스 · BMAD 워크플로 대응 |
 | [`server/README.md`](server/README.md) | **백엔드 구조 · API 키를 어디에 넣는지** |
-| [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/17-ONDEVICE-LLM-RESEARCH.md) | 온디바이스 LLM 비교 분석 |
+| [`docs/17-ONDEVICE-LLM-RESEARCH.md`](docs/platform/17-ONDEVICE-LLM-RESEARCH.md) | 온디바이스 LLM 비교 분석 |
 | [`docs/project-context.md`](docs/project-context.md) | 5분 요약 — 새 세션은 여기부터 |
 | [`CLAUDE.md`](CLAUDE.md) | 작업 규칙 (사람·AI 공용) |
 | [통합 HTML 기획서](docs/CaptureTask-Development-Plan.html) | 제품·UX·아키텍처·비용·배포를 한 문서로 |
@@ -169,4 +169,4 @@ python3 scripts/build_development_plan.py    # HTML · PDF 재생성
 | 중복 감지 · 검색 | 정책 미결정 |
 | 온디바이스 LLM | 평가셋 없음 |
 
-자세한 판정은 [`docs/12-IMPLEMENTATION-READINESS.md`](docs/12-IMPLEMENTATION-READINESS.md).
+자세한 판정은 [`docs/12-IMPLEMENTATION-READINESS.md`](docs/engineering/12-IMPLEMENTATION-READINESS.md).

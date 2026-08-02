@@ -7,7 +7,7 @@
 | --- | --- |
 | 작업 규칙 · 검증 명령 · 구조 | [`CLAUDE.md`](CLAUDE.md) |
 | 제품 맥락 5분 요약 | [`docs/project-context.md`](docs/project-context.md) |
-| 개발 규율 (TDD·디버깅·리뷰) | [`docs/16-ENGINEERING-PLAYBOOK.md`](docs/16-ENGINEERING-PLAYBOOK.md) |
+| 개발 규율 (TDD·디버깅·리뷰) | [`docs/16-ENGINEERING-PLAYBOOK.md`](docs/engineering/16-ENGINEERING-PLAYBOOK.md) |
 | 문서 전체 지도 | [`docs/README.md`](docs/README.md) |
 
 완료를 보고하기 전에 반드시:

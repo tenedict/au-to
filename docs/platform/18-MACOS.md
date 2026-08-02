@@ -134,7 +134,7 @@ confidence < 0.80          →  물어본다
 ```
 
 **`ambiguities` 를 `confidence` 보다 먼저 본다.** 실제 호출에서 confidence 가
-0.9~1.0 으로만 나와 눈금 역할을 못 하기 때문이다([12장 §3](12-IMPLEMENTATION-READINESS.md)).
+0.9~1.0 으로만 나와 눈금 역할을 못 하기 때문이다([12장 §3](../engineering/12-IMPLEMENTATION-READINESS.md)).
 지금 실제로 거르고 있는 것은 `ambiguities` 쪽이다.
 
 ### 되돌리기가 하는 일

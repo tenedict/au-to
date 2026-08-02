@@ -111,7 +111,7 @@
 | **R1** | 실기기에서 공유 시트부터 알림까지 통과한다 | ⚠️ CONCERNS |
 | **R2** | TestFlight 에 올릴 수 있다 | ⛔ FAIL |
 
-근거는 [12-IMPLEMENTATION-READINESS.md](12-IMPLEMENTATION-READINESS.md).
+근거는 [12-IMPLEMENTATION-READINESS.md](../engineering/12-IMPLEMENTATION-READINESS.md).
 
 ---
 

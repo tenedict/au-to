@@ -5,7 +5,7 @@
 >
 > 조사 시점 2026-08-01 · 이 분야는 분기 단위로 바뀝니다. 구현 직전에 다시 확인하세요.
 
-관련 — [ADR-10](10-ARCHITECTURE-SPINE.md) · [`AnalysisEngine`](../CaptureTask/Models/AnalysisEngine.swift)
+관련 — [ADR-10](../engineering/10-ARCHITECTURE-SPINE.md) · [`AnalysisEngine`](../../core/swift/Models/AnalysisEngine.swift)
 
 ---
 

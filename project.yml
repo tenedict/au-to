@@ -51,6 +51,14 @@ targets:
           NSAllowsLocalNetworking: true
         NSCalendarsFullAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 접근이 필요해요."
         NSCalendarsWriteOnlyAccessUsageDescription: "확인한 할 일을 Apple 캘린더에 추가하기 위해 캘린더 쓰기 접근이 필요해요."
+        # 잠금화면 위젯을 누르면 곧바로 카메라가 뜬다. 종이 안내문이나 화이트보드처럼
+        # 스크린샷이 없는 것을 담는 길이다.
+        NSCameraUsageDescription: "찍은 사진에서 일정을 읽어 할 일로 만들기 위해 카메라가 필요해요."
+        # 위젯이 앱을 여는 주소. DeepLink.scheme 과 반드시 같아야 한다 —
+        # 어긋나면 위젯을 눌러도 아무 일이 일어나지 않고, 오류는 어디에도 안 뜬다.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.example.capturetask.deeplink
+            CFBundleURLSchemes: [capturetask]
     entitlements:
       path: config/apple/CaptureTask.entitlements
       properties:
@@ -68,6 +76,8 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
       - target: CaptureTaskShare
+        embed: true
+      - target: CaptureTaskWidgets
         embed: true
   CaptureTaskShare:
     type: app-extension
@@ -97,6 +107,41 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask.share
         SKIP_INSTALL: YES
         INFOPLIST_KEY_CFBundleDisplayName: "CaptureTask에 담기"
+
+  # ── 위젯 ──────────────────────────────────────────────────
+  #
+  # 홈 화면 위젯(다음 일정)과 잠금화면 위젯(찍어서 담기)이 한 확장에 들어간다.
+  # 위젯마다 확장을 나누면 사용자가 앱 하나에서 확장 둘을 보게 되고,
+  # App Group 설정도 두 번 해야 한다.
+  #
+  # **core/swift 를 통째로 쓴다.** 위젯은 파생 값을 따로 저장하지 않고 앱과 같은
+  # 원장(tasks.json)을 읽어 같은 순수 함수로 묶는다 — 그래야 위젯만 지난주
+  # 일정을 보여주는 일이 생기지 않는다 (CLAUDE 규칙 14).
+  CaptureTaskWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - apps/ios/Widgets
+      - core/swift
+    info:
+      path: apps/ios/Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: CaptureTask
+        CFBundleDevelopmentRegion: ko
+        CFBundleLocalizations: [ko]
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: config/apple/CaptureTaskWidgets.entitlements
+      properties:
+        # 앱과 같은 상자를 봐야 같은 할 일을 읽는다.
+        # 어긋나면 위젯이 언제나 "할 일을 읽지 못했어요" 를 띄운다.
+        com.apple.security.application-groups:
+          - group.com.example.capturetask
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.capturetask.widgets
+        SKIP_INSTALL: YES
   # ── macOS ────────────────────────────────────────────────
   # core/swift 를 iOS 와 그대로 공유한다.
   # apps/macos/Views 는 공유하지 않는다 — 화면은 플랫폼마다 다른 것이 맞다.

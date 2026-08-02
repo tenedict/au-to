@@ -7,6 +7,7 @@ import SwiftUI
 /// 같은 초안이 두 번 뜨거나, "나중에" 를 눌러도 다시 튀어나온다.
 struct RootView: View {
     @ObservedObject var store: TaskStore
+    @ObservedObject var queue: CaptureQueue
     @ObservedObject var reminderTaps: ReminderTapRouter
     @Environment(\.scenePhase) private var scenePhase
 
@@ -14,6 +15,10 @@ struct RootView: View {
     @State private var editing: EditableItem?
     @State private var showsManualCapture = false
     @State private var showsSettings = false
+    /// 잠금화면 위젯으로 들어왔다. 카메라를 곧바로 연다.
+    @State private var showsCamera = false
+    /// 카메라를 못 쓰는 기기(시뮬레이터)라 사진 고르기로 돌렸다.
+    @State private var cameraFallbackMessage: String?
     @State private var pickedPhotos: [PhotosPickerItem] = []
     @State private var isPickingPhotos = false
     /// 이번 실행에서 "나중에" 를 누른 초안. 자동으로 다시 띄우지 않는다.
@@ -133,6 +138,42 @@ struct RootView: View {
             pickedPhotos = []
             Task { await importPicked(items) }
         }
+        // 위젯·바로가기가 들어오는 문. 모르는 주소는 무시한다 —
+        // 아무 데나 열면 오타 난 링크가 고장 났다는 사실을 감춘다.
+        .onOpenURL { url in
+            switch DeepLink.destination(for: url) {
+            case .capture: openCamera()
+            case .tasks: selectedTab = .tasks
+            case nil: break
+            }
+        }
+        .fullScreenCover(isPresented: $showsCamera) {
+            CameraCaptureSheet(
+                onCapture: { data in
+                    showsCamera = false
+                    // 여기서 읽지 않는다. 줄에 세우면 알림으로 결과가 온다 —
+                    // 찍은 사람을 분석이 끝날 때까지 화면 앞에 세워 두지 않는다.
+                    queue.enqueue(imageData: data)
+                },
+                onCancel: { showsCamera = false }
+            )
+            .ignoresSafeArea()
+        }
+        .alert(
+            "이 기기에서는 카메라를 쓸 수 없어요",
+            isPresented: Binding(
+                get: { cameraFallbackMessage != nil },
+                set: { if !$0 { cameraFallbackMessage = nil } }
+            )
+        ) {
+            Button("사진에서 고르기") {
+                cameraFallbackMessage = nil
+                isPickingPhotos = true
+            }
+            Button("취소", role: .cancel) { cameraFallbackMessage = nil }
+        } message: {
+            Text(cameraFallbackMessage ?? "")
+        }
         .sheet(isPresented: $showsSettings) {
             SettingsSheet(store: store)
         }
@@ -161,6 +202,19 @@ struct RootView: View {
         }
     }
 
+    /// 잠금화면 위젯을 눌러 들어왔다.
+    ///
+    /// **시뮬레이터에는 카메라가 없다.** 확인하지 않고 열면 빈 검은 화면이 뜨고
+    /// 취소도 되지 않는다. 못 쓰는 기기에서는 이유를 말하고 사진 고르기로 돌린다.
+    private func openCamera() {
+        selectedTab = .tasks
+        guard CameraCaptureSheet.isAvailable else {
+            cameraFallbackMessage = "대신 사진에서 골라 담을 수 있어요."
+            return
+        }
+        showsCamera = true
+    }
+
     /// 고른 사진을 데이터로 바꿔 저장소에 넘긴다.
     ///
     /// 한 장이 실패해도 나머지는 진행한다 — 여러 장을 고른 사용자가
@@ -176,7 +230,9 @@ struct RootView: View {
             store.lastErrorMessage = "고른 사진을 읽지 못했어요."
             return
         }
-        await store.importImages(images)
+        // 고른 사진도 같은 줄을 지난다. 여기만 다른 길로 가면 속도 제한과
+        // 알림이 이 경로에서만 빠지고, 그 차이는 아무도 눈치채지 못한다.
+        images.forEach(queue.enqueue(imageData:))
     }
 
     /// 사용자가 직접 "확인할 할 일" 을 눌렀을 때는 미뤄 둔 것까지 다시 보여준다.

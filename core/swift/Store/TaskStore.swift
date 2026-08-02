@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import WidgetKit
 
 /// 상태 · 영속화 · 유스케이스 조율.
 ///
@@ -444,6 +445,9 @@ final class TaskStore: ObservableObject {
         } catch {
             lastErrorMessage = error.localizedDescription
         }
+        // 위젯은 같은 원장을 읽지만, 시스템이 하루에 몇 번만 깨워 준다.
+        // 여기서 깨우지 않으면 방금 등록한 일정이 홈 화면에 몇 시간 뒤에야 나타난다.
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     private func persistDrafts() {

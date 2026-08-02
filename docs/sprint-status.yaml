@@ -96,8 +96,8 @@ epics:
     blocked_by: [D-1]
   - id: E2
     name: 텍스트와 문맥
-    stories: 11
-    done: 9
+    stories: 12
+    done: 10
     status: in_progress
   - id: E3
     name: 확인
@@ -138,14 +138,14 @@ epics:
     status: completed
   - id: E10
     name: macOS
-    stories: 6
-    done: 5
+    stories: 8
+    done: 7
     status: in_progress
     note: 물방울 · 바로 넣기와 되돌리기 · 다른 앱으로 열기까지 동작. 공유 확장은 서명 필요
 
 progress:
-  stories_total: 80
-  stories_done: 72
+  stories_total: 83
+  stories_done: 75
   percent: 90
 
 completed_stories:
@@ -235,15 +235,17 @@ completed_stories:
     note: 기존 기본값 gpt-5.6-luna 는 존재하지 않는 이름이었다
 
 next_sprint:
-  id: sprint-3
-  name: AI 품질 기준선
-  goal: confidence 가 눈금 역할을 하는지 잴 수 있게 만든다
+  id: sprint-4
+  name: 평가셋 넓히기
+  goal: 15건을 50건으로. 실행 간 편차보다 개선폭이 커야 판단할 수 있다
   status: not_started
   estimate_days: 2
   planned_stories: [S-2.3]
   why: |
-    배포하고 실제로 불러 보니 confidence 가 전부 0.9~1.0 이었다.
-    프롬프트를 고치고 싶지만, 평가셋 없이 만지면 좋아졌는지 알 수 없다.
+    평가셋 15건으로 첫 측정을 했다. 같은 프롬프트로 세 번 돌리니
+    87% · 87% · 73% 로 편차가 개선폭보다 컸다.
+    일관되게 실패하는 두 건(할 일이 아닌 것에 마감이 붙음, 지난 날짜를 조용히 추정)은
+    진짜 결함이라 확인됐지만, 고친 뒤 좋아졌는지 재려면 케이스가 더 필요하다.
 
 open_decisions:
   - id: D-1

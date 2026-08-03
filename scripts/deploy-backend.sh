@@ -11,7 +11,20 @@ cd "$(dirname "$0")/.."
 
 RED=$'\033[31m'; GRN=$'\033[32m'; YEL=$'\033[33m'; BLD=$'\033[1m'; DIM=$'\033[2m'; OFF=$'\033[0m'
 
-SERVICE="${WHENLY_SERVICE:-whenly-backend}"
+# ── 인프라 이름 — **제품 이름과 다르다** ────────────────────
+#
+# 아래 셋은 이미 만들어져 살아 있는 것들의 이름이다. 제품 이름을 Whenly 로 바꿔도
+# 여기는 바뀌지 않는다 — 바꾸면 **기존 서비스를 고치는 대신 새 서비스가 생기고**,
+# 앱이 보던 주소는 그대로 옛 서비스를 가리킨 채 남는다.
+#
+# 실제로 CaptureTask → Whenly 일괄 치환이 이 값들을 함께 바꿨다.
+# 옮기고 싶으면 이름을 여기서 고치는 것이 아니라, 새로 배포한 뒤
+# config/apple/Secrets.xcconfig 의 WHENLY_HOST 를 새 URL 로 함께 바꾼다.
+# 검사기 규칙 14 가 그 둘이 어긋났는지 본다.
+SERVICE="${WHENLY_SERVICE:-capturetask-backend}"
+# Secret Manager 에 있는 **자원 이름**. 컨테이너가 받는 환경변수 이름과 다르다 —
+# 매핑은 아래 --set-secrets 에서 `환경변수=자원이름:버전` 으로 한다.
+CLIENT_KEY_SECRET="${WHENLY_CLIENT_KEY_SECRET:-CAPTURETASK_CLIENT_KEY}"
 REGION="${WHENLY_REGION:-asia-northeast3}"   # 서울
 # 인스턴스가 늘면 하루 한도가 인스턴스 수만큼 곱해진다. 금액 상한을 확정하려면 여기를 고정한다.
 MAX_INSTANCES="${WHENLY_MAX_INSTANCES:-2}"
@@ -41,7 +54,7 @@ ok "인증 유효"
 
 # ── 비밀 ────────────────────────────────────────────────────
 step "비밀"
-for secret in OPENAI_API_KEY WHENLY_CLIENT_KEY; do
+for secret in OPENAI_API_KEY "$CLIENT_KEY_SECRET"; do
   if gcloud secrets describe "$secret" --project "$PROJECT" >/dev/null 2>&1; then
     ok "$secret"
   else
@@ -55,10 +68,10 @@ for secret in OPENAI_API_KEY WHENLY_CLIENT_KEY; do
 
     # 앱과 서버가 나눠 갖는 공유 비밀 (앱 번들에도 들어갑니다)
     printf '%s' "\$(openssl rand -base64 32)" | \\
-      gcloud secrets create WHENLY_CLIENT_KEY --data-file=- --project $PROJECT
+      gcloud secrets create $CLIENT_KEY_SECRET --data-file=- --project $PROJECT
 
     # 만든 값 확인 — config/apple/Secrets.xcconfig 에 같은 값을 넣어야 합니다
-    gcloud secrets versions access latest --secret WHENLY_CLIENT_KEY --project $PROJECT
+    gcloud secrets versions access latest --secret $CLIENT_KEY_SECRET --project $PROJECT
 
 EOF
     exit 1
@@ -85,7 +98,7 @@ done
 step "비밀 읽기 권한"
 PROJECT_NUMBER=$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')
 RUNTIME_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
-for secret in OPENAI_API_KEY WHENLY_CLIENT_KEY; do
+for secret in OPENAI_API_KEY "$CLIENT_KEY_SECRET"; do
   gcloud secrets add-iam-policy-binding "$secret" \
     --member="serviceAccount:$RUNTIME_SA" \
     --role="roles/secretmanager.secretAccessor" \
@@ -95,7 +108,9 @@ for secret in OPENAI_API_KEY WHENLY_CLIENT_KEY; do
 done
 
 # ── 배포 ────────────────────────────────────────────────────
-step "배포 ($REGION)"
+# 이미 있는 서비스면 **고치고**, 없으면 만든다. 이름이 곧 정체성이다 —
+# SERVICE 를 바꿔 배포하면 기존 서비스는 그대로 남고 새것이 하나 더 생긴다.
+step "배포 ($SERVICE · $REGION)"
 gcloud run deploy "$SERVICE" \
   --source server \
   --project "$PROJECT" \
@@ -106,7 +121,7 @@ gcloud run deploy "$SERVICE" \
   --memory 512Mi \
   --cpu 1 \
   --timeout 30s \
-  --set-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest,WHENLY_CLIENT_KEY=WHENLY_CLIENT_KEY:latest" \
+  --set-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest,WHENLY_CLIENT_KEY=$CLIENT_KEY_SECRET:latest" \
   --set-env-vars "HOST=0.0.0.0" \
   || die "배포 실패"
 
@@ -128,7 +143,7 @@ if [ "$NOKEY" = "401" ]; then
   ok "키 없는 요청 401 (인증이 실제로 켜져 있습니다)"
 else
   die "키 없는 요청이 $NOKEY 를 돌려줬습니다 — 인증이 걸려 있지 않습니다!" \
-      "  WHENLY_CLIENT_KEY 가 서비스에 주입됐는지 확인하세요."
+      "  $CLIENT_KEY_SECRET 가 WHENLY_CLIENT_KEY 로 주입됐는지 확인하세요."
 fi
 
 printf '\n%s%s배포 완료%s\n' "$GRN" "$BLD" "$OFF"
@@ -141,7 +156,7 @@ ${BLD}앱에 연결하기${OFF}
        WHENLY_HOST = ${URL#https://}
        WHENLY_CLIENT_KEY = <아래 명령의 출력>
 
-     ${DIM}gcloud secrets versions access latest --secret WHENLY_CLIENT_KEY --project $PROJECT${OFF}
+     ${DIM}gcloud secrets versions access latest --secret $CLIENT_KEY_SECRET --project $PROJECT${OFF}
 
   3. xcodegen generate && 빌드
 

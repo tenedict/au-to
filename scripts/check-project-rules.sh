@@ -303,6 +303,18 @@ if [ -f config/apple/Secrets.xcconfig ]; then
         report error "배포 백엔드 주소를 찾을 수 없음 ($host)" "NFR-SEC-05" \
           "config/apple/Secrets.xcconfig 의 WHENLY_HOST 를 확인하세요. 이 값은 제품 이름이 아니라 인프라 주소입니다."
       fi
+
+      # 배포 스크립트가 **앱이 보는 그 서비스**를 고치는가.
+      #
+      # 서비스 이름이 어긋나면 배포는 성공한다 — 다만 새 서비스가 하나 더 생기고,
+      # 앱은 그대로 옛 서비스를 본다. 그래서 "배포했는데 아무것도 안 바뀐다" 가 된다.
+      # Cloud Run URL 은 언제나 `<서비스이름>-<해시>.<지역>.run.app` 이라 앞부분만 보면 된다.
+      service=$(grep -oE '^SERVICE="\$\{WHENLY_SERVICE:-[^}]+\}"' scripts/deploy-backend.sh \
+        2>/dev/null | sed -E 's/.*:-([^}]+)\}.*/\1/')
+      if [ -n "$service" ] && [ "${host#"$service"-}" = "$host" ]; then
+        report error "배포 대상과 앱이 보는 주소가 다름" "NFR-SEC-05" \
+          "deploy-backend.sh 는 '$service' 에 배포하는데 앱은 '$host' 를 봅니다. 배포해도 앱에는 반영되지 않습니다."
+      fi
       ;;
   esac
 fi

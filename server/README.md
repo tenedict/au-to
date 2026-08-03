@@ -305,14 +305,14 @@ printf '%s' "sk-proj-실제키" | \
 
 # 앱과 서버가 나눠 갖는 공유 비밀
 printf '%s' "$(openssl rand -base64 32)" | \
-  gcloud secrets create WHENLY_CLIENT_KEY --data-file=-
+  gcloud secrets create CAPTURETASK_CLIENT_KEY --data-file=-
 ```
 
 ### 배포 뒤 앱 연결
 
 ```bash
 cp config/apple/Secrets.xcconfig.example config/apple/Secrets.xcconfig   # 없으면
-gcloud secrets versions access latest --secret WHENLY_CLIENT_KEY
+gcloud secrets versions access latest --secret CAPTURETASK_CLIENT_KEY
 ```
 
 `config/apple/Secrets.xcconfig` 에 주소와 비밀을 넣고 `xcodegen generate` 를 다시 돌립니다.

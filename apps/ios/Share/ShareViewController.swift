@@ -90,63 +90,40 @@ final class ShareViewController: UIViewController {
 
         // ── 2단계 · 읽고 등록한다 ──────────────────────────
         var filed: [FiledCapture] = []
-        var needsReview: [TaskDraft] = []
         for capture in captures {
             guard let data = try? SharedInbox.imageData(for: capture) else { continue }
-            let result = await store.intake(data, captureID: capture.id)
-            filed.append(contentsOf: result.filed)
-            needsReview.append(contentsOf: result.needsReview)
+            filed.append(contentsOf: await store.intake(data, captureID: capture.id).filed)
         }
 
-        await report(filed: filed, captures: captures, needsReview: needsReview)
+        await report(filed: filed, captureID: captures.first?.id)
     }
 
-    /// 무엇이 어떻게 됐는지 알린다.
+    /// 무엇이 등록됐는지 알린다.
     ///
-    /// **등록한 것과 확인이 필요한 것을 나눠 말한다.** 뭉뚱그리면 사용자는
-    /// 앱을 열어 확인해야 하고, 그러면 단계를 줄인 의미가 없다.
+    /// **애매한 것도 등록됐다.** 그래서 "등록했어요" 하나로 말하고, 봐야 할 것이
+    /// 있으면 그 알림 안에서 덧붙인다 — 알림을 둘로 나누면 한 번 공유한 사용자에게
+    /// 알림이 두 개 온다.
     @MainActor
-    private func report(
-        filed: [FiledCapture],
-        captures: [PendingCapture],
-        needsReview: [TaskDraft]
-    ) async {
+    private func report(filed: [FiledCapture], captureID: UUID?) async {
         spinner.stopAnimating()
 
-        if !filed.isEmpty {
-            CaptureNotice.postFiled(
-                summaries: filed.map(\.summary),
-                captureID: captures.first?.id
-            )
-        }
-        if !needsReview.isEmpty {
-            // 확인이 필요한 것이 남았다. 무엇인지까지 알림이 말한다.
-            CaptureNotice.postNeedsReview(
-                titles: needsReview.map(\.title),
-                captureID: captures.first?.id
-            )
-        }
-        if filed.isEmpty, needsReview.isEmpty {
-            CaptureNotice.postNothingFound(captureID: captures.first?.id, reason: nil)
+        if filed.isEmpty {
+            CaptureNotice.postNothingFound(captureID: captureID, reason: nil)
+        } else {
+            CaptureNotice.postFiled(filed, captureID: captureID)
         }
 
-        statusLabel.text = summary(filed: filed, needsReview: !needsReview.isEmpty)
+        statusLabel.text = summary(filed)
         extensionContext?.completeRequest(returningItems: nil)
     }
 
-    private func summary(filed: [FiledCapture], needsReview: Bool) -> String {
-        switch (filed.count, needsReview) {
-        case (0, true):
-            return "확인이 필요해요. Whenly에서 봐 주세요."
-        case (0, false):
-            return "할 일로 만들 내용을 찾지 못했어요."
-        case (let count, false):
-            return count == 1
-                ? "등록했어요. \(filed[0].summary)"
-                : "일정 \(count)개를 등록했어요."
-        case (let count, true):
-            return "\(count)개는 등록했고, 나머지는 확인이 필요해요."
-        }
+    private func summary(_ filed: [FiledCapture]) -> String {
+        guard let first = filed.first else { return "일정으로 만들 내용을 찾지 못했어요." }
+        let needing = filed.filter(\.needsReview).count
+        let base = filed.count == 1
+            ? "등록했어요. \(first.summary)"
+            : "일정 \(filed.count)개를 등록했어요."
+        return needing > 0 ? base + " \(needing)개는 확인해 주세요." : base
     }
 
     private func loadImageData(from provider: NSItemProvider) async throws -> Data {

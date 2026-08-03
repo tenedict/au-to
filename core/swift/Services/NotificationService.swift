@@ -106,16 +106,26 @@ struct LocalNotificationService: TaskReminderScheduling {
     }
 }
 
-/// 알림을 눌러 앱에 들어왔을 때 어느 할 일로 갈지 전달한다.
+/// 알림을 눌러 앱에 들어왔을 때 **어느 할 일을 열지** 전달한다.
 ///
-/// 알림에 `taskID` 를 담아 두고도 받는 쪽이 없으면, 사용자는 알림을 누른 뒤
-/// 목록 맨 위에서 그 할 일을 **다시 찾아야 한다.** 알림의 목적이 사라진다.
+/// ## 옛 사고 — 눌러도 아무 일도 안 일어났다
+///
+/// 예전에는 식별자가 `capture#` 로 시작하면 `taskID` 를 **읽지도 않고** 확인 화면
+/// 요청으로 처리하고 끝냈다. 그런데 등록 알림(`capture#filed-…`)도 같은 접두사다.
+/// 그래서 "일정을 등록했어요" 를 누르면 앱은 열리지만 목록 맨 위에 그대로 서 있었고,
+/// 사용자에게는 **눌러도 안 들어가지는 것**으로 보였다.
+///
+/// 지금은 `taskID` 를 먼저 본다. 접두사는 앞에 있을 때 배너를 띄울지 정하는 데만 쓴다.
+///
+/// ## 델리게이트는 앱이 뜨기 전에 붙어야 한다
+///
+/// 첫 화면이 그려진 뒤에 붙이면 **알림을 눌러 들어온 첫 실행을 통째로 놓친다** —
+/// 시스템은 델리게이트가 없으면 그 응답을 버린다. 그래서 `install()` 은
+/// `application(_:didFinishLaunchingWithOptions:)` 에서 부른다.
 @MainActor
 final class ReminderTapRouter: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
     /// 눌린 할 일. 화면이 처리한 뒤 nil 로 되돌린다.
     @Published var requestedTaskID: UUID?
-    /// 확인 요청 알림을 눌렀다. 담긴 스크린샷을 확인하러 온 것이다.
-    @Published var requestedCaptureReview = false
 
     func install(into center: UNUserNotificationCenter = .current()) {
         center.delegate = self
@@ -125,32 +135,25 @@ final class ReminderTapRouter: NSObject, ObservableObject, UNUserNotificationCen
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        let request = response.notification.request
-
-        if CaptureNotice.isCaptureNotice(request.identifier) {
-            await MainActor.run { requestedCaptureReview = true }
-            return
-        }
-
-        guard let raw = request.content.userInfo["taskID"] as? String,
+        // 마감 알림도 등록 알림도 같은 열쇠를 쓴다. 종류를 먼저 가르지 않는다 —
+        // 가르는 순간 한쪽이 이 값을 읽지 못하게 된다.
+        guard let raw = response.notification.request.content.userInfo["taskID"] as? String,
               let taskID = UUID(uuidString: raw) else {
             return
         }
         await MainActor.run { requestedTaskID = taskID }
     }
 
-    /// 앱을 보고 있는 동안에도 마감 알림은 보여준다.
-    /// 기본 동작은 조용히 삼키는 것이라, 앱을 켜 둔 사용자는 마감을 그대로 놓친다.
+    /// 앱을 보고 있는 동안에도 알림을 보여준다.
     ///
-    /// 다만 **확인 요청 알림은 앞에 있을 때 띄우지 않는다.** 앱이 이미 확인 화면을
-    /// 올려 주고 있으므로, 같은 말을 배너로 한 번 더 하면 잔소리가 된다.
+    /// 기본 동작은 조용히 삼키는 것이라, 앱을 켜 둔 사용자는 마감을 그대로 놓친다.
+    /// 등록 알림도 띄운다 — 앱을 보는 중에 공유하거나 끌어다 놓는 것이 흔하고,
+    /// 그때 아무 말도 없으면 등록됐는지 알 수 없다.
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        CaptureNotice.isCaptureNotice(notification.request.identifier)
-            ? []
-            : [.banner, .sound, .list]
+        [.banner, .sound, .list]
     }
 }
 
@@ -178,5 +181,23 @@ final class RecordingReminderScheduler: TaskReminderScheduling, @unchecked Senda
         for task in tasks {
             await reschedule(task, now: now)
         }
+    }
+}
+
+/// 알림이 가리킨 일정을 화면에 건네는 자리.
+///
+/// **창이 아직 없을 수 있다.** 맥에서 알림을 누르면 대시보드가 그때 만들어지는데,
+/// 그 창이 뜨기 전에 "이걸 열어라" 를 말할 곳이 필요하다. 값을 여기 두면
+/// 창이 뜬 뒤 스스로 집어 간다.
+@MainActor
+final class PendingEditRequest: ObservableObject {
+    @Published private(set) var taskID: UUID?
+
+    func request(_ taskID: UUID) { self.taskID = taskID }
+
+    /// 한 번 집어 가면 사라진다. 남겨 두면 창을 닫았다 열 때마다 같은 것이 또 열린다.
+    func take() -> UUID? {
+        defer { taskID = nil }
+        return taskID
     }
 }

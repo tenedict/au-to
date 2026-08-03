@@ -49,13 +49,15 @@ struct CaptureLockView: View {
     /// 칠하므로, 여기서 정할 수 있는 것은 메뉴바 아이콘과 마찬가지로 실루엣뿐이다.
     /// 그래서 광점을 파내지 않고 **채운다** — 이 크기에서 파내면 선과 구멍 사이가
     /// 1pt 아래로 내려가 뭉갠다.
+    /// 뒤에 `AccessoryWidgetBackground()` 를 깔지 않는다.
+    ///
+    /// 그건 시스템이 주는 **흐린 원판**인데, 물방울 뒤에 깔면 배경화면이 그 원만큼
+    /// 뿌예져서 물방울이 유리에 맺힌 것이 아니라 **접시 위에 놓인 것**처럼 보인다.
+    /// 이 제품의 표식은 뒤가 비쳐야 한다.
     private var circular: some View {
-        ZStack {
-            AccessoryWidgetBackground()
-            BeadMark()
-                .padding(7)
-        }
-        .accessibilityLabel("찍어서 담기")
+        BeadMark()
+            .padding(4)
+            .accessibilityLabel("찍어서 담기")
     }
 
     /// 사각형 — 표식과 다음 일정 한 줄.

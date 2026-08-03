@@ -125,6 +125,13 @@ struct TaskCard: View {
             .font(.caption)
             .foregroundStyle(bucket == .overdue ? Palette.past : Palette.ink3)
             .fixedSize(horizontal: false, vertical: true)
+        // **등록은 이미 됐다.** 이 배지는 "안 됐다" 가 아니라 "한 번 봐 달라" 다.
+        // 그래서 경고색(past)이 아니라 조작 가능한 것의 색(water)을 쓴다.
+        if task.needsReview {
+            Label("확인 필요", systemImage: "questionmark.circle")
+                .font(.caption)
+                .foregroundStyle(Palette.water)
+        }
         if task.calendarEventIdentifier != nil {
             Label("캘린더", systemImage: "calendar.badge.checkmark")
                 .font(.caption)
@@ -142,6 +149,12 @@ struct TaskCard: View {
     private var detail: some View {
         VStack(alignment: .leading, spacing: 12) {
             Divider()
+            if let reason = task.reviewReason {
+                Label(reason, systemImage: "questionmark.circle")
+                    .font(.caption)
+                    .foregroundStyle(Palette.water)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if task.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 Text("메모가 없어요")
                     .font(.subheadline)
@@ -202,6 +215,7 @@ struct TaskCard: View {
 
     private var accessibilityLabel: String {
         var parts = [task.title, dueText, bucket.title]
+        if task.needsReview { parts.append("확인 필요") }
         if task.isCompleted { parts.append("완료함") }
         return parts.joined(separator: ", ")
     }

@@ -37,9 +37,24 @@ struct AssistantTask: Codable, Identifiable, Equatable, Sendable {
     /// 예전 파일은 `keyNotFound` 로 열리지 않고, 사용자는 할 일을 통째로 잃는다.
     /// 읽을 때는 `wantsReminders` 를 쓴다.
     var remindersEnabled: Bool?
+    /// 사람이 한 번 봐야 하는 이유. 없으면(`nil`) 볼 것이 없다.
+    ///
+    /// **등록을 막는 값이 아니다.** 분석이 애매해도 할 일은 언제나 등록된다 —
+    /// 막아 두면 사용자는 아무 일도 일어나지 않은 것을 보게 되고, 그게 이 제품이
+    /// 없애려던 상태다. 대신 등록한 뒤 "여기를 봐 주세요" 를 이 값으로 들고 있는다.
+    ///
+    /// 사용자가 확인하면 `nil` 이 된다 (`markReviewed()` · 편집기 저장).
+    /// 새 필드이므로 옵셔널이다 — 이유는 위 `remindersEnabled` 와 같다.
+    var reviewReason: String?
     let createdAt: Date
 
     var wantsReminders: Bool { remindersEnabled ?? true }
+
+    /// 아직 사람이 확인하지 않았는가.
+    var needsReview: Bool { reviewReason != nil }
+
+    /// 사용자가 확인했다. 되돌릴 일이 없으므로 이유를 지운다.
+    mutating func markReviewed() { reviewReason = nil }
 
     var isCompleted: Bool { state == .completed }
 
@@ -55,6 +70,7 @@ struct AssistantTask: Codable, Identifiable, Equatable, Sendable {
         sourceCaptureID: UUID? = nil,
         calendarEventIdentifier: String? = nil,
         remindersEnabled: Bool? = nil,
+        reviewReason: String? = nil,
         createdAt: Date = .now
     ) {
         self.id = id
@@ -68,15 +84,16 @@ struct AssistantTask: Codable, Identifiable, Equatable, Sendable {
         self.sourceCaptureID = sourceCaptureID
         self.calendarEventIdentifier = calendarEventIdentifier
         self.remindersEnabled = remindersEnabled
+        self.reviewReason = reviewReason
         self.createdAt = createdAt
     }
 }
 
-/// 사용자 확인을 기다리는 AI 제안.
+/// 분석기가 돌려주는 한 건.
 ///
-/// `Codable` 인 이유는 확인하지 않은 초안이 앱을 껐다 켜도 남아야 하기 때문이다.
-/// 메모리에만 두면 재실행마다 같은 캡처를 다시 OCR 하고 OpenAI 를 다시 부른다 —
-/// 사용자에게는 같은 할 일이 두 번 뜨고, 요금은 두 번 나간다.
+/// **디스크에 남지 않는다.** 예전에는 확인을 기다리는 동안 저장했지만, 지금은
+/// 만들어지자마자 `AssistantTask` 가 되므로 기다리는 상태 자체가 없다.
+/// `Codable` 은 백엔드 응답을 그대로 받기 위해 남는다.
 struct TaskDraft: Codable, Identifiable, Equatable, Sendable {
     let id: UUID
     var title: String
@@ -88,17 +105,6 @@ struct TaskDraft: Codable, Identifiable, Equatable, Sendable {
     var ambiguities: [String]
     var sourceCaptureID: UUID?
     var createdAt: Date?
-
-    /// 저장 전에 사람이 날짜를 반드시 짚어야 하는가.
-    var needsDateConfirmation: Bool {
-        dueDate == nil || confidence < Confidence.autoCalendarThreshold || !ambiguities.isEmpty
-    }
-
-    /// 캘린더 자동 추가 토글을 미리 켜 둬도 되는가.
-    /// 확인이 필요한 초안은 사용자가 직접 켜야 한다 (AGENTS 규칙 2).
-    var mayPrefillCalendar: Bool {
-        dueDate != nil && !needsDateConfirmation
-    }
 
     init(
         id: UUID = UUID(),
@@ -124,16 +130,24 @@ struct TaskDraft: Codable, Identifiable, Equatable, Sendable {
         self.createdAt = createdAt
     }
 
-    func makeTask() -> AssistantTask {
+    /// 초안을 할 일로 만든다.
+    ///
+    /// **애매해도 만든다.** 확인이 필요한 이유는 막는 값이 아니라 붙이는 값이다
+    /// (`AssistantTask.reviewReason`). 판정은 `AutoFilePolicy` 가 한다.
+    func makeTask(now: Date) -> AssistantTask {
         AssistantTask(
             id: id,
             title: title,
+            // 날짜를 못 찾았으면 원문이 유일한 단서다. 메모가 비어 있으면
+            // 사용자가 나중에 볼 것이 제목 한 줄뿐이라 고칠 근거가 없다.
             notes: notes,
             dueDate: dueDate,
             hasExplicitTime: hasExplicitTime,
             origin: sourceCaptureID == nil ? .manual : .screenshot,
             confidence: confidence,
-            sourceCaptureID: sourceCaptureID
+            sourceCaptureID: sourceCaptureID,
+            reviewReason: AutoFilePolicy.reviewReason(for: self),
+            createdAt: now
         )
     }
 }

@@ -16,56 +16,65 @@ enum CaptureNotice {
     /// 이 접두사로 마감 알림과 구분한다. 앞에 붙은 것만 보고 지울 수 있어야 한다.
     static let identifierPrefix = "capture#"
 
-    /// 확인 안 한 초안을 남기고 앱을 나갔을 때 다시 알리기까지의 시간.
-    ///
-    /// 곧바로 다시 울리면 잔소리가 되고, 하루 뒤면 이미 잊는다.
-    static let unconfirmedDraftDelay: TimeInterval = 60 * 60
-
     static func identifier(for captureID: UUID) -> String {
         "\(identifierPrefix)\(captureID.uuidString)"
     }
-
-    static let unconfirmedDraftsIdentifier = "\(identifierPrefix)unconfirmed-drafts"
 
     static func isCaptureNotice(_ identifier: String) -> Bool {
         identifier.hasPrefix(identifierPrefix)
     }
 
-    // MARK: - 읽고 난 뒤
+    // MARK: - 등록하고 난 뒤
 
-    /// **등록까지 마쳤을 때.** 이게 새 흐름의 마지막 단계다.
+    /// **등록을 마쳤을 때.** 이게 흐름의 마지막 단계다.
     ///
-    ///   스크린샷 → 공유 → 등록 → "언제 무슨 일정이 등록되었습니다"
-    ///
-    /// 예전에는 담기만 하고 사용자가 앱을 열어 확인해야 했다. 단계가 넷이었고,
-    /// 그 사이에 잊으면 아무 일도 일어나지 않았다.
+    ///   스크린샷 → 공유·드롭 → 등록 → "언제 무슨 일정이 등록되었습니다"
     ///
     /// 문구에 **언제**와 **무엇**이 다 들어가야 한다. "등록했어요" 만으로는
     /// 사용자가 앱을 열어 확인해야 하고, 그러면 단계를 줄인 의미가 없다.
+    ///
+    /// **누르면 그 일정이 열려야 한다.** 그래서 `taskID` 를 싣는다 — 없으면 앱은
+    /// 열리지만 목록 맨 위에서 사용자가 그것을 **다시 찾아야** 하고, 그건 알림을
+    /// 누른 이유가 사라지는 것이다.
     static func postFiled(
-        summaries: [String],
+        _ filed: [FiledCapture],
         captureID: UUID?,
         center: UNUserNotificationCenter = .current()
     ) {
-        guard !summaries.isEmpty else { return }
+        guard let first = filed.first else { return }
+        let needing = filed.filter(\.needsReview)
 
         let content = UNMutableNotificationContent()
-        content.title = summaries.count == 1
+        content.title = filed.count == 1
             ? "일정을 등록했어요"
-            : "일정 \(summaries.count)개를 등록했어요"
+            : "일정 \(filed.count)개를 등록했어요"
+
         // 여러 개면 줄바꿈으로 나열한다. 알림은 펼치면 여러 줄이 보인다.
-        content.body = summaries.prefix(maxSummariesInBody).joined(separator: "\n")
-        if summaries.count > maxSummariesInBody {
-            content.body += "\n외 \(summaries.count - maxSummariesInBody)개"
+        var lines = filed.prefix(maxSummariesInBody).map(\.summary)
+        if filed.count > maxSummariesInBody {
+            lines.append("외 \(filed.count - maxSummariesInBody)개")
         }
+        // 애매했던 것도 **등록은 됐다.** 다만 한 번 봐 달라고 덧붙인다 —
+        // 이 줄이 없으면 사용자는 잘못 읽힌 일정을 영영 모른 채 지나간다.
+        if !needing.isEmpty {
+            lines.append(
+                needing.count == filed.count
+                    ? "눌러서 한 번 확인해 주세요."
+                    : "\(needing.count)개는 눌러서 확인해 주세요.")
+        }
+        content.body = lines.joined(separator: "\n")
         content.sound = .default
-        if let captureID {
-            content.userInfo = ["captureID": captureID.uuidString]
-        }
+
+        // 누르면 열 것. 봐야 하는 것이 있으면 그것을 먼저 연다.
+        let target = needing.first ?? first
+        content.userInfo = [
+            "taskID": target.id.uuidString,
+            "captureID": captureID?.uuidString ?? "",
+        ]
 
         center.add(
             UNNotificationRequest(
-                identifier: "\(identifierPrefix)filed-\(captureID?.uuidString ?? UUID().uuidString)",
+                identifier: "\(identifierPrefix)filed-\(target.id.uuidString)",
                 content: content,
                 trigger: nil
             )
@@ -74,43 +83,6 @@ enum CaptureNotice {
 
     /// 알림 본문에 나열할 최대 개수. 그 이상은 "외 N개" 로 줄인다.
     static let maxSummariesInBody = 3
-
-    /// **읽기는 했는데 날짜가 모호할 때.**
-    ///
-    /// 예전에는 이럴 때 맥이 창을 스스로 열었다. 사용자는 다른 일을 하는 중이었고,
-    /// 창이 튀어나온 뒤에도 그 창에는 담긴 것이 보이지 않아서 — 등록이 통째로
-    /// 취소된 것처럼 보였다. 지금은 창을 열지 않고 여기서 부른다.
-    ///
-    /// 무엇을 못 읽었는지 제목까지 적는다. "확인이 필요해요" 만으로는 사용자가
-    /// 앱을 열어야만 그게 무엇인지 알 수 있다.
-    static func postNeedsReview(
-        titles: [String],
-        captureID: UUID?,
-        center: UNUserNotificationCenter = .current()
-    ) {
-        guard !titles.isEmpty else { return }
-
-        let content = UNMutableNotificationContent()
-        content.title = titles.count == 1
-            ? "언제인지 확인해 주세요"
-            : "\(titles.count)개의 날짜를 확인해 주세요"
-        content.body = titles.prefix(maxSummariesInBody).joined(separator: "\n")
-        if titles.count > maxSummariesInBody {
-            content.body += "\n외 \(titles.count - maxSummariesInBody)개"
-        }
-        content.sound = .default
-        if let captureID {
-            content.userInfo = ["captureID": captureID.uuidString]
-        }
-
-        center.add(
-            UNNotificationRequest(
-                identifier: "\(identifierPrefix)review-\(captureID?.uuidString ?? UUID().uuidString)",
-                content: content,
-                trigger: nil
-            )
-        )
-    }
 
     /// **아무것도 찾지 못했을 때.**
     ///
@@ -136,40 +108,6 @@ enum CaptureNotice {
                 trigger: nil
             )
         )
-    }
-
-    // MARK: - 확인 안 한 초안이 남았을 때 (메인 앱)
-
-    /// 확인을 기다리는 초안이 있는 채로 앱을 나갔을 때 다시 알린다.
-    static func scheduleUnconfirmedDrafts(
-        count: Int,
-        center: UNUserNotificationCenter = .current()
-    ) {
-        guard count > 0 else {
-            cancelUnconfirmedDrafts(center: center)
-            return
-        }
-
-        let content = UNMutableNotificationContent()
-        content.title = "확인할 할 일 \(count)개가 있어요"
-        content.body = "저장하기 전에 제목과 날짜를 확인해 주세요."
-        content.sound = .default
-
-        center.add(
-            UNNotificationRequest(
-                identifier: unconfirmedDraftsIdentifier,
-                content: content,
-                trigger: UNTimeIntervalNotificationTrigger(
-                    timeInterval: unconfirmedDraftDelay,
-                    repeats: false
-                )
-            )
-        )
-    }
-
-    static func cancelUnconfirmedDrafts(center: UNUserNotificationCenter = .current()) {
-        center.removePendingNotificationRequests(withIdentifiers: [unconfirmedDraftsIdentifier])
-        center.removeDeliveredNotifications(withIdentifiers: [unconfirmedDraftsIdentifier])
     }
 
     // MARK: - 정리

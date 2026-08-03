@@ -59,82 +59,6 @@ struct TaskListPane: View {
     }
 }
 
-/// 확인이 필요한 초안 목록.
-///
-/// 날짜가 모호해 바로 등록하지 못한 것들이다. **여기 쌓이는 것을 사용자가 볼 수
-/// 있어야 한다** — 예전에는 이 목록을 보여주는 화면이 없어서, 모호한 캡처는
-/// 등록도 안 되고 어디에도 보이지 않은 채 사라진 것처럼 보였다.
-struct ReviewPane: View {
-    @ObservedObject var store: TaskStore
-    let onOpen: (TaskDraft) -> Void
-
-    var body: some View {
-        Group {
-            if store.pendingDrafts.isEmpty {
-                VStack(spacing: Space.gap3) {
-                    Image(systemName: "checkmark.circle")
-                        .font(.system(size: 42))
-                        .foregroundStyle(.tertiary)
-                    Text("확인할 게 없어요")
-                        .font(.title3.weight(.semibold))
-                    Text("담은 스크린샷은 전부 등록됐어요.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List {
-                    ForEach(store.pendingDrafts) { draft in
-                        DraftRow(draft: draft)
-                            .contentShape(.rect)
-                            .onTapGesture { onOpen(draft) }
-                            .contextMenu {
-                                Button("확인하고 등록") { onOpen(draft) }
-                                Button("버리기", role: .destructive) { store.discard(draft) }
-                            }
-                    }
-                }
-                .listStyle(.inset)
-            }
-        }
-        .frame(minWidth: 380)
-    }
-}
-
-/// 확인을 기다리는 초안 한 줄. **왜 확인이 필요한지를 함께 적는다** —
-/// 이유 없이 "확인해 주세요" 만 있으면 무엇을 고쳐야 할지 알 수 없다.
-private struct DraftRow: View {
-    let draft: TaskDraft
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Image(systemName: "questionmark.circle")
-                .foregroundStyle(Palette.water)
-                .imageScale(.large)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(draft.title).lineLimit(1)
-                Text(reason)
-                    .font(.caption)
-                    .foregroundStyle(Palette.ink3)
-                    .lineLimit(2)
-            }
-            Spacer(minLength: 6)
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(.tertiary)
-        }
-        .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
-        .accessibilityHint("눌러서 고치고 등록해요")
-    }
-
-    /// 판정은 화면이 다시 하지 않는다. `AutoFilePolicy` 가 등록을 막은 그 이유를 그대로 쓴다.
-    private var reason: String {
-        if case .askFirst(let reason) = AutoFilePolicy.decide(for: draft) { return reason }
-        return "확인해 주세요."
-    }
-}
-
 /// 할 일 한 줄.
 ///
 /// 마감이 지났는지는 여기서 다시 계산하지 않고 `DueGrouping` 에 묻는다.
@@ -167,6 +91,14 @@ struct MacTaskRow: View {
 
             Spacer(minLength: 6)
 
+            // **등록은 이미 됐다.** 이 표식은 "안 됐다" 가 아니라 "한 번 봐 달라" 다.
+            if task.needsReview {
+                Image(systemName: "questionmark.circle")
+                    .font(.caption)
+                    .foregroundStyle(Palette.water)
+                    .help(task.reviewReason ?? "확인해 주세요")
+                    .accessibilityLabel("확인 필요")
+            }
             if task.calendarEventIdentifier != nil {
                 Image(systemName: "calendar.badge.checkmark")
                     .font(.caption)
@@ -202,6 +134,100 @@ struct MacTaskRow: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+}
+
+/// 확인이 필요한 일정 목록.
+///
+/// **여기 있는 것도 이미 등록된 할 일이다.** 예전에는 등록되지 않은 초안이 쌓이는
+/// 자리였는데, 그때는 사용자가 여기 오지 않으면 아무 일도 일어나지 않았다.
+/// 지금은 전부 등록돼 있고, 이 화면은 "한 번 봐 주세요" 가 붙은 것만 모아 보여준다.
+struct ReviewPane: View {
+    @ObservedObject var store: TaskStore
+    let onOpen: (AssistantTask) -> Void
+
+    private var tasks: [AssistantTask] {
+        TaskScoping.needingReview(store.tasks, now: .now)
+    }
+
+    var body: some View {
+        Group {
+            if tasks.isEmpty {
+                VStack(spacing: Space.gap3) {
+                    Image(systemName: "checkmark.circle")
+                        .font(.system(size: 42))
+                        .foregroundStyle(.tertiary)
+                    Text("확인할 게 없어요")
+                        .font(.title3.weight(.semibold))
+                    Text("등록된 일정을 전부 확인했어요.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(tasks) { task in
+                        ReviewRow(task: task) {
+                            Task { await store.markReviewed(task.id) }
+                        }
+                        .contentShape(.rect)
+                        .onTapGesture { onOpen(task) }
+                        .contextMenu {
+                            Button("고치기") { onOpen(task) }
+                            Button("이대로 확인함") {
+                                Task { await store.markReviewed(task.id) }
+                            }
+                            Button("삭제", role: .destructive) {
+                                Task { await store.delete(task.id) }
+                            }
+                        }
+                    }
+                }
+                .listStyle(.inset)
+            }
+        }
+        .frame(minWidth: 380)
+    }
+}
+
+/// 확인이 필요한 한 줄.
+///
+/// **왜 확인이 필요한지를 함께 적는다** — 이유 없이 "확인해 주세요" 만 있으면
+/// 무엇을 고쳐야 할지 알 수 없다. 그리고 **고치지 않고 넘어가는 길**을 같은 줄에 둔다:
+/// 대부분의 확인은 고칠 것이 없고, 그때마다 편집기를 열게 하면 화면 하나가 더 는다.
+private struct ReviewRow: View {
+    let task: AssistantTask
+    let onApprove: () -> Void
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Image(systemName: "questionmark.circle")
+                .foregroundStyle(Palette.water)
+                .imageScale(.large)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(task.title).lineLimit(1)
+                Text(task.reviewReason ?? "확인해 주세요.")
+                    .font(.caption)
+                    .foregroundStyle(Palette.ink3)
+                    .lineLimit(2)
+                Text(
+                    DueDateText.string(
+                        for: task.dueDate,
+                        hasExplicitTime: task.hasExplicitTime,
+                        width: .narrow,
+                        now: .now)
+                )
+                .font(.caption)
+                .foregroundStyle(Palette.ink3)
+            }
+            Spacer(minLength: 6)
+            Button("확인함", action: onApprove)
+                .controlSize(.small)
+                .help("고칠 것이 없어요. 표식만 지웁니다")
+        }
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("눌러서 고치거나, 확인함을 눌러 표식을 지워요")
     }
 }
 

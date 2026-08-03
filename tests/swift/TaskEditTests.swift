@@ -25,12 +25,15 @@ final class TaskEditTests: XCTestCase {
         XCTAssertFalse(TaskEdit(task: notInCalendar, now: now).addToCalendar)
     }
 
-    /// 확인이 필요한 초안은 캘린더를 미리 켜지 않는다 (CLAUDE 규칙 1·2).
-    func testAmbiguousDraftDoesNotPrefillTheCalendar() {
-        let ambiguous = TaskDraft(
-            title: "예약", dueDate: now, confidence: 1, ambiguities: ["오전인지 오후인지 모르겠어요"])
+    /// 확인이 필요해 캘린더에 넣지 않은 일정은 토글이 꺼진 채 열린다.
+    ///
+    /// 켜 둔 채 열면 사용자가 "확인함" 대신 "저장" 을 누르는 것만으로
+    /// 아직 확인하지 않은 일정이 캘린더에 들어간다.
+    func testTaskNotInCalendarOpensWithTheToggleOff() {
+        let flagged = AssistantTask(
+            title: "예약", dueDate: now, reviewReason: "오전인지 오후인지 모르겠어요")
 
-        XCTAssertFalse(TaskEdit(draft: ambiguous, now: now).addToCalendar)
+        XCTAssertFalse(TaskEdit(task: flagged, now: now).addToCalendar)
     }
 
     /// 날짜가 없는 할 일을 열면 오늘이 후보로 들어온다.
@@ -115,17 +118,15 @@ final class TaskEditTests: XCTestCase {
         XCTAssertFalse(updated.hasExplicitTime)
     }
 
-    /// 초안을 할 일로 만들 때 초안의 신원을 물려받는다.
+    /// 고치는 화면은 확인 표식을 직접 건드리지 않는다.
     ///
-    /// 새 `id` 를 만들면 상자에 담긴 캡처와 이어지지 않아 원본이 영영 남는다.
-    func testDraftKeepsItsIdentityWhenSaved() {
-        let captureID = UUID()
-        let draft = TaskDraft(
-            title: "재방문", dueDate: now, confidence: 0.95, sourceCaptureID: captureID)
-        let task = TaskEdit(draft: draft, now: now).makeTask(from: draft)
+    /// 표식을 지우는 것은 **저장하는 쪽**(`TaskStore.commit`)의 일이다. 여기서 지우면
+    /// 화면을 열어 보기만 하고 닫은 사용자의 표식까지 사라진다.
+    func testEditingDoesNotClearTheReviewFlagByItself() {
+        let flagged = AssistantTask(title: "예약", dueDate: now, reviewReason: "확인해 주세요")
+        var edit = TaskEdit(task: flagged, now: now)
+        edit.title = "치과 예약"
 
-        XCTAssertEqual(task.id, draft.id)
-        XCTAssertEqual(task.sourceCaptureID, captureID)
-        XCTAssertEqual(task.origin, .screenshot)
+        XCTAssertTrue(edit.apply(to: flagged).needsReview)
     }
 }

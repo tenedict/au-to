@@ -65,20 +65,37 @@ enum TaskScoping {
         }
     }
 
+    /// 사람이 한 번 봐야 하는 것들. 급한 순서는 다른 목록과 같다.
+    ///
+    /// 완료한 것은 빼고 본다 — 이미 끝낸 일의 날짜가 애매했다고 지금 물어볼 이유가 없다.
+    static func needingReview(
+        _ tasks: [AssistantTask],
+        now: Date,
+        calendar: Calendar = .current
+    ) -> [AssistantTask] {
+        let open = tasks.filter { !$0.isCompleted && $0.needsReview }
+        return DueGrouping.groups(for: open, now: now, calendar: calendar).flatMap(\.tasks)
+    }
+
     /// 사이드바 최상단의 요약.
     ///
     /// **목록에 들어가기 전에 "지금 상태" 를 먼저 말한다.** 일기 앱이 저널 목록 위에
     /// 연속 기록 주수와 항목 수를 큰 숫자로 두는 것과 같은 구성이다
     /// (디자인 연구 §6.3 · 디자인 언어 §10.6).
     ///
-    /// 세는 것은 **지금 주의가 필요한 것 둘**뿐이다 — 지난 마감과 오늘.
+    /// 세는 것은 **지금 주의가 필요한 것**뿐이다 — 지난 마감 · 오늘 · 확인 필요.
     /// 나머지는 그 아래 목록이 이미 말한다.
     struct Summary: Equatable, Sendable {
         let overdue: Int
         let today: Int
+        /// 등록은 됐지만 사람이 한 번 봐야 하는 것.
+        ///
+        /// 세는 것이 셋으로 늘었다. **등록을 막지 않게 되면서** 애매한 것도 목록에
+        /// 들어오는데, 그것이 어디에도 보이지 않으면 잘못 읽힌 일정이 조용히 쌓인다.
+        let needsReview: Int
 
         /// 지금 손댈 것이 없다.
-        var isClear: Bool { overdue == 0 && today == 0 }
+        var isClear: Bool { overdue == 0 && today == 0 && needsReview == 0 }
     }
 
     /// 요약은 `counts` 와 **같은 계산**을 쓴다. 따로 세면 같은 화면에서 다른 값이 보인다.
@@ -89,7 +106,8 @@ enum TaskScoping {
     ) -> Summary {
         Summary(
             overdue: self.tasks(tasks, in: .due(.overdue), now: now, calendar: calendar).count,
-            today: self.tasks(tasks, in: .due(.today), now: now, calendar: calendar).count)
+            today: self.tasks(tasks, in: .due(.today), now: now, calendar: calendar).count,
+            needsReview: tasks.filter { !$0.isCompleted && $0.needsReview }.count)
     }
 
     /// 사이드바에 적히는 숫자.

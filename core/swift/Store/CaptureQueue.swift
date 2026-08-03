@@ -105,28 +105,21 @@ final class CaptureQueue: ObservableObject {
         }
     }
 
-    /// 무엇이 어떻게 됐는지 알림 하나로 말한다.
+    /// 무엇이 어떻게 됐는지 알림 **하나로** 말한다.
     ///
-    /// **등록한 것과 확인이 필요한 것을 나눠 말한다.** 뭉뚱그리면 사용자는 앱을 열어
-    /// 확인해야 하고, 그러면 단계를 줄인 의미가 없다.
+    /// 알림이 둘로 갈리던 때가 있었다 — "등록했어요" 와 "확인해 주세요". 그런데
+    /// 지금은 애매한 것도 등록되므로 둘은 같은 사건의 두 면이고, 나눠 보내면
+    /// 한 번 놓은 스크린샷에 알림이 두 개 온다.
+    ///
+    /// 그래서 하나에 담는다. "등록했어요 · 무엇이 언제 · (필요하면) 눌러서 확인해 주세요".
     private func announce(_ result: TaskStore.IntakeResult, captureID: UUID?) {
-        if !result.filed.isEmpty {
-            CaptureNotice.postFiled(
-                summaries: result.filed.map(\.summary),
-                captureID: captureID
-            )
-        }
-        if !result.needsReview.isEmpty {
-            CaptureNotice.postNeedsReview(
-                titles: result.needsReview.map(\.title),
-                captureID: captureID
-            )
-        }
         if result.isEmpty {
             CaptureNotice.postNothingFound(
                 captureID: captureID,
                 reason: result.errorMessage
             )
+        } else {
+            CaptureNotice.postFiled(result.filed, captureID: captureID)
         }
     }
 }

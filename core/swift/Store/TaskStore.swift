@@ -9,7 +9,6 @@ import WidgetKit
 @MainActor
 final class TaskStore: ObservableObject {
     @Published private(set) var tasks: [AssistantTask] = []
-    @Published private(set) var pendingDrafts: [TaskDraft] = []
     @Published var lastErrorMessage: String?
     @Published private(set) var isImporting = false
     @Published private(set) var inboxAvailability: SharedInbox.Availability = .ready
@@ -31,6 +30,9 @@ final class TaskStore: ObservableObject {
     private let ocrService: any OCRService
     private var understandingService: any ContextUnderstandingService
     private let reminderScheduler: any TaskReminderScheduling
+    /// 캘린더 어댑터. 주입받는 이유는 `CalendarWriting` 주석에 있다 —
+    /// 직접 만들면 단위 테스트가 EventKit 권한 요청에서 몇 분씩 멈춘다.
+    private let calendarService: any CalendarWriting
     private let storage: TaskStorage?
     private let defaults: UserDefaults
     private let now: () -> Date
@@ -41,6 +43,7 @@ final class TaskStore: ObservableObject {
         ocrService: any OCRService = VisionOCRService(),
         understandingService: (any ContextUnderstandingService)? = nil,
         reminderScheduler: any TaskReminderScheduling = LocalNotificationService(),
+        calendarService: (any CalendarWriting)? = nil,
         storage: TaskStorage? = nil,
         defaults: UserDefaults = .standard,
         now: @escaping () -> Date = { .now }
@@ -52,6 +55,7 @@ final class TaskStore: ObservableObject {
         self.ocrService = ocrService
         self.understandingService = understandingService ?? ContextUnderstanding.make(resolved)
         self.reminderScheduler = reminderScheduler
+        self.calendarService = calendarService ?? CalendarService()
         self.defaults = defaults
         self.now = now
 
@@ -88,18 +92,9 @@ final class TaskStore: ObservableObject {
     func refresh() async {
         inboxAvailability = SharedInbox.availability
         reminderAuthorization = await reminderScheduler.authorizationState()
-        // 사용자가 지금 여기 있다. 확인을 재촉하는 알림은 필요 없다.
-        CaptureNotice.cancelUnconfirmedDrafts()
         await importPendingCaptures()
         // 알림이 없는 사이 마감이 지났거나 시스템이 예약을 잃었을 수 있다.
         await reminderScheduler.syncAll(tasks, now: now())
-    }
-
-    /// 앱을 나갈 때 부른다. 확인 안 한 초안이 남아 있으면 나중에 한 번 더 알린다.
-    ///
-    /// 담아 두기만 하고 확인하지 않으면 이 제품은 사진첩과 같아진다.
-    func scheduleUnconfirmedDraftReminderIfNeeded() {
-        CaptureNotice.scheduleUnconfirmedDrafts(count: pendingDrafts.count)
     }
 
     /// 사용자가 알림을 직접 켰다.
@@ -143,11 +138,6 @@ final class TaskStore: ObservableObject {
                 try? SharedInbox.complete(capture)
                 continue
             }
-            // 확인을 기다리는 초안이 이미 있으면 다시 분석하지 않는다.
-            // 이 검사가 없으면 앱을 열 때마다 같은 캡처로 OpenAI 를 다시 부른다.
-            if pendingDrafts.contains(where: { $0.sourceCaptureID == capture.id }) {
-                continue
-            }
             await analyze(capture)
         }
     }
@@ -164,7 +154,7 @@ final class TaskStore: ObservableObject {
             }
 
             let drafts = try await understandingService.makeDrafts(from: text, captureID: capture.id)
-            drafts.forEach(appendDraft)
+            for draft in drafts { await file(draft) }
         } catch {
             // 캡처는 상자에 그대로 둔다. 다음에 다시 시도할 수 있어야 한다.
             lastErrorMessage = error.localizedDescription
@@ -197,7 +187,7 @@ final class TaskStore: ObservableObject {
         do {
             let text = try await ocrService.recognizeText(in: imageData)
             let drafts = try await understandingService.makeDrafts(from: text, captureID: nil)
-            drafts.forEach(appendDraft)
+            for draft in drafts { await file(draft) }
         } catch {
             lastErrorMessage = error.localizedDescription
         }
@@ -209,18 +199,22 @@ final class TaskStore: ObservableObject {
     /// 말할 수 있어야 한다. 등록한 것만 돌려주면 확인이 필요한 것은 조용히 사라지고,
     /// 사용자에게는 담기가 통째로 실패한 것으로 보인다.
     struct IntakeResult: Sendable {
+        /// 등록한 것 전부. 애매했던 것도 여기 들어온다 — 등록을 막지 않기 때문이다.
         var filed: [FiledCapture] = []
-        var needsReview: [TaskDraft] = []
         var errorMessage: String?
 
-        var isEmpty: Bool { filed.isEmpty && needsReview.isEmpty }
+        /// 그중 사람이 봐야 하는 것.
+        var needingReview: [FiledCapture] { filed.filter(\.needsReview) }
+
+        var isEmpty: Bool { filed.isEmpty }
     }
 
     /// 이미지 한 장을 받아 **확인 화면 없이** 할 일과 캘린더까지 넣는다.
     ///
-    /// 맥 물방울과 iOS 공유 시트가 함께 쓰는 주 경로다. 분명하면 넣고, 모호하면
-    /// 확인 대기로 남긴다 — 판정은 `AutoFilePolicy` 순수 함수가 한다.
-    /// **어느 쪽이든 화면을 띄우지 않는다.** 알리는 것은 부르는 쪽의 일이다.
+    /// 맥 물방울과 iOS 공유 시트가 함께 쓰는 주 경로다.
+    /// **애매해도 등록한다** — 막아 두면 사용자는 아무 일도 일어나지 않은 것을 본다.
+    /// 봐야 할 것은 등록한 뒤 표식으로 남는다 (`AutoFilePolicy`).
+    /// **화면을 띄우지 않는다.** 알리는 것은 부르는 쪽의 일이다.
     @discardableResult
     func intake(_ imageData: Data, captureID: UUID? = nil) async -> IntakeResult {
         isImporting = true
@@ -231,11 +225,7 @@ final class TaskStore: ObservableObject {
             let text = try await ocrService.recognizeText(in: imageData)
             let drafts = try await understandingService.makeDrafts(from: text, captureID: captureID)
             for draft in drafts {
-                if let one = await file(draft) {
-                    result.filed.append(one)
-                } else {
-                    result.needsReview.append(draft)
-                }
+                if let one = await file(draft) { result.filed.append(one) }
             }
         } catch {
             lastErrorMessage = error.localizedDescription
@@ -244,26 +234,23 @@ final class TaskStore: ObservableObject {
         return result
     }
 
-    /// 초안 하나를 정책에 따라 처리한다.
+    /// 초안 하나를 **언제나** 할 일로 만든다.
     ///
-    /// - Returns: 바로 넣었으면 그 결과, 확인이 필요하면 nil (초안은 대기 목록에 남는다)
+    /// 캘린더만은 확인이 필요 없을 때에 한한다 — 할 일은 우리 원장이라 되돌리기
+    /// 쉽지만, 캘린더는 밖으로 나가는 출력이라 잘못 들어간 일정의 무게가 다르다.
     @discardableResult
     func file(_ draft: TaskDraft) async -> FiledCapture? {
-        guard case .fileNow = AutoFilePolicy.decide(for: draft) else {
-            // 초안은 남겨 둬야 앱을 껐다 켜도 사라지지 않는다. 화면은 띄우지 않는다 —
-            // 사용자는 지금 다른 일을 하고 있고, 알림으로 부르는 것이 맞다.
-            appendDraft(draft)
-            return nil
-        }
-
-        var task = draft.makeTask()
+        var task = draft.makeTask(now: now())
         var eventIdentifier: String?
-        do {
-            eventIdentifier = try await CalendarService().addToCalendar(task)
-            task.calendarEventIdentifier = eventIdentifier
-        } catch {
-            // 캘린더가 실패해도 할 일은 남긴다. 캘린더는 출력이지 원장이 아니다 (ADR-7).
-            lastErrorMessage = error.localizedDescription
+
+        if AutoFilePolicy.mayAutoAddToCalendar(draft) {
+            do {
+                eventIdentifier = try await calendarService.addToCalendar(task)
+                task.calendarEventIdentifier = eventIdentifier
+            } catch {
+                // 캘린더가 실패해도 할 일은 남긴다. 캘린더는 출력이지 원장이 아니다 (ADR-7).
+                lastErrorMessage = error.localizedDescription
+            }
         }
 
         await save(task)
@@ -274,22 +261,26 @@ final class TaskStore: ObservableObject {
             dueDate: task.dueDate,
             hasExplicitTime: task.hasExplicitTime,
             calendarEventIdentifier: eventIdentifier,
+            reviewReason: task.reviewReason,
             filedAt: now()
         )
     }
 
-    func analyzeManualText(_ text: String) async {
+    /// 붙여 넣은 텍스트도 같은 길을 지난다. 여기만 확인을 거치면
+    /// "왜 이건 바로 등록되고 저건 안 되지" 를 사용자가 설명할 수 없다.
+    @discardableResult
+    func analyzeManualText(_ text: String) async -> [FiledCapture] {
         do {
             let drafts = try await understandingService.makeDrafts(from: text, captureID: nil)
-            drafts.forEach(appendDraft)
+            var filed: [FiledCapture] = []
+            for draft in drafts {
+                if let one = await file(draft) { filed.append(one) }
+            }
+            return filed
         } catch {
             lastErrorMessage = error.localizedDescription
+            return []
         }
-    }
-
-    private func appendDraft(_ draft: TaskDraft) {
-        pendingDrafts.append(draft)
-        persistDrafts()
     }
 
     // MARK: - 확인
@@ -304,9 +295,7 @@ final class TaskStore: ObservableObject {
         } else {
             tasks.insert(task, at: 0)
         }
-        pendingDrafts.removeAll { $0.id == task.id }
         persistTasks()
-        persistDrafts()
 
         if task.wantsReminders, task.dueDate != nil {
             _ = await reminderScheduler.requestAuthorizationIfNeeded()
@@ -317,36 +306,26 @@ final class TaskStore: ObservableObject {
         completeCapture(task.sourceCaptureID)
     }
 
-    /// 초안을 버린다. 할 일로 만들지 않고 캡처도 치운다.
-    func discard(_ draft: TaskDraft) {
-        pendingDrafts.removeAll { $0.id == draft.id }
-        persistDrafts()
-        completeCapture(draft.sourceCaptureID)
+    /// 사용자가 "확인했어요" 를 눌렀다. 고치지 않고 그대로 승인하는 길이다.
+    ///
+    /// 대부분의 확인은 고칠 것이 없다 — 편집기를 열어 아무것도 안 바꾸고 저장하게
+    /// 하면 그 대부분에 화면 하나를 더 지나게 하는 셈이다.
+    func markReviewed(_ taskID: UUID) async {
+        guard let index = tasks.firstIndex(where: { $0.id == taskID }) else { return }
+        tasks[index].markReviewed()
+        persistTasks()
     }
 
     // MARK: - 고치기
 
-    /// 고친 내용을 반영한다. **저장된 할 일이든 초안이든 이 문 하나로 들어온다.**
+    /// 고친 내용을 반영한다. 저장 경로는 이 문 하나뿐이다.
     ///
-    /// 두 갈래를 화면이 각자 처리하면, 초안을 저장하는 길에서만 캘린더 연동이
-    /// 빠지는 식으로 반드시 어긋난다.
-    func commit(_ edit: TaskEdit, to item: EditableItem) async {
-        switch item {
-        case .task(let task):
-            await update(edit.apply(to: task), addToCalendar: edit.effectiveAddToCalendar)
-        case .draft(let draft):
-            var task = edit.makeTask(from: draft)
-            if edit.effectiveAddToCalendar {
-                do {
-                    task.calendarEventIdentifier = try await CalendarService().addToCalendar(task)
-                } catch {
-                    // 캘린더가 실패해도 할 일은 저장한다 (ADR-7).
-                    lastErrorMessage = error.localizedDescription
-                }
-            }
-            // save 가 초안을 대기 목록에서 빼고 담아 둔 캡처까지 치운다.
-            await save(task)
-        }
+    /// **고쳐서 저장하면 확인한 것으로 본다.** 사용자가 그 화면을 열어 값을 보고
+    /// 저장을 눌렀으므로, 그보다 더 확실한 확인은 없다.
+    func commit(_ edit: TaskEdit, to task: AssistantTask) async {
+        var updated = edit.apply(to: task)
+        updated.markReviewed()
+        await update(updated, addToCalendar: edit.effectiveAddToCalendar)
     }
 
     /// 사용자가 고친 할 일을 반영한다. **캘린더 일정까지 함께 맞춘다.**
@@ -357,8 +336,6 @@ final class TaskStore: ObservableObject {
     /// 캘린더 실패는 화면에 올리되 저장을 막지 않는다 (ADR-7).
     func update(_ task: AssistantTask, addToCalendar: Bool) async {
         var updated = task
-        let calendarService = CalendarService()
-
         switch (addToCalendar, task.calendarEventIdentifier) {
         case (true, let identifier?):
             do {
@@ -405,7 +382,7 @@ final class TaskStore: ObservableObject {
         await reminderScheduler.cancel(taskID: removed.id)
 
         if let eventIdentifier = removed.calendarEventIdentifier {
-            await CalendarService().removeFromCalendar(eventIdentifier: eventIdentifier)
+            await calendarService.removeFromCalendar(eventIdentifier: eventIdentifier)
         }
     }
 
@@ -431,11 +408,6 @@ final class TaskStore: ObservableObject {
         } catch {
             lastErrorMessage = error.localizedDescription
         }
-        do {
-            pendingDrafts = try storage.loadDrafts()
-        } catch {
-            lastErrorMessage = error.localizedDescription
-        }
     }
 
     private func persistTasks() {
@@ -448,15 +420,6 @@ final class TaskStore: ObservableObject {
         // 위젯은 같은 원장을 읽지만, 시스템이 하루에 몇 번만 깨워 준다.
         // 여기서 깨우지 않으면 방금 등록한 일정이 홈 화면에 몇 시간 뒤에야 나타난다.
         WidgetCenter.shared.reloadAllTimelines()
-    }
-
-    private func persistDrafts() {
-        guard let storage else { return }
-        do {
-            try storage.saveDrafts(pendingDrafts)
-        } catch {
-            lastErrorMessage = error.localizedDescription
-        }
     }
 
     // MARK: - 엔진 기억

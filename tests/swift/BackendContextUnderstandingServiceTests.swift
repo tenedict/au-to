@@ -141,7 +141,7 @@ final class BackendContextUnderstandingServiceTests: XCTestCase {
         XCTAssertEqual(draft.sourceCaptureID, captureID)
         XCTAssertTrue(draft.hasExplicitTime)
         XCTAssertEqual(draft.evidence, ["8월 5일 오후 2시", "치과"])
-        XCTAssertFalse(draft.needsDateConfirmation)
+        XCTAssertNotNil(draft.dueDate)
     }
 
     func testRateLimitReturnsRecoverableMessage() async {

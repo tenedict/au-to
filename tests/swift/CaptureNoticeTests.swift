@@ -17,8 +17,10 @@ final class CaptureNoticeTests: XCTestCase {
         XCTAssertTrue(CaptureNotice.isCaptureNotice(identifier))
     }
 
-    func testUnconfirmedDraftsNoticeIsRecognized() {
-        XCTAssertTrue(CaptureNotice.isCaptureNotice(CaptureNotice.unconfirmedDraftsIdentifier))
+    /// 등록 알림도 같은 접두사를 쓴다. 접두사만 보고 종류를 단정하면 안 된다 —
+    /// 실제로 그래서 "등록했어요" 를 눌러도 아무 데도 안 갔다.
+    func testFiledNoticeSharesThePrefix() {
+        XCTAssertTrue(CaptureNotice.isCaptureNotice("\(CaptureNotice.identifierPrefix)filed-x"))
     }
 
     /// **마감 알림을 확인 요청으로 착각하면 마감 알림이 조용히 사라진다.**
@@ -53,9 +55,10 @@ final class CaptureNoticeTests: XCTestCase {
         XCTAssertEqual(Set(identifiers).count, identifiers.count)
     }
 
-    /// 곧바로 다시 울리면 잔소리가 되고, 하루 뒤면 이미 잊는다.
-    func testUnconfirmedDraftDelayStaysWithinAUsefulWindow() {
-        XCTAssertGreaterThanOrEqual(CaptureNotice.unconfirmedDraftDelay, 60 * 10)
-        XCTAssertLessThanOrEqual(CaptureNotice.unconfirmedDraftDelay, 60 * 60 * 6)
+    /// 알림 본문에 나열하는 개수는 손에 잡히는 범위여야 한다.
+    /// 열 줄짜리 알림은 잠금화면에서 잘리고, 잘린 줄은 없는 것과 같다.
+    func testBodyListStaysShort() {
+        XCTAssertGreaterThanOrEqual(CaptureNotice.maxSummariesInBody, 2)
+        XCTAssertLessThanOrEqual(CaptureNotice.maxSummariesInBody, 5)
     }
 }

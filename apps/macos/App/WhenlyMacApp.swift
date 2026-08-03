@@ -49,6 +49,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private let store = TaskStore()
     private lazy var queue = CaptureQueue(store: store)
     private let reminderTaps = ReminderTapRouter()
+    /// 알림이 가리킨 일정. 창이 아직 없을 수도 있어서 델리게이트가 들고 있다가
+    /// 대시보드가 뜬 뒤에 건넨다.
+    private let pendingEdit = PendingEditRequest()
     private let dropletMotion = DropletMotion()
     private var droplet: DropletPanel?
     private var listWindow: NSWindow?
@@ -174,7 +177,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     // MARK: - 알림을 눌렀을 때
 
-    /// 등록 알림이나 확인 요청 알림을 누르면 대시보드를 연다.
+    /// 알림을 누르면 **그 일정을 연다.**
+    ///
+    /// 대시보드만 띄우면 사용자는 목록에서 그것을 다시 찾아야 하고, 그러면 알림을
+    /// 누른 이유가 사라진다.
     ///
     /// **알림 없이 창을 먼저 여는 일은 하지 않는다.** 예전에는 날짜가 모호하면
     /// 맥이 스스로 창을 띄웠는데, 사용자는 다른 일을 하는 중이었고 창이 튀어나온
@@ -182,24 +188,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private func observeNotificationTaps() {
         Task { [weak self] in
             guard let self else { return }
-            for await requested in reminderTaps.$requestedCaptureReview.values where requested {
-                reminderTaps.requestedCaptureReview = false
-                openList()
-            }
-        }
-        Task { [weak self] in
-            guard let self else { return }
             for await taskID in reminderTaps.$requestedTaskID.values {
-                guard taskID != nil else { continue }
+                guard let taskID else { continue }
                 reminderTaps.requestedTaskID = nil
-                openList()
+                openList(editing: taskID)
             }
         }
     }
 
     // MARK: - 목록 창
 
-    func openList() {
+    func openList(editing taskID: UUID? = nil) {
+        if let taskID { pendingEdit.request(taskID) }
+
         if let listWindow {
             listWindow.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
@@ -220,6 +221,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             rootView: DashboardView(
                 store: store,
                 queue: queue,
+                pendingEdit: pendingEdit,
                 onPickFiles: { [weak self] in self?.pickFiles() }
             )
         )

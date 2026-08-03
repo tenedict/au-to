@@ -1,30 +1,31 @@
 import SwiftUI
 
-/// 할 일 하나를 자세히 보고 고치는 화면.
+/// 일정 하나를 자세히 보고 고치는 화면.
 ///
-/// **저장된 할 일과 확인이 필요한 초안이 같은 화면을 쓴다.** 사용자에게는 둘 다
-/// "고치는 화면" 하나이고, 나눠 만들면 한쪽에만 있는 항목이 반드시 생긴다 —
-/// 실제로 예전에는 초안만 고칠 수 있었고, 한 번 저장한 할 일은 지웠다가
-/// 다시 만드는 수밖에 없었다.
+/// **알림을 눌러 들어오면 여기가 열린다.** 등록은 이미 끝났고, 여기서 하는 일은
+/// 확인과 수정이다 — 사람이 최종 판단을 하는 자리는 저장 앞이 아니라 뒤다 (ADR-4).
 ///
 /// 규칙은 이 화면이 갖지 않는다. 무엇이 저장 가능한지, 날짜를 끄면 무엇이 함께
 /// 꺼지는지는 `TaskEdit` 이 정하고 테스트가 지킨다 — macOS 와 같은 값을 쓴다.
 struct TaskEditorSheet: View {
-    let item: EditableItem
+    let task: AssistantTask
     @ObservedObject var store: TaskStore
-    /// 초안을 나중에 보기로 했다. 이번 실행에서는 다시 띄우지 않는다.
-    let onDefer: () -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var edit: TaskEdit
     @State private var isSaving = false
-    @State private var showsDiscardConfirmation = false
+    @State private var showsDeleteConfirmation = false
 
-    init(item: EditableItem, store: TaskStore, onDefer: @escaping () -> Void = {}) {
-        self.item = item
+    /// 아직 저장된 적 없는 일정인가.
+    ///
+    /// **따로 넘겨받지 않고 원장에 물어본다.** 화면이 플래그를 들고 다니면
+    /// 부르는 자리마다 그 값을 맞춰야 하고, 한 곳이 틀리면 새 일정에 "삭제" 가 뜬다.
+    private var isNew: Bool { !store.tasks.contains { $0.id == task.id } }
+
+    init(task: AssistantTask, store: TaskStore) {
+        self.task = task
         self.store = store
-        self.onDefer = onDefer
-        _edit = State(initialValue: item.makeEdit(now: .now))
+        _edit = State(initialValue: TaskEdit(task: task, now: .now))
     }
 
     var body: some View {
@@ -52,39 +53,52 @@ struct TaskEditorSheet: View {
 
                 remindersSection
                 calendarSection
-                evidenceSections
                 deleteSection
             }
-            .navigationTitle(item.isDraft ? "할 일 확인" : "할 일 고치기")
+            .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbar }
             .confirmationDialog(
-                "이 제안을 버릴까요?",
-                isPresented: $showsDiscardConfirmation,
+                "이 일정을 지울까요?",
+                isPresented: $showsDeleteConfirmation,
                 titleVisibility: .visible
             ) {
-                Button("버리기", role: .destructive) {
-                    if case .draft(let draft) = item { store.discard(draft) }
-                    dismiss()
+                Button("지우기", role: .destructive) {
+                    Task {
+                        await store.delete(task.id)
+                        dismiss()
+                    }
                 }
                 Button("취소", role: .cancel) {}
             } message: {
-                Text("담아 둔 스크린샷도 함께 지워요. 할 일은 만들지 않아요.")
+                Text("캘린더에 넣은 일정도 함께 지워요.")
             }
         }
     }
 
+    private var navigationTitle: String {
+        if isNew { return "새 일정" }
+        return task.needsReview ? "일정 확인" : "일정 고치기"
+    }
+
     // MARK: - 구역
 
-    /// 왜 확인을 요청받았는지. 이유 없이 "확인해 주세요" 만 있으면
-    /// 무엇을 고쳐야 하는지 알 수 없다.
+    /// 왜 확인을 요청받았는지.
+    ///
+    /// **"등록은 됐다" 를 먼저 말한다.** 경고만 있으면 사용자는 등록이 안 된 줄 알고
+    /// 다시 담는다 — 실제로 예전 흐름이 그랬다.
     @ViewBuilder
     private var warningSection: some View {
-        if case .draft(let draft) = item,
-           case .askFirst(let reason) = AutoFilePolicy.decide(for: draft) {
+        if let reason = task.reviewReason {
             Section {
-                Label(reason, systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(Palette.past)
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("등록은 됐어요", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Palette.water)
+                    Text(reason)
+                        .font(.caption)
+                        .foregroundStyle(Palette.ink2)
+                }
             }
         }
     }
@@ -114,7 +128,8 @@ struct TaskEditorSheet: View {
 
     private var calendarSection: some View {
         Section("저장 위치") {
-            Label("Whenly 할 일에는 항상 저장해요", systemImage: "checklist")
+            Label(isNew ? "Whenly 할 일에 저장해요" : "Whenly 에는 이미 저장했어요",
+                  systemImage: "checklist")
             Toggle("Apple 캘린더에도 추가", isOn: $edit.addToCalendar)
                 .disabled(!edit.hasDate)
             if !edit.hasDate {
@@ -125,39 +140,14 @@ struct TaskEditorSheet: View {
         }
     }
 
-    @ViewBuilder
-    private var evidenceSections: some View {
-        if case .draft(let draft) = item {
-            if !draft.evidence.isEmpty {
-                Section("분석이 찾은 근거") {
-                    ForEach(draft.evidence, id: \.self) { evidence in
-                        Label(evidence, systemImage: "quote.opening")
-                            .font(.callout)
-                    }
-                }
-            }
-            if !draft.ambiguities.isEmpty {
-                Section("확인이 필요한 부분") {
-                    ForEach(draft.ambiguities, id: \.self) { ambiguity in
-                        Label(ambiguity, systemImage: "questionmark.circle")
-                            .font(.callout)
-                    }
-                }
-            }
-        }
-    }
-
-    /// 저장된 할 일만 지울 수 있다. 초안은 "버리기" 가 그 자리를 대신한다 —
-    /// 초안을 지우는 것은 담아 둔 스크린샷까지 지우는 다른 일이다.
+    /// 아직 저장되지 않은 일정에는 삭제가 없다. 지울 것이 없기 때문이다 —
+    /// 닫기를 누르면 그대로 사라진다.
     @ViewBuilder
     private var deleteSection: some View {
-        if case .task(let task) = item {
+        if !isNew {
             Section {
-                Button("이 할 일 지우기", role: .destructive) {
-                    Task {
-                        await store.delete(task.id)
-                        dismiss()
-                    }
+                Button("이 일정 지우기", role: .destructive) {
+                    showsDeleteConfirmation = true
                 }
             } footer: {
                 Text("캘린더에 넣은 일정도 함께 지워요.")
@@ -170,25 +160,25 @@ struct TaskEditorSheet: View {
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
-            if item.isDraft {
-                Menu {
-                    Button("나중에 확인") {
-                        onDefer()
-                        dismiss()
-                    }
-                    Button("이 제안 버리기", role: .destructive) {
-                        showsDiscardConfirmation = true
-                    }
-                } label: {
-                    Text("나중에")
-                }
-            } else {
-                Button("닫기") { dismiss() }
-            }
+            Button("닫기") { dismiss() }
         }
         ToolbarItem(placement: .confirmationAction) {
-            Button(item.isDraft ? "등록" : "저장", action: save)
-                .disabled(!edit.canSave || isSaving)
+            if isNew {
+                Button("추가", action: save)
+                    .disabled(!edit.canSave || isSaving)
+            } else if task.needsReview, edit == TaskEdit(task: task, now: .now) {
+                // 고칠 것이 없으면 저장할 것도 없다. 그 대부분에 "저장" 을 누르게 하면
+                // 아무것도 안 바꾸고 저장하는 이상한 동작이 된다.
+                Button("확인함") {
+                    Task {
+                        await store.markReviewed(task.id)
+                        dismiss()
+                    }
+                }
+            } else {
+                Button("저장", action: save)
+                    .disabled(!edit.canSave || isSaving)
+            }
         }
     }
 
@@ -209,12 +199,7 @@ struct TaskEditorSheet: View {
             .joined(separator: " · ") + "에 알려드려요."
     }
 
-    private func previewTask() -> AssistantTask {
-        switch item {
-        case .task(let task): return edit.apply(to: task)
-        case .draft(let draft): return edit.makeTask(from: draft)
-        }
-    }
+    private func previewTask() -> AssistantTask { edit.apply(to: task) }
 
     // MARK: - 저장
 
@@ -223,7 +208,7 @@ struct TaskEditorSheet: View {
     private func save() {
         isSaving = true
         Task {
-            await store.commit(edit, to: item)
+            await store.commit(edit, to: task)
             dismiss()
         }
     }

@@ -64,7 +64,8 @@ for t in \
   "$TESTS/TaskStorageTests.swift:testDecodesLegacyNumericDates" \
   "$TESTS/TaskStoreTests.swift:testCompletingTaskClearsItsReminders" \
   "$TESTS/TaskStoreTests.swift:testDeletingTaskCancelsItsReminders" \
-  "$TESTS/TaskStoreTests.swift:testDiscardingDraftRemovesItEverywhere" \
+  "$TESTS/TaskStoreTests.swift:testAmbiguousResultIsStillRegisteredButFlagged" \
+  "$TESTS/AutoFilePolicyTests.swift:testEveryDraftBecomesATaskNoMatterHowAmbiguous" \
   "$TESTS/ReminderScheduleTests.swift:testPastFireTimesAreDropped" \
   "$TESTS/DueGroupingTests.swift:testTodayWithPassedExplicitTimeIsOverdue" \
   "$TESTS/DueGroupingTests.swift:testGroupsAppearInUrgencyOrder" \

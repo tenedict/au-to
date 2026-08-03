@@ -11,8 +11,8 @@ struct RootView: View {
     @ObservedObject var reminderTaps: ReminderTapRouter
     @Environment(\.scenePhase) private var scenePhase
 
-    /// 지금 열려 있는 편집기. 저장된 할 일과 초안이 같은 화면을 쓴다.
-    @State private var editing: EditableItem?
+    /// 지금 열려 있는 편집기.
+    @State private var editing: AssistantTask?
     @State private var showsManualCapture = false
     @State private var showsSettings = false
     /// 잠금화면 위젯으로 들어왔다. 카메라를 곧바로 연다.
@@ -21,8 +21,6 @@ struct RootView: View {
     @State private var cameraFallbackMessage: String?
     @State private var pickedPhotos: [PhotosPickerItem] = []
     @State private var isPickingPhotos = false
-    /// 이번 실행에서 "나중에" 를 누른 초안. 자동으로 다시 띄우지 않는다.
-    @State private var deferredDraftIDs: Set<UUID> = []
     @State private var selectedTab = Tab.initialFromEnvironment
     /// 펼친 카드. 알림을 눌러 들어온 경우 여기서 정한다.
     @State private var expandedTaskID: UUID?
@@ -69,8 +67,9 @@ struct RootView: View {
                 DueStackView(
                     store: store,
                     expandedTaskID: $expandedTaskID,
-                    onReviewDrafts: presentNextDraft,
-                    onEditTask: { editing = .task($0) },
+                    onOpenReview: { selectedTab = .tasks },
+                    onEditTask: { editing = $0 },
+                    onAddTask: { editing = .blank(now: .now) },
                     onAddText: { showsManualCapture = true },
                     onPickPhotos: { isPickingPhotos = true },
                     onOpenSettings: { showsSettings = true }
@@ -80,7 +79,7 @@ struct RootView: View {
             .tag(Tab.tasks)
 
             NavigationStack {
-                MonthCalendarView(store: store, onOpen: { editing = .task($0) })
+                MonthCalendarView(store: store, onOpen: { editing = $0 })
             }
             .tabItem { Label("캘린더", systemImage: "calendar") }
             .tag(Tab.calendar)
@@ -95,35 +94,31 @@ struct RootView: View {
                 // 공유 시트로 담고 곧바로 앱으로 돌아오는 것이 이 제품의 기본 동선이다.
                 // 켜질 때 한 번만 훑으면 그 사용자는 아무것도 보지 못한다.
                 Task { await store.refresh() }
-            case .background:
-                // 확인 안 한 초안을 남기고 나갔다. 나중에 한 번 더 알린다 —
-                // 담아 두기만 하고 확인하지 않으면 이 제품은 사진첩과 같아진다.
-                store.scheduleUnconfirmedDraftReminderIfNeeded()
             default:
                 break
             }
         }
-        .onChange(of: store.pendingDrafts) { _, drafts in
-            guard editing == nil else { return }
-            guard let next = drafts.first(where: { !deferredDraftIDs.contains($0.id) })
-            else { return }
-            editing = .draft(next)
-        }
-        .onChange(of: reminderTaps.requestedCaptureReview) { _, requested in
-            guard requested else { return }
-            // 확인 요청 알림을 눌러 들어왔다. 할 일 탭으로 옮기고 미뤄 둔 초안까지
-            // 다시 보여준다 — 확인하러 온 사람에게 "나중에 확인" 상태를 남기면 안 된다.
-            selectedTab = .tasks
-            reminderTaps.requestedCaptureReview = false
-            deferredDraftIDs.removeAll()
-        }
+        // 알림을 눌러 들어왔다. **그 일정의 화면을 연다.**
+        //
+        // 목록 맨 위에 세워 두기만 하면 사용자는 그것을 다시 찾아야 하고,
+        // 그러면 알림을 누른 이유가 사라진다 — 실제로 그래서 "눌러도 안 들어가진다"
+        // 는 말을 들었다.
         .onChange(of: reminderTaps.requestedTaskID) { _, taskID in
             guard let taskID else { return }
-            // 알림을 눌러 들어왔다. 그 할 일을 펼쳐서 보여준다 — 목록 맨 위에서
-            // 다시 찾게 하면 알림의 목적이 사라진다.
+            reminderTaps.requestedTaskID = nil
             selectedTab = .tasks
             expandedTaskID = taskID
-            reminderTaps.requestedTaskID = nil
+            openEditor(taskID)
+        }
+        // 알림을 눌러 들어온 첫 실행은 화면이 그려지기 **전에** 값이 들어와 있다.
+        // 위 onChange 만 두면 그 첫 번째를 놓친다.
+        .task {
+            if let taskID = reminderTaps.requestedTaskID {
+                reminderTaps.requestedTaskID = nil
+                selectedTab = .tasks
+                expandedTaskID = taskID
+                openEditor(taskID)
+            }
         }
         // 사진 고르기는 별도 프로세스(PHPicker)에서 돈다. 그래서 사진 접근 권한을
         // 묻지 않는다 — 사용자가 고른 것만 앱에 건네진다.
@@ -182,12 +177,8 @@ struct RootView: View {
                 Task { await store.analyzeManualText(text) }
             }
         }
-        .sheet(item: $editing, onDismiss: presentNextDraftIfAny) { item in
-            TaskEditorSheet(
-                item: item,
-                store: store,
-                onDefer: { deferredDraftIDs.insert(item.id) }
-            )
+        .sheet(item: $editing) { task in
+            TaskEditorSheet(task: task, store: store)
         }
         .alert(
             "처리하지 못했어요",
@@ -235,27 +226,12 @@ struct RootView: View {
         images.forEach(queue.enqueue(imageData:))
     }
 
-    /// 사용자가 직접 "확인할 할 일" 을 눌렀을 때는 미뤄 둔 것까지 다시 보여준다.
-    private func presentNextDraft() {
-        deferredDraftIDs.removeAll()
-        guard let first = store.pendingDrafts.first else { return }
-        editing = .draft(first)
-    }
-
-    /// 한 건을 처리하면 다음 **초안**을 이어서 띄운다. 여러 장을 한 번에 담은
-    /// 사용자가 매번 목록으로 돌아갔다 들어오지 않도록.
+    /// 알림이 가리킨 일정의 편집기를 연다.
     ///
-    /// 저장된 할 일을 고치고 닫았을 때는 이어 붙이지 않는다 — 고치러 들어온
-    /// 사용자에게 확인 화면을 밀어 넣으면 자기가 무엇을 열었는지 잃는다.
-    private func presentNextDraftIfAny() {
-        guard let next = store.pendingDrafts.first(where: { !deferredDraftIDs.contains($0.id) })
-        else { return }
-        // 시트 전환이 겹치면 두 번째가 뜨지 않는다. 한 프레임 뒤로 미룬다.
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(350))
-            if editing == nil {
-                editing = .draft(next)
-            }
-        }
+    /// 그 사이 사용자가 지웠을 수 있다. 없으면 조용히 목록에 남는다 —
+    /// 없는 것을 열려고 빈 화면을 띄우는 것보다 낫다.
+    private func openEditor(_ taskID: UUID) {
+        guard let task = store.tasks.first(where: { $0.id == taskID }) else { return }
+        editing = task
     }
 }

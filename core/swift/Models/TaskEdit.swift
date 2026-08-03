@@ -1,33 +1,9 @@
 import Foundation
 
-/// 고칠 대상.
-///
-/// 저장된 할 일과 확인을 기다리는 초안이 **같은 화면**을 쓴다. 사용자에게는 둘 다
-/// "고치는 화면" 하나이고, 나눠 만들면 한쪽에만 있는 항목이 반드시 생긴다.
-enum EditableItem: Identifiable, Equatable, Sendable {
-    case task(AssistantTask)
-    case draft(TaskDraft)
-
-    var id: UUID {
-        switch self {
-        case .task(let task): return task.id
-        case .draft(let draft): return draft.id
-        }
-    }
-
-    /// 아직 확인을 기다리는 것인가. 화면이 제목과 저장 문구를 여기서 고른다.
-    var isDraft: Bool {
-        if case .draft = self { return true }
-        return false
-    }
-
-    func makeEdit(now: Date) -> TaskEdit {
-        switch self {
-        case .task(let task): return TaskEdit(task: task, now: now)
-        case .draft(let draft): return TaskEdit(draft: draft, now: now)
-        }
-    }
-}
+// 한때 여기에 `EditableItem`(할 일 | 초안) 이 있었다. 지웠다 —
+// **초안이라는 상태가 사라졌기 때문**이다. 애매한 분석 결과도 곧바로 할 일이 되고,
+// 봐야 할 것은 `AssistantTask.reviewReason` 으로 그 할 일에 붙어 다닌다.
+// 고칠 수 있는 것은 이제 한 종류뿐이라 감싸는 타입이 필요 없다.
 
 /// 할 일 하나를 고치는 동안의 상태.
 ///
@@ -35,8 +11,7 @@ enum EditableItem: Identifiable, Equatable, Sendable {
 /// 같은 것을 따로 구현하면 반드시 한쪽만 고쳐진다. 둘이 같은 값을 쓰고, 이 파일의
 /// 테스트가 그 규칙을 지킨다.
 ///
-/// 초안(`TaskDraft`)과 이미 저장된 할 일(`AssistantTask`)이 같은 편집기를 쓴다 —
-/// 사용자에게는 둘 다 "고치는 화면" 하나다.
+/// 고칠 수 있는 것은 `AssistantTask` 한 종류다. 확인이 필요한 것도 이미 할 일이다.
 struct TaskEdit: Equatable, Sendable {
     var title: String
     var notes: String
@@ -59,19 +34,6 @@ struct TaskEdit: Equatable, Sendable {
         self.hasExplicitTime = task.hasExplicitTime
         self.wantsReminders = task.wantsReminders
         self.addToCalendar = task.calendarEventIdentifier != nil
-    }
-
-    /// 확인이 필요한 초안을 연다.
-    ///
-    /// 확인이 필요하다고 판정된 초안은 캘린더 토글을 미리 켜지 않는다 (CLAUDE 규칙 1·2).
-    init(draft: TaskDraft, now: Date) {
-        self.title = draft.title
-        self.notes = draft.notes
-        self.dueDate = draft.dueDate ?? now
-        self.hasDate = draft.dueDate != nil
-        self.hasExplicitTime = draft.hasExplicitTime
-        self.wantsReminders = true
-        self.addToCalendar = draft.mayPrefillCalendar
     }
 
     var trimmedTitle: String {
@@ -99,20 +61,17 @@ struct TaskEdit: Equatable, Sendable {
         updated.remindersEnabled = effectiveWantsReminders
         return updated
     }
+}
 
-    /// 초안을 할 일로 만든다. 초안의 신원을 그대로 물려받는다 —
-    /// 새 `id` 를 만들면 상자에 담긴 캡처와 이어지지 않아 원본이 영영 남는다.
-    func makeTask(from draft: TaskDraft) -> AssistantTask {
-        AssistantTask(
-            id: draft.id,
-            title: trimmedTitle.isEmpty ? draft.title : trimmedTitle,
-            notes: notes,
-            dueDate: hasDate ? dueDate : nil,
-            hasExplicitTime: hasDate && hasExplicitTime,
-            origin: draft.sourceCaptureID == nil ? .manual : .screenshot,
-            confidence: draft.confidence,
-            sourceCaptureID: draft.sourceCaptureID,
-            remindersEnabled: effectiveWantsReminders
-        )
+extension AssistantTask {
+    /// 사용자가 **직접** 만들기 시작하는 빈 일정.
+    ///
+    /// 분석을 거치지 않으므로 확인 표식이 없다 — 사람이 적은 것을 사람에게
+    /// 다시 확인시킬 이유가 없다.
+    ///
+    /// 날짜는 **켜진 채로** 시작한다. 직접 적는 일정은 대부분 날짜가 있고,
+    /// 꺼진 채로 시작하면 매번 토글을 먼저 눌러야 한다. 필요 없으면 끄면 된다.
+    static func blank(now: Date) -> AssistantTask {
+        AssistantTask(title: "", dueDate: now, origin: .manual, createdAt: now)
     }
 }

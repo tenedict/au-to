@@ -14,20 +14,17 @@ import SwiftUI
 struct DashboardView: View {
     @ObservedObject var store: TaskStore
     @ObservedObject var queue: CaptureQueue
+    /// 알림이 가리킨 일정. 창이 뜬 뒤 여기서 집어 간다.
+    @ObservedObject var pendingEdit: PendingEditRequest
     let onPickFiles: () -> Void
 
     @State private var selection: DashboardSelection = .scope(.all)
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    @State private var editing: EditableItem?
+    @State private var editing: AssistantTask?
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            DashboardSidebar(
-                counts: counts,
-                summary: summary,
-                reviewCount: store.pendingDrafts.count,
-                selection: $selection
-            )
+            DashboardSidebar(counts: counts, summary: summary, selection: $selection)
             .navigationSplitViewColumnWidth(min: 210, ideal: 226, max: 280)
         } detail: {
             detail
@@ -36,20 +33,38 @@ struct DashboardView: View {
                     // 가장 중요한 동작 하나는 그룹에서 뗀다 (디자인 언어 §10.7).
                     // 지갑이 추가(+)만 별도 캡슐로 두는 것과 같다.
                     ToolbarItem(placement: .primaryAction) {
+                        Button { editing = .blank(now: .now) } label: {
+                            Label("새 일정", systemImage: "plus")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut("n")
+                        .help("스크린샷 없이 직접 적어요")
+                    }
+                    ToolbarItem {
                         Button(action: onPickFiles) {
                             Label("파일에서 고르기", systemImage: "photo.on.rectangle")
                         }
-                        .buttonStyle(.borderedProminent)
-                        .help("스크린샷을 골라 할 일로 만들어요")
+                        .help("스크린샷을 골라 일정으로 만들어요")
                     }
                 }
         }
         .frame(minWidth: 720, minHeight: 480)
         .safeAreaInset(edge: .bottom, spacing: 0) { statusBar }
-        .sheet(item: $editing) { item in
-            TaskEditorSheet(item: item, store: store)
+        .sheet(item: $editing) { task in
+            TaskEditorSheet(task: task, store: store)
         }
         .task { await store.refresh() }
+        // 알림을 눌러 이 창이 열렸다면 그 일정을 곧바로 연다.
+        .task { openRequestedEdit() }
+        .onChange(of: pendingEdit.taskID) { _, _ in openRequestedEdit() }
+    }
+
+    /// 알림이 가리킨 일정을 연다. 그 사이 지워졌으면 조용히 넘어간다 —
+    /// 없는 것을 열려고 빈 시트를 띄우는 것보다 낫다.
+    private func openRequestedEdit() {
+        guard let taskID = pendingEdit.take(),
+              let task = store.tasks.first(where: { $0.id == taskID }) else { return }
+        editing = task
     }
 
     // MARK: - 본문
@@ -60,11 +75,11 @@ struct DashboardView: View {
         case .scope(let scope):
             TaskListPane(
                 store: store, scope: scope, onPickFiles: onPickFiles,
-                onOpen: { editing = .task($0) })
+                onOpen: { editing = $0 })
         case .review:
-            ReviewPane(store: store, onOpen: { editing = .draft($0) })
+            ReviewPane(store: store, onOpen: { editing = $0 })
         case .calendar:
-            MonthCalendarPane(store: store, onOpen: { editing = .task($0) })
+            MonthCalendarPane(store: store, onOpen: { editing = $0 })
         }
     }
 
@@ -125,14 +140,14 @@ struct DashboardView: View {
 /// 본 것이다. `TaskScope` 를 그대로 선택 타입으로 쓰면 캘린더를 넣을 자리가 없다.
 enum DashboardSelection: Hashable {
     case scope(TaskScope)
-    /// 날짜가 모호해 아직 등록하지 못한 것들.
+    /// 등록은 됐지만 사람이 한 번 봐야 하는 것들.
     case review
     case calendar
 
     var title: String {
         switch self {
         case .scope(let scope): return scope.title
-        case .review: return "확인할 할 일"
+        case .review: return "확인할 일정"
         case .calendar: return "캘린더"
         }
     }

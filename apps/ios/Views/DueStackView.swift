@@ -8,10 +8,13 @@ struct DueStackView: View {
     @ObservedObject var store: TaskStore
     /// 펼친 카드. 알림을 눌러 들어온 경우 바깥에서 정해 주므로 바인딩이다.
     @Binding var expandedTaskID: UUID?
-    let onReviewDrafts: () -> Void
+    /// 요약 타일의 "확인할 것" 을 눌렀을 때.
+    let onOpenReview: () -> Void
     /// 카드에서 "고치기" 를 눌렀을 때. 편집기는 바깥이 띄운다 —
     /// 스택 안에서 시트를 열면 카드가 사라질 때 시트도 함께 사라진다.
     let onEditTask: (AssistantTask) -> Void
+    /// 스크린샷 없이 직접 적기.
+    let onAddTask: () -> Void
     let onAddText: () -> Void
     let onPickPhotos: () -> Void
     let onOpenSettings: () -> Void
@@ -19,6 +22,8 @@ struct DueStackView: View {
     @State private var collapsedBuckets: Set<DueBucket> = Set(
         DueBucket.allCases.filter(\.startsCollapsed)
     )
+    /// 확인할 것만 보고 있는가. 요약 타일의 숫자를 누르면 켜진다.
+    @State private var showsOnlyReview = false
 
     /// Dynamic Type 배율. 값 1 을 주면 현재 글자 크기에 맞는 배율이 들어온다.
     /// 카드 높이가 고정값이면 글자를 키운 사용자에게 제목과 마감이 잘린다.
@@ -54,14 +59,25 @@ struct DueStackView: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 26) {
+                // 목록에 들어가기 전에 "지금 어떤가" 를 먼저 말한다.
+                // 생김새는 core/swift/Design 의 하나를 쓴다 — 맥 사이드바와 같은 물건이다.
+                SummaryTile(summary: summary) {
+                    withAnimation(collapseAnimation) { showsOnlyReview.toggle() }
+                    onOpenReview()
+                }
+
                 notices
 
-                let groups = store.dueGroups()
-                if groups.isEmpty {
-                    emptyState
+                if showsOnlyReview {
+                    reviewOnly
                 } else {
-                    ForEach(groups) { group in
-                        section(for: group)
+                    let groups = store.dueGroups()
+                    if groups.isEmpty {
+                        emptyState
+                    } else {
+                        ForEach(groups) { group in
+                            section(for: group)
+                        }
                     }
                 }
             }
@@ -79,6 +95,12 @@ struct DueStackView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    // **직접 적기가 맨 위다.** 스크린샷이 없을 때 쓰는 길이고,
+                    // 이게 없어서 "할 일을 내가 못 넣는다" 는 말을 들었다.
+                    Button(action: onAddTask) {
+                        Label("직접 적기", systemImage: "square.and.pencil")
+                    }
+                    Divider()
                     Button {
                         onPickPhotos()
                     } label: {
@@ -99,23 +121,53 @@ struct DueStackView: View {
         .refreshable { await store.refresh() }
     }
 
+    private var summary: TaskScoping.Summary {
+        TaskScoping.summary(for: store.tasks, now: .now)
+    }
+
+    // MARK: - 확인할 것만 보기
+
+    /// 요약 타일의 "확인할 것" 을 눌렀을 때 나오는 목록.
+    ///
+    /// 새 화면으로 밀어 넣지 않고 **같은 자리에서 걸러 보여준다** — 확인은 몇 초짜리
+    /// 일이라, 화면을 옮겼다 돌아오는 비용이 그 일보다 크다.
+    @ViewBuilder
+    private var reviewOnly: some View {
+        let tasks = TaskScoping.needingReview(store.tasks, now: .now)
+        HStack(spacing: Space.gap2) {
+            Text("확인할 일정")
+                .font(.headline)
+            Spacer()
+            Button("전체 보기") {
+                withAnimation(collapseAnimation) { showsOnlyReview = false }
+            }
+            .font(.subheadline)
+        }
+        if tasks.isEmpty {
+            Text("확인할 게 없어요. 전부 확인했어요.")
+                .font(.callout)
+                .foregroundStyle(Palette.ink3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            VStack(spacing: 10) {
+                ForEach(tasks) { task in
+                    // 묶음은 여기서 지어내지 않고 물어본다. 지어내면 카드의 기호와
+                    // 접근성 문구가 목록의 다른 자리와 달라진다.
+                    card(
+                        task,
+                        bucket: DueGrouping.bucket(for: task, now: .now),
+                        isExpanded: task.id == expandedTaskID,
+                        isStacked: false)
+                }
+            }
+            .animation(expandAnimation, value: expandedTaskID)
+        }
+    }
+
     // MARK: - 알림줄
 
     @ViewBuilder
     private var notices: some View {
-        if !store.pendingDrafts.isEmpty {
-            Button(action: onReviewDrafts) {
-                NoticeRow(
-                    symbol: "tray.full.fill",
-                    title: "확인할 할 일 \(store.pendingDrafts.count)개",
-                    detail: "저장하기 전에 제목과 날짜를 확인해 주세요.",
-                    tint: Palette.water,
-                    showsChevron: true
-                )
-            }
-            .buttonStyle(.plain)
-        }
-
         // 왜 안 되는지 함께 보여준다. 이유 없는 침묵은 고장으로 읽힌다.
         if let explanation = store.inboxAvailability.explanation {
             NoticeRow(
@@ -161,14 +213,16 @@ struct DueStackView: View {
             Label("아직 할 일이 없어요", systemImage: "checklist")
         } description: {
             Text(
-                "다른 앱에서 스크린샷을 공유하거나, 사진에서 골라도 돼요. "
-                    + "텍스트를 붙여 넣어 시험해 볼 수도 있어요."
+                "직접 적어도 되고, 다른 앱에서 스크린샷을 공유하거나 사진에서 골라도 돼요. "
+                    + "공유한 것은 읽어서 바로 등록해 드려요."
             )
         } actions: {
             VStack(spacing: 10) {
-                Button("사진에서 고르기", action: onPickPhotos)
+                Button("직접 적기", action: onAddTask)
                     .buttonStyle(.borderedProminent)
-                Button("텍스트로 시험하기", action: onAddText)
+                Button("사진에서 고르기", action: onPickPhotos)
+                    .buttonStyle(.bordered)
+                Button("텍스트 붙여넣기", action: onAddText)
                     .buttonStyle(.bordered)
             }
         }
@@ -216,7 +270,9 @@ struct DueStackView: View {
         let expandedIndex = group.tasks.firstIndex { $0.id == expandedTaskID }
         return ZStack(alignment: .top) {
             ForEach(Array(group.tasks.enumerated()), id: \.element.id) { index, task in
-                card(task, in: group, isExpanded: index == expandedIndex)
+                card(
+                    task, bucket: group.bucket, isExpanded: index == expandedIndex,
+                    isStacked: usesWalletStack)
                     .frame(height: layout.height(forCardAt: index, expandedIndex: expandedIndex))
                     .offset(y: layout.offset(forCardAt: index, expandedIndex: expandedIndex))
                     // 아래 카드가 위 카드를 덮어야 지갑처럼 보인다.
@@ -235,18 +291,25 @@ struct DueStackView: View {
     private func plainList(for group: DueGroup) -> some View {
         VStack(spacing: 10) {
             ForEach(group.tasks) { task in
-                card(task, in: group, isExpanded: task.id == expandedTaskID)
+                card(
+                    task, bucket: group.bucket, isExpanded: task.id == expandedTaskID,
+                    isStacked: usesWalletStack)
             }
         }
         .animation(expandAnimation, value: expandedTaskID)
     }
 
-    private func card(_ task: AssistantTask, in group: DueGroup, isExpanded: Bool) -> TaskCard {
+    private func card(
+        _ task: AssistantTask,
+        bucket: DueBucket,
+        isExpanded: Bool,
+        isStacked: Bool
+    ) -> TaskCard {
         TaskCard(
             task: task,
-            bucket: group.bucket,
+            bucket: bucket,
             isExpanded: isExpanded,
-            isStacked: usesWalletStack,
+            isStacked: isStacked,
             onTap: { toggleExpansion(of: task.id) },
             onToggleCompletion: { Task { await store.toggleCompletion(for: task.id) } },
             onEdit: { onEditTask(task) },

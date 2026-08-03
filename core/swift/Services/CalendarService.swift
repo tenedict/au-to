@@ -1,12 +1,51 @@
 import EventKit
 import Foundation
 
+/// 캘린더에 쓰는 일.
+///
+/// **프로토콜 뒤에 두는 이유는 테스트다.** 저장소가 `CalendarService()` 를 직접
+/// 만들면 단위 테스트가 EventKit 권한을 실제로 요청하고, 시뮬레이터에는 그걸
+/// 눌러 줄 사람이 없어 **각 호출이 몇 분씩 멈춘다** — 실제로 180건짜리 스위트가
+/// 583초 걸렸다. 밀리초 단위여야 할 것이다.
+@MainActor
+protocol CalendarWriting: Sendable {
+    @discardableResult
+    func addToCalendar(_ task: AssistantTask) async throws -> String
+    func updateEvent(identifier: String, with task: AssistantTask) async throws
+    func removeFromCalendar(eventIdentifier: String) async
+}
+
+/// 테스트와 미리보기용. 아무것도 쓰지 않고 요청만 기록한다.
+@MainActor
+final class RecordingCalendarService: CalendarWriting {
+    private(set) var added: [AssistantTask] = []
+    private(set) var updated: [String] = []
+    private(set) var removed: [String] = []
+    /// 캘린더가 실패하는 상황을 재현할 때 켠다.
+    var failure: Error?
+
+    func addToCalendar(_ task: AssistantTask) async throws -> String {
+        if let failure { throw failure }
+        added.append(task)
+        return "event-\(added.count)"
+    }
+
+    func updateEvent(identifier: String, with task: AssistantTask) async throws {
+        if let failure { throw failure }
+        updated.append(identifier)
+    }
+
+    func removeFromCalendar(eventIdentifier: String) async {
+        removed.append(eventIdentifier)
+    }
+}
+
 /// Apple 캘린더는 **출력**이지 원장이 아니다.
 ///
 /// 할 일의 소유권은 언제나 앱에 있다. 캘린더 쓰기가 실패해도 할 일은 저장된 상태로 남는다
 /// (AGENTS 규칙 6). 그래서 이 서비스는 저장 성공/실패만 돌려주고 상태를 갖지 않는다.
 @MainActor
-final class CalendarService {
+final class CalendarService: CalendarWriting {
     private let eventStore: EKEventStore
 
     init(eventStore: EKEventStore = EKEventStore()) {

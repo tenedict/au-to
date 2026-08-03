@@ -74,8 +74,8 @@ struct NextTaskView: View {
     /// 소형은 요약 줄을 넣을 자리가 없다. 대신 표식과 배지만 한 줄로 둔다.
     private var smallHeader: some View {
         HStack(spacing: 6) {
-            BeadShape()
-                .fill(Palette.water)
+            MarkView()
+                .foregroundStyle(Palette.water)
                 .frame(width: 13, height: 13)
             Text("다음 일정")
                 .font(.caption2.weight(.semibold))
@@ -90,8 +90,8 @@ struct NextTaskView: View {
     /// 목록에 들어가기 전에 "지금 상태" 를 먼저 말한다 (디자인 언어 §10.6).
     private var summaryLine: some View {
         HStack(spacing: 8) {
-            BeadShape()
-                .fill(Palette.water)
+            MarkView()
+                .foregroundStyle(Palette.water)
                 .frame(width: 15, height: 15)
             Text(summaryText)
                 .font(.subheadline.weight(.semibold))
@@ -138,8 +138,8 @@ struct NextTaskView: View {
     /// 잘못된 사용자가 영영 그 사실을 모른다.
     private var empty: some View {
         VStack(alignment: .leading, spacing: 6) {
-            BeadShape()
-                .fill(Palette.water)
+            MarkView()
+                .foregroundStyle(Palette.water)
                 .frame(width: 18, height: 18)
             Spacer(minLength: 0)
             Text("다음 일정이 없어요")

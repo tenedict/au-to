@@ -1,7 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 화면에 떠 있는 물방울. 여기에 이미지를 떨어뜨리면 캘린더까지 간다.
+/// 화면에 떠 있는 창. 여기에 이미지를 떨어뜨리면 캘린더까지 간다.
 ///
 /// **상태를 크기로만 말한다.** 색은 아예 쓰지 않는다 — 색만 바꾸면 흑백 화면이나
 /// 색각 이상 사용자에게는 아무 일도 일어나지 않은 것과 같다 (CLAUDE 규칙 13).
@@ -34,7 +34,8 @@ struct DropletView: View {
         return .idle
     }
 
-    private var diameter: CGFloat { DropletAppearance.diameter(for: phase) }
+    /// 한 변. 예전에는 지름이었다 — 원에서 둥근 사각형으로 바뀌었다.
+    private var side: CGFloat { DropletAppearance.side(for: phase) }
 
     var body: some View {
         droplet
@@ -59,77 +60,75 @@ struct DropletView: View {
         .help(label)
     }
 
-    // MARK: - 물방울
+    // MARK: - 떠 있는 창
 
-    /// 유리에 맺힌 물방울.
+    /// 유리판 위의 둥근 사각형.
     ///
-    /// **떠 있는 물방울은 완전한 원이다.** 메뉴바 아이콘(`MenuBarIcon`)은 맺힌 윤곽
-    /// (`Bead`)을 쓰는데, 여기서는 쓰지 않는다 — 18pt 아이콘에서는 비대칭이 "손으로
-    /// 그린 것"으로 읽혀 성격이 되지만, 44pt 로 화면에 떠 있으면 같은 비대칭이
-    /// **찌그러진 원**으로 보인다. 크기가 다르면 같은 모양도 다른 뜻이 된다.
+    /// 예전에는 **물방울(원)** 이었다. 앱 아이콘을 사람이 그린 둥근 사각형으로
+    /// 바꾸면서 여기만 원으로 남으니, 화면 구석의 그것과 Dock 의 아이콘이
+    /// 서로 다른 앱처럼 보였다. **표식은 하나여야 한다.**
     ///
     /// 층이 넷이고 순서가 곧 광학이다.
     ///
     /// 1. **유리** — 가운데를 아주 옅게 채운다 (macOS 26+). 굴절은 아니지만
-    ///    "물이 고여 있다"가 생긴다. 그 아래에서는 채우지 않는다 — 채울 방법이
-    ///    흐림뿐인데, 흐린 판은 물방울이 아니라 서리다.
-    /// 2. **어두운 가장자리** — 흰 배경 위에서 물방울을 보이게 하는 것은 이것 하나다.
-    ///    흰 림라이트만 쓰면 흰 화면에서 통째로 사라진다. 실제 물방울도 가장자리에서
-    ///    빛이 비껴 나가 어둡다.
-    /// 3. **얇은 밝은 선** — 유리에 닿은 물의 경계.
-    /// 4. **하이라이트 둘** — 왼쪽 위의 작고 밝은 점(주광), 오른쪽 아래의 넓고 옅은
-    ///    반사(환경광). 물방울이 물방울로 읽히는 것은 굴절이 아니라 이 둘 때문이다.
+    ///    "무언가 놓여 있다" 가 생긴다.
+    /// 2. **어두운 가장자리** — 흰 배경 위에서 이것을 보이게 하는 것은 이 층 하나다.
+    ///    흰 림라이트만 쓰면 흰 화면에서 통째로 사라진다.
+    /// 3. **얇은 밝은 선** — 유리에 닿은 경계.
+    /// 4. **표식** — 앱 아이콘과 같은 빗금 셋. 이게 없으면 그냥 반투명한 사각형이다.
     private var droplet: some View {
-        Circle()
+        RoundedRectangle(cornerRadius: side * Mark.cornerRatio, style: .continuous)
             .fill(.clear)
-            .glassIfAvailable()
+            .glassIfAvailable(cornerRadius: side * Mark.cornerRatio)
             .overlay { edgeShade }
             .overlay { innerRim }
-            .overlay { highlights }
-            .frame(width: diameter, height: diameter)
-            // 그림자는 아주 얕게. 물방울은 유리에 닿아 있지 떠 있지 않다.
-            // 창이 물방울보다 넉넉히 커서(edgeAllowance) 예전처럼 잘리지 않는다.
+            .overlay { highlight }
+            .overlay { mark }
+            .frame(width: side, height: side)
+            // 그림자는 아주 얕게. 유리에 닿아 있지 떠 있지 않다.
+            // 창이 넉넉히 커서(edgeAllowance) 잘리지 않는다.
             .shadow(color: .black.opacity(0.18), radius: 2.5, x: 0, y: 1.5)
     }
 
     /// 가장자리 그늘. 가운데는 투명하고 테두리로 갈수록 짙어진다.
     private var edgeShade: some View {
-        Circle()
+        RoundedRectangle(cornerRadius: side * Mark.cornerRatio, style: .continuous)
             .fill(
                 RadialGradient(
                     stops: [
-                        .init(color: .clear, location: 0.62),
-                        .init(color: Color(white: 0.08).opacity(0.30), location: 1.0),
+                        .init(color: .clear, location: 0.55),
+                        .init(color: Color(white: 0.08).opacity(0.26), location: 1.0),
                     ],
-                    center: .center, startRadius: 0, endRadius: diameter / 2
+                    center: .center, startRadius: 0, endRadius: side * 0.75
                 )
             )
     }
 
     /// 안쪽 얇은 밝은 선.
     private var innerRim: some View {
-        Circle()
+        RoundedRectangle(cornerRadius: side * Mark.cornerRatio, style: .continuous)
             .strokeBorder(.white.opacity(0.55), lineWidth: 0.9)
             .blendMode(.plusLighter)
     }
 
-    private var highlights: some View {
-        ZStack {
-            // 주광 — 작고 밝다. 위치는 비율로 준다 (크기가 바뀌어도 같은 자리).
-            Ellipse()
-                .fill(.white.opacity(0.92))
-                .frame(width: diameter * 0.22, height: diameter * 0.17)
-                .blur(radius: diameter * 0.035)
-                .offset(x: diameter * Bead.highlightOffset.x,
-                        y: diameter * Bead.highlightOffset.y)
-            // 환경광 — 넓고 옅다.
-            Ellipse()
-                .fill(.white.opacity(0.20))
-                .frame(width: diameter * 0.44, height: diameter * 0.30)
-                .blur(radius: diameter * 0.09)
-                .offset(x: diameter * 0.16, y: diameter * 0.22)
+    /// 왼쪽 위에서 비스듬히 떨어지는 빛 한 줄기.
+    private var highlight: some View {
+        LinearGradient(
+            colors: [.white.opacity(0.30), .clear],
+            startPoint: .topLeading,
+            endPoint: .center
+        )
+        .clipShape(RoundedRectangle(cornerRadius: side * Mark.cornerRatio, style: .continuous))
+    }
+
+    /// 앱 아이콘과 같은 표식. 바깥 윤곽은 창 자체가 이미 그리므로 빗금만 그린다.
+    private var mark: some View {
+        Canvas { context, size in
+            context.fill(
+                Mark.bars(in: CGRect(origin: .zero, size: size)),
+                with: .color(Palette.ink1.opacity(0.72)))
         }
-        .mask(Circle())
+        .frame(width: side, height: side)
     }
 
     // MARK: - 누르기 · 옮기기 · 탭
@@ -157,8 +156,8 @@ struct DropletView: View {
 
     private var label: String {
         switch phase {
-        case .idle, .pressed: return "물방울. 스크린샷을 여기에 끌어다 놓으세요"
-        case .moving: return "물방울을 옮기는 중이에요"
+        case .idle, .pressed: return "Whenly. 스크린샷을 여기에 끌어다 놓으세요"
+        case .moving: return "옮기는 중이에요"
         case .receiving:
             return justSwallowed
                 ? "받았어요. 다 읽으면 알림으로 알려 드려요"
@@ -206,15 +205,13 @@ struct DropletView: View {
 private extension View {
     /// macOS 26 의 유리를 쓸 수 있으면 쓴다.
     ///
-    /// 굴절은 아니다 — 실험해 보면 뒤의 직선이 한 픽셀도 밀리지 않는다.
-    /// 그래도 "물이 고여 있다"는 인상은 이것이 만든다.
     /// 26 미만에서는 채우지 않는다. 대신 가운데가 완전히 투명해 뒤가 그대로 보인다.
     @ViewBuilder
-    func glassIfAvailable() -> some View {
+    func glassIfAvailable(cornerRadius: CGFloat) -> some View {
         if #available(macOS 26.0, *) {
             // `.regular` 가 아니라 `.clear` 다. `.regular` 는 뒤를 서리처럼 가려서
-            // 물방울이 아니라 **불투명한 알약**으로 보인다. 물방울은 뒤가 보여야 한다.
-            self.glassEffect(.clear, in: .circle)
+            // **불투명한 알약**으로 보인다. 떠 있는 것은 뒤가 보여야 화면을 덜 가린다.
+            self.glassEffect(.clear, in: .rect(cornerRadius: cornerRadius))
         } else {
             self
         }

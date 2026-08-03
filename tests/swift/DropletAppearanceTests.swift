@@ -16,21 +16,21 @@ final class DropletAppearanceTests: XCTestCase {
     /// 빛나는 가장자리가 잘린다.
     func testEveryPhaseFitsInsideThePanel() {
         for phase in DropletPhase.allCases {
-            let outer = DropletAppearance.diameter(for: phase) + DropletAppearance.edgeAllowance * 2
+            let outer = DropletAppearance.side(for: phase) + DropletAppearance.edgeAllowance * 2
             XCTAssertLessThanOrEqual(
                 outer,
                 DropletAppearance.panelSide,
-                "\(phase) 에서 물방울(\(outer)pt)이 창(\(DropletAppearance.panelSide)pt)을 넘습니다"
+                "\(phase) 에서 표식(\(outer)pt)이 창(\(DropletAppearance.panelSide)pt)을 넘습니다"
             )
         }
     }
 
     /// 쉬고 있을 때가 가장 작다. 떠 있는 것은 작을수록 화면을 덜 가린다.
     func testRestingIsTheSmallest() {
-        let resting = DropletAppearance.diameter(for: .idle)
+        let resting = DropletAppearance.side(for: .idle)
         for phase in DropletPhase.allCases where phase != .idle {
             XCTAssertGreaterThan(
-                DropletAppearance.diameter(for: phase), resting,
+                DropletAppearance.side(for: phase), resting,
                 "\(phase) 가 쉬는 상태보다 크지 않습니다 — 상태 변화가 보이지 않습니다"
             )
         }
@@ -41,10 +41,10 @@ final class DropletAppearanceTests: XCTestCase {
     /// 겨냥하는 중에 목표가 커져야 놓기 쉽다. 작아지면 커서가 밖으로 나가
     /// 놓기가 풀리고, 풀리면 다시 커지고, 커지면 또 들어와 깜빡인다.
     func testReceivingIsTheLargest() {
-        let receiving = DropletAppearance.diameter(for: .receiving)
+        let receiving = DropletAppearance.side(for: .receiving)
         for phase in DropletPhase.allCases where phase != .receiving {
             XCTAssertGreaterThan(
-                receiving, DropletAppearance.diameter(for: phase),
+                receiving, DropletAppearance.side(for: phase),
                 "받을 때가 \(phase) 보다 크지 않습니다"
             )
         }
@@ -56,24 +56,24 @@ final class DropletAppearanceTests: XCTestCase {
     /// 그대로 끌기 시작할 때 크기가 한 번 더 튀면 손이 미끄러진 것처럼 보인다.
     func testPressAndMoveLookTheSame() {
         XCTAssertEqual(
-            DropletAppearance.diameter(for: .pressed),
-            DropletAppearance.diameter(for: .moving)
+            DropletAppearance.side(for: .pressed),
+            DropletAppearance.side(for: .moving)
         )
     }
 
     /// 크기 차이가 눈에 보여야 한다. 1pt 차이는 아무것도 알려 주지 않는다.
     func testStepsAreBigEnoughToNotice() {
-        let resting = DropletAppearance.diameter(for: .idle)
-        XCTAssertGreaterThanOrEqual(DropletAppearance.diameter(for: .pressed) - resting, 3)
+        let resting = DropletAppearance.side(for: .idle)
+        XCTAssertGreaterThanOrEqual(DropletAppearance.side(for: .pressed) - resting, 3)
         XCTAssertGreaterThanOrEqual(
-            DropletAppearance.diameter(for: .receiving)
-                - DropletAppearance.diameter(for: .pressed),
+            DropletAppearance.side(for: .receiving)
+                - DropletAppearance.side(for: .pressed),
             3
         )
     }
 
     /// 떠 있는 물방울은 작아야 한다. 커지면 그냥 창이다.
     func testTheDropletStaysSmallEnoughToFloat() {
-        XCTAssertLessThanOrEqual(DropletAppearance.diameter(for: .idle), 50)
+        XCTAssertLessThanOrEqual(DropletAppearance.side(for: .idle), 50)
     }
 }

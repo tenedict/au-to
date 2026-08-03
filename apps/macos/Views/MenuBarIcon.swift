@@ -1,17 +1,19 @@
 import AppKit
+import SwiftUI
 
-/// 메뉴바 아이콘 — 맺힌 물방울의 윤곽과 광점 하나.
+/// 메뉴바 아이콘 — 앱 아이콘을 아주 단순하게 줄인 표식.
 ///
 /// **메뉴바 아이콘은 템플릿 이미지다.** 시스템이 알파 채널만 보고 색을 스스로 칠한다 —
 /// 밝은 메뉴바에서는 검정, 어두운 메뉴바에서는 흰색, 눌리면 반전. 그래서 여기서
-/// 정할 수 있는 것은 **실루엣 하나뿐**이고 색·그라디언트·굴절은 들어가지 않는다.
+/// 정할 수 있는 것은 **실루엣 하나뿐**이고 색·그라디언트는 들어가지 않는다.
 ///
-/// 그 제약 안에서 물방울로 읽히게 하는 것은 두 가지다.
-///   · 정원이 아닌 윤곽 (`Bead`) — 아래가 눌리고 위가 둥글다
-///   · 광점 하나 — 이것이 "젖은 것"을 만든다. 없으면 그냥 원이다
+/// 모양은 `Mark`(`core/swift/Design/WhenlyMark.swift`) 하나에서 온다.
+/// 앱 아이콘 · 잠금화면 위젯 · 홈 화면 위젯 · 떠 있는 창이 전부 같은 것을 쓴다 —
+/// 자리마다 다르게 그리면 같은 앱으로 보이지 않는다.
 ///
-/// 광점을 **파내지 않고 채우는** 이유는 크기 때문이다. 18pt 에서 윤곽 안을 파내면
-/// 선과 구멍 사이가 1pt 아래로 내려가 뭉갠다. 채운 점은 작아져도 살아남는다.
+/// AppKit 으로 다시 그리는 이유는 **`NSImage` 가 필요해서**다. SwiftUI 뷰를
+/// 메뉴바에 그대로 넣을 수 없고, 넣는다 해도 템플릿으로 표시할 방법이 없다.
+/// 경로 계산 자체는 `Mark` 가 하므로 두 자리의 모양이 갈라지지는 않는다.
 enum MenuBarIcon {
 
     /// 메뉴바 표준 높이.
@@ -35,27 +37,31 @@ enum MenuBarIcon {
 
     /// 실루엣을 그린다. 색은 언제나 현재 색(`NSColor.black`)이고 시스템이 갈아 낀다.
     private static func draw(in rect: CGRect) {
-        // 여백 10% — 메뉴바가 아이콘에 딱 붙지 않게 한다.
-        let body = rect.insetBy(dx: rect.width * 0.10, dy: rect.height * 0.10)
+        // 여백 8% — 메뉴바가 아이콘에 딱 붙지 않게 한다.
+        let body = rect.insetBy(dx: rect.width * 0.08, dy: rect.height * 0.08)
+        // 18pt 에서는 선이 조금만 가늘어도 사라진다. 화면용보다 두껍게 잡는다.
+        let line = max(body.width * 0.10, 1.5)
+
         NSColor.black.setStroke()
         NSColor.black.setFill()
 
-        let outline = NSBezierPath(cgPath: Bead.cgPath(in: body))
-        outline.lineWidth = rect.width * 0.085
+        // 선의 절반이 바깥으로 나가지 않게 안쪽으로 밀어 그린다. 이 크기에서는
+        // 그 절반이 잘리는 것만으로 두께가 눈에 띄게 달라 보인다.
+        let outlineRect = body.insetBy(dx: line / 2, dy: line / 2)
+        let outline = NSBezierPath(cgPath: flipped(Mark.outline(in: outlineRect).cgPath, in: rect))
+        outline.lineWidth = line
         outline.stroke()
 
-        // 물방울의 하이라이트 자리를 쓰되 **안쪽으로 조금 당긴다.**
-        // 물방울에서는 흐릿한 덩어리라 가장자리에 걸쳐도 되지만, 18pt 에서는
-        // 또렷한 점이라 윤곽선과 붙어 하나로 뭉친다.
-        let pull: CGFloat = 0.82
-        let radius = body.width * Bead.highlightRadius * pull
-        let center = CGPoint(
-            x: body.midX + body.width * Bead.highlightOffset.x * pull,
-            y: body.midY - body.height * Bead.highlightOffset.y * pull  // AppKit 은 y 가 위로
-        )
-        NSBezierPath(ovalIn: CGRect(
-            x: center.x - radius, y: center.y - radius,
-            width: radius * 2, height: radius * 2
-        )).fill()
+        NSBezierPath(cgPath: flipped(Mark.bars(in: body).cgPath, in: rect)).fill()
+    }
+
+    /// SwiftUI 좌표(y 아래로)를 AppKit 좌표(y 위로)로 뒤집는다.
+    ///
+    /// 뒤집지 않으면 **빗금의 기울기가 거울처럼 반대로** 그려진다. 사각형과 줄 수는
+    /// 같아서 언뜻 맞아 보이는데, 앱 아이콘 옆에 나란히 두면 어긋난 것이 보인다.
+    private static func flipped(_ path: CGPath, in rect: CGRect) -> CGPath {
+        var transform = CGAffineTransform(translationX: 0, y: rect.height)
+            .scaledBy(x: 1, y: -1)
+        return path.copy(using: &transform) ?? path
     }
 }

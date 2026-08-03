@@ -32,14 +32,14 @@ enum DropletAppearance {
     /// 드롭 영역이 움직여서 커서가 안팎을 오간다.
     static let panelSide: CGFloat = 72
 
-    /// 쉬고 있을 때 지름.
+    /// 쉬고 있을 때 한 변.
     ///
     /// 떠 있는 것은 작을수록 화면을 덜 가린다. 다만 너무 작으면 드롭 목표로
     /// 맞히기 어려워지는데, 그건 **창**(`panelSide`)이 받아 준다 —
     /// 눈에 보이는 물방울보다 실제로 받는 영역이 넓다.
-    static let restingDiameter: CGFloat = 44
+    static let restingSide: CGFloat = 44
 
-    /// 테두리 빛과 그림자가 물방울 바깥으로 번지는 여유.
+    /// 테두리 빛과 그림자가 바깥으로 번지는 여유.
     static let edgeAllowance: CGFloat = 5
 
     /// 상태별 배율.
@@ -58,7 +58,11 @@ enum DropletAppearance {
         }
     }
 
-    static func diameter(for phase: DropletPhase) -> CGFloat {
-        (restingDiameter * scale(for: phase)).rounded()
+    /// 상태별 한 변.
+    ///
+    /// 예전 이름은 `diameter` 였다 — 떠 있는 것이 원에서 둥근 사각형으로 바뀌면서
+    /// 지름이 아니라 변이 됐다.
+    static func side(for phase: DropletPhase) -> CGFloat {
+        (restingSide * scale(for: phase)).rounded()
     }
 }

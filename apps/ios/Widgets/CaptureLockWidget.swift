@@ -3,7 +3,7 @@ import WidgetKit
 
 /// 잠금화면 위젯 — **눌러서 바로 찍기.**
 ///
-/// 표식은 맥 메뉴바 아이콘과 **같은 물방울 윤곽**(`Bead`)이다. 두 기기에서 다른
+/// 표식은 맥 메뉴바 아이콘·앱 아이콘과 **같은 것**(`Mark`)이다. 자리마다 다른
 /// 그림을 쓰면 같은 제품으로 보이지 않는다.
 ///
 /// 누르면 `whenly://capture` 로 앱이 열리고 곧바로 카메라가 뜬다.
@@ -47,16 +47,13 @@ struct CaptureLockView: View {
     ///
     /// 잠금화면 위젯은 **틴트가 씌워진다.** 시스템이 알파 채널만 보고 색을 스스로
     /// 칠하므로, 여기서 정할 수 있는 것은 메뉴바 아이콘과 마찬가지로 실루엣뿐이다.
-    /// 그래서 광점을 파내지 않고 **채운다** — 이 크기에서 파내면 선과 구멍 사이가
-    /// 1pt 아래로 내려가 뭉갠다.
-    /// 뒤에 `AccessoryWidgetBackground()` 를 깔지 않는다.
     ///
-    /// 그건 시스템이 주는 **흐린 원판**인데, 물방울 뒤에 깔면 배경화면이 그 원만큼
-    /// 뿌예져서 물방울이 유리에 맺힌 것이 아니라 **접시 위에 놓인 것**처럼 보인다.
-    /// 이 제품의 표식은 뒤가 비쳐야 한다.
+    /// 뒤에 `AccessoryWidgetBackground()` 를 깔지 않는다. 그건 시스템이 주는
+    /// **흐린 원판**인데, 깔면 배경화면이 그 원만큼 뿌예져서 표식이 유리에 놓인 것이
+    /// 아니라 **접시 위에 놓인 것**처럼 보인다. 이 제품의 표식은 뒤가 비쳐야 한다.
     private var circular: some View {
-        BeadMark()
-            .padding(4)
+        MarkView()
+            .padding(3)
             .accessibilityLabel("찍어서 담기")
     }
 
@@ -66,7 +63,7 @@ struct CaptureLockView: View {
     /// 무엇인지 알 수 없고, 인라인은 시스템이 한 줄로 압축한다.
     private var rectangular: some View {
         HStack(spacing: 8) {
-            BeadMark()
+            MarkView()
                 .frame(width: 22, height: 22)
             VStack(alignment: .leading, spacing: 1) {
                 Text("찍어서 담기")
@@ -97,31 +94,5 @@ struct CaptureLockView: View {
             width: .narrow,
             now: entry.date)
         return "\(when) \(next.title)"
-    }
-}
-
-/// 잠금화면용 물방울 표식.
-///
-/// 맥 메뉴바 아이콘(`MenuBarIcon`)과 같은 구성이다 — 윤곽선 하나와 채운 광점 하나.
-/// 두 자리의 그림이 다르면 같은 물건으로 보이지 않는다.
-private struct BeadMark: View {
-    var body: some View {
-        GeometryReader { geometry in
-            let side = min(geometry.size.width, geometry.size.height)
-            ZStack {
-                BeadShape()
-                    .strokeBorder(.primary, lineWidth: max(side * 0.085, 1))
-                // 광점은 파내지 않고 채운다. 작은 크기에서 파내면 선과 구멍
-                // 사이가 뭉개져 그냥 두꺼운 원이 된다.
-                Circle()
-                    .fill(.primary)
-                    .frame(width: side * Bead.highlightRadius * 2 * 0.82)
-                    .offset(
-                        x: side * Bead.highlightOffset.x * 0.82,
-                        y: side * Bead.highlightOffset.y * 0.82)
-            }
-            .frame(width: side, height: side)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
     }
 }

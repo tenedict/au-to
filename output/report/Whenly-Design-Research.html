@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CaptureTask 디자인 연구 보고서</title>
+<title>Whenly 디자인 연구 보고서</title>
 <style>
   /* ─────────────────────────────────────────────────────────────
-     CaptureTask 디자인 연구 보고서
+     Whenly 디자인 연구 보고서
      서체 SF Pro (한글은 SF Pro 가 덮지 않으므로 Apple SD Gothic Neo 로 이어 받는다)
      색   흑백 전용 — 강조는 색이 아니라 굵기·괘선·여백으로만 한다
      인쇄 A4 세로. 어떤 요소도 잘리지 않는다
@@ -193,10 +193,10 @@
 
 <!-- ══════════════════════ 표지 ══════════════════════ -->
 <header class="cover">
-  <div class="org">CaptureTask</div>
+  <div class="org">Whenly</div>
   <h1>디자인 연구 보고서</h1>
   <p class="sub">Apple 지갑 · 미리 알림 · 캘린더 · 일기 앱의 인터페이스 분석과
-     CaptureTask 적용 방안</p>
+     Whenly 적용 방안</p>
 
   <div class="docinfo">
     <table>
@@ -207,7 +207,7 @@
       <tr><th>조사 대상</th><td>지갑(Wallet) · 미리 알림(Reminders) · 캘린더(Calendar) · 일기(Journal)</td></tr>
       <tr><th>조사 환경</th><td>iOS 26 시뮬레이터 (iPhone 17 Pro · 한국어) · macOS 26.6</td></tr>
       <tr><th>조사 방법</th><td>각 앱을 직접 실행하여 화면을 캡처하고 계측했다. 문헌이나 기억에 의한 기술은 §2.3 에 별도로 표기한다</td></tr>
-      <tr><th>목적</th><td>CaptureTask 의 화면 설계 기준을 Apple 기본 앱의 실제 구현과 대조하고, 미해소 결함(마감 표시 잘림)의 해법을 도출한다</td></tr>
+      <tr><th>목적</th><td>Whenly 의 화면 설계 기준을 Apple 기본 앱의 실제 구현과 대조하고, 미해소 결함(마감 표시 잘림)의 해법을 도출한다</td></tr>
     </table>
   </div>
 </header>
@@ -223,7 +223,7 @@
     <li><a href="#s5"><span class="n">5</span><span class="t">캘린더 (Calendar)</span></a></li>
     <li><a href="#s6"><span class="n">6</span><span class="t">일기 (Journal)</span></a></li>
     <li><a href="#s7"><span class="n">7</span><span class="t">공통 설계 원칙</span></a></li>
-    <li><a href="#s8"><span class="n">8</span><span class="t">CaptureTask 대조 분석</span></a></li>
+    <li><a href="#s8"><span class="n">8</span><span class="t">Whenly 대조 분석</span></a></li>
     <li><a href="#s9"><span class="n">9</span><span class="t">결함 분석 · 마감 표시 잘림</span></a></li>
     <li><a href="#s10"><span class="n">10</span><span class="t">적용 권고</span></a></li>
   </ol>
@@ -235,7 +235,7 @@
   <h2>조사 개요</h2>
 
   <h3>1.1 배경</h3>
-  <p>CaptureTask 는 iOS 홈 화면에 <strong>지갑형 마감 적층</strong>을, macOS 에 사이드바
+  <p>Whenly 는 iOS 홈 화면에 <strong>지갑형 마감 적층</strong>을, macOS 에 사이드바
      대시보드를 채택했다. 두 결정 모두 Apple 기본 앱의 패턴을 참고한 것이나, 실제 구현과
      대조한 기록이 없다. 또한 개발 보고서 §9.1 에서 홈 화면 카드의 마감 표시가 다음 카드에
      가려지는 결함이 확인되었으며, 해법을 정하려면 <strong>Apple 이 동일 문제를 어떻게
@@ -243,7 +243,7 @@
 
   <h3>1.2 조사 대상 선정 근거</h3>
   <div class="tbl"><table>
-    <thead><tr><th>앱</th><th>선정 근거</th><th>CaptureTask 대응 요소</th></tr></thead>
+    <thead><tr><th>앱</th><th>선정 근거</th><th>Whenly 대응 요소</th></tr></thead>
     <tr><td class="k">지갑</td><td>적층 카드 인터페이스의 원형</td><td>홈 화면 지갑형 마감 적층</td></tr>
     <tr><td class="k">미리 알림</td><td>동일 도메인(할 일)의 표준 구현</td><td>할 일 목록 · 행 구성 · 완료 처리</td></tr>
     <tr><td class="k">캘린더</td><td>날짜 표현과 월 격자의 표준</td><td>캘린더 탭 · 월 격자 · 일별 일정</td></tr>
@@ -570,22 +570,22 @@
 <!-- ══════════════════════ 8 ══════════════════════ -->
 <section id="s8">
   <div class="num">8</div>
-  <h2>CaptureTask 대조 분석</h2>
+  <h2>Whenly 대조 분석</h2>
 
   <h3>8.1 일치하는 결정</h3>
   <div class="tbl"><table>
-    <thead><tr><th>항목</th><th>CaptureTask</th><th>Apple</th><th>판정</th></tr></thead>
+    <thead><tr><th>항목</th><th>Whenly</th><th>Apple</th><th>판정</th></tr></thead>
     <tr><td class="k">색의 역할</td><td>지난 마감에만 적색. 기호 병기</td><td>미리 알림과 동일. 문자로도 확인 가능</td><td><span class="st on">일치</span></td></tr>
     <tr><td class="k">구분선</td><td>사용하지 않음</td><td>미리 알림 · 일기와 동일</td><td><span class="st on">일치</span></td></tr>
     <tr><td class="k">행 좌측 상태 요소</td><td>원형 체크 고정</td><td>미리 알림과 동일</td><td><span class="st on">일치</span></td></tr>
-    <tr><td class="k">읽기 전용 캘린더</td><td>“여기서는 보기만 해요” 명시</td><td>—</td><td><span class="st mid">Apple 에 대응 없음 · CaptureTask 고유</span></td></tr>
+    <tr><td class="k">읽기 전용 캘린더</td><td>“여기서는 보기만 해요” 명시</td><td>—</td><td><span class="st mid">Apple 에 대응 없음 · Whenly 고유</span></td></tr>
     <tr><td class="k">macOS 사이드바</td><td>묶음별 개수 우측 정렬</td><td>일기의 저널 목록과 동일 구성</td><td><span class="st on">일치</span></td></tr>
     <tr><td class="k">빈 상태</td><td>기호 · 제목 · 설명 · 동작</td><td>지갑의 3부 구조와 동일</td><td><span class="st on">일치</span></td></tr>
   </table></div>
 
   <h3>8.2 어긋나는 결정</h3>
   <div class="tbl"><table>
-    <thead><tr><th>항목</th><th>CaptureTask</th><th>Apple</th><th>영향</th></tr></thead>
+    <thead><tr><th>항목</th><th>Whenly</th><th>Apple</th><th>영향</th></tr></thead>
     <tr><td class="k">가변 텍스트의 적층</td><td>카드를 겹치고 상단 일부만 노출</td><td>겹치지 않는다. 일기는 카드 사이에 여백을 둔다</td><td><span class="st mid">§9 의 결함 원인</span></td></tr>
     <tr><td class="k">목록 행의 날짜 형식</td><td><code>2026년 7월 31일 14:00</code> 완전 서술</td><td>목록 행에서는 축약 (<code>7/24/26, 17:48</code>)</td><td><span class="st mid">2행으로 넘쳐 잘림</span></td></tr>
     <tr><td class="k">새 항목 생성</td><td>확인 화면(모달) 필수</td><td>미리 알림은 모달 없이 인라인</td><td><span class="st off">의도된 차이 · §10.3</span></td></tr>
@@ -620,14 +620,14 @@
     <tr><td class="k">지갑</td><td>패스 카드 (규격 고정)</td><td>발급자가 설계 시 확정</td><td>노출 영역이 넘칠 수 없다</td></tr>
     <tr><td class="k">일기</td><td>가변 길이 본문</td><td>카드마다 상한. <strong>겹치지 않음</strong></td><td>넘치면 흐림으로 잘라내고, 날짜는 잘림 영역 밖에 고정</td></tr>
     <tr><td class="k">미리 알림</td><td>가변 길이 제목</td><td>내용에 맞춰 행이 늘어남</td><td>겹치지 않으므로 잘릴 일이 없다</td></tr>
-    <tr><td class="k">CaptureTask</td><td>가변 길이 제목 + 마감</td><td><strong>고정 노출 높이로 겹침</strong></td><td>넘치는 부분이 다음 카드에 가려진다</td></tr>
+    <tr><td class="k">Whenly</td><td>가변 길이 제목 + 마감</td><td><strong>고정 노출 높이로 겹침</strong></td><td>넘치는 부분이 다음 카드에 가려진다</td></tr>
   </table></div>
   <div class="verdict">
     <div class="k">결론</div>
     <div class="v">Apple 은 가변 길이 텍스트를 고정 높이로 겹치지 않는다</div>
     <p>적층이 성립하는 유일한 사례(지갑)는 <strong>적층 대상의 높이가 규격으로 고정</strong>되어
       있다. 가변 길이를 다루는 두 앱(일기 · 미리 알림)은 <strong>겹치기를 선택하지
-      않았다.</strong> CaptureTask 는 가변 길이를 고정 높이로 겹치는, Apple 이 채택하지 않은
+      않았다.</strong> Whenly 는 가변 길이를 고정 높이로 겹치는, Apple 이 채택하지 않은
       조합을 쓰고 있다.</p>
   </div>
 
@@ -650,7 +650,7 @@
     <tr><td class="k">검증</td><td>가장 긴 날짜 문자열로 순수 함수 테스트를 추가한다 — “접힌 카드의 내용 높이 ≤ 노출 높이”</td></tr>
   </table></div>
   <p>캘린더에서 확인한 <strong>이중 기준</strong>(§5.2)이 그대로 적용된다. 좁은 자리에는
-     짧은 형식을, 한 줄을 다 쓰는 자리에는 완전 서술을. CaptureTask 는 두 자리에 같은 형식을
+     짧은 형식을, 한 줄을 다 쓰는 자리에는 완전 서술을. Whenly 는 두 자리에 같은 형식을
      쓰고 있었다.</p>
 </section>
 
@@ -678,16 +678,16 @@
   <h3>10.3 채택하지 않을 것</h3>
   <div class="tbl"><table>
     <thead><tr><th>Apple 의 방식</th><th>채택하지 않는 이유</th></tr></thead>
-    <tr><td class="k">모달 없는 인라인 생성 (미리 알림)</td><td>CaptureTask 의 항목은 <strong>AI 가 제안한 것</strong>이다. 확인 화면은 속도를 위한 단계가 아니라 <strong>제품 원칙 2</strong> 그 자체다. 미리 알림은 사용자가 직접 입력하므로 확인할 것이 없다</td></tr>
-    <tr><td class="k">평면 목록 (미리 알림)</td><td>“다음에 무엇을 할 것인가”에 답하지 못한다. 긴급도 적층은 CaptureTask 의 결정 D-9 다</td></tr>
-    <tr><td class="k">색으로 목록 구분 (미리 알림 · 일기)</td><td>CaptureTask 는 목록이 하나뿐이다. 구분할 대상이 없다</td></tr>
+    <tr><td class="k">모달 없는 인라인 생성 (미리 알림)</td><td>Whenly 의 항목은 <strong>AI 가 제안한 것</strong>이다. 확인 화면은 속도를 위한 단계가 아니라 <strong>제품 원칙 2</strong> 그 자체다. 미리 알림은 사용자가 직접 입력하므로 확인할 것이 없다</td></tr>
+    <tr><td class="k">평면 목록 (미리 알림)</td><td>“다음에 무엇을 할 것인가”에 답하지 못한다. 긴급도 적층은 Whenly 의 결정 D-9 다</td></tr>
+    <tr><td class="k">색으로 목록 구분 (미리 알림 · 일기)</td><td>Whenly 는 목록이 하나뿐이다. 구분할 대상이 없다</td></tr>
     <tr><td class="k">위치 기반 기능 (지갑 · 캘린더 · 미리 알림)</td><td>권한 요구가 제품의 프라이버시 포지셔닝과 충돌한다</td></tr>
   </table></div>
 
   <h3>10.4 관찰된 부수 사항</h3>
   <p>조사 과정에서 네 앱 모두 <strong>첫 실행 시 권한 대화상자</strong>를 즉시 표시했다
      (지갑·캘린더는 위치, 캘린더는 알림). 사용자가 앱의 가치를 확인하기 전에 권한을 묻는
-     구성이다. CaptureTask 는 <strong>첫 저장 시점에</strong> 알림 권한을 요청하도록
+     구성이다. Whenly 는 <strong>첫 저장 시점에</strong> 알림 권한을 요청하도록
      설계되어 있으며(F-08.2), 이는 Apple 기본 앱보다 나은 배치다. 유지할 것을 권고한다.</p>
 
   <h3>10.5 후속 조사 제안</h3>
@@ -700,7 +700,7 @@
   </table></div>
 </section>
 
-<p class="foot">CaptureTask 디자인 연구 보고서 · 버전 1.0 · 2026-08-02<br>
+<p class="foot">Whenly 디자인 연구 보고서 · 버전 1.0 · 2026-08-02<br>
 조사 환경 iOS 26 시뮬레이터 (iPhone 17 Pro · 한국어) · macOS 26.6<br>
 계측값은 3배 스크린샷에서 산출한 근사치이며 오차 ±1pt 로 본다.
 일기 앱 캡처는 개인 기록이 포함되어 삭제했고 본 문서에 포함하지 않았다.</p>

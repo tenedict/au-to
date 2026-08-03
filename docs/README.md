@@ -15,7 +15,7 @@
 | --- | --- | --- |
 | [`product/`](product) | 00~08, 24 — 무엇을 왜 만드나 | 제품·디자인·처음 온 사람 |
 | [`engineering/`](engineering) | 09~16, 19~21 — 어떻게 만들고 무엇으로 판정하나 | 코드를 고치는 사람 |
-| [`platform/`](platform) | 17~18, 22~23 — 플랫폼별 조사와 기록 | 그 플랫폼을 만지는 사람 |
+| [`platform/`](platform) | 17~18, 22~23, 25 — 플랫폼별 조사와 기록 | 그 플랫폼을 만지는 사람 |
 | [`plans/`](plans) | 스토리별 2~5분 태스크 계획 | 그 스토리를 하는 사람 |
 
 Windows·Android 가 붙으면 `platform/` 에 문서가 하나씩 늘어난다.
@@ -33,6 +33,8 @@ Windows·Android 가 붙으면 `platform/` 에 문서가 하나씩 늘어난다.
 | 코드를 고치려 한다 | [09-SPEC.md](engineering/09-SPEC.md) + [10-ARCHITECTURE-SPINE.md](engineering/10-ARCHITECTURE-SPINE.md) + [16-ENGINEERING-PLAYBOOK.md](engineering/16-ENGINEERING-PLAYBOOK.md) |
 | 파일이 어디 있는지 모르겠다 | [20-REPO-LAYOUT.md](engineering/20-REPO-LAYOUT.md) |
 | **플랫폼을 하나 더 붙인다** | [20-REPO-LAYOUT.md §4](engineering/20-REPO-LAYOUT.md) |
+| **iOS 앱을 만진다** | [25-IOS.md](platform/25-IOS.md) — 기술 스택 · 흐름 · 겪은 함정 |
+| **백엔드를 만진다** | [server/README.md](../server/README.md) + [21-API.md](engineering/21-API.md) |
 | **위젯을 고치려 한다** | [22-WIDGETS.md](platform/22-WIDGETS.md) |
 | **온디바이스 모델을 붙인다** | [17-ONDEVICE-LLM-RESEARCH.md](platform/17-ONDEVICE-LLM-RESEARCH.md) → [23-ONDEVICE-LLM-STRATEGY.md](platform/23-ONDEVICE-LLM-STRATEGY.md) |
 | **수익화·B2B 를 판단한다** | [24-GROWTH-STRATEGY.md](product/24-GROWTH-STRATEGY.md) |

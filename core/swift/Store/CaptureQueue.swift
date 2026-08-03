@@ -27,6 +27,9 @@ final class CaptureQueue: ObservableObject {
     @Published private(set) var waiting = 0
 
     private let store: TaskStore
+    /// 앱이 뒤로 가도 하던 일을 마치게 해 달라고 시스템에 요청한다.
+    /// 이게 없으면 사진을 찍고 앱을 나가는 순간 분석이 끊긴다 (`BackgroundActivity` 참고).
+    private let background: any BackgroundActivityGranting
     private let now: () -> Date
     private let sleep: @Sendable (TimeInterval) async -> Void
 
@@ -42,12 +45,14 @@ final class CaptureQueue: ObservableObject {
 
     init(
         store: TaskStore,
+        background: any BackgroundActivityGranting = SystemBackgroundActivity(),
         now: @escaping () -> Date = { .now },
         sleep: @escaping @Sendable (TimeInterval) async -> Void = { seconds in
             try? await Task.sleep(for: .seconds(seconds))
         }
     ) {
         self.store = store
+        self.background = background
         self.now = now
         self.sleep = sleep
     }
@@ -90,6 +95,14 @@ final class CaptureQueue: ObservableObject {
 
     private func run() async {
         defer { isDraining = false }
+
+        // **줄 전체를 하나의 백그라운드 작업으로 감싼다.**
+        //
+        // 장마다 따로 잡지 않는 이유 — 장 사이에 시간이 끊기면 그 틈에 앱이 잠들고,
+        // 남은 장은 다음 실행까지 처리되지 않는다. 사용자에게는 "세 장 놓았는데
+        // 하나만 등록됐다" 로 보인다.
+        let token = background.begin(reason: "Whenly 캡처 읽기")
+        defer { background.end(token) }
 
         while !pending.isEmpty {
             // 문턱을 넘었으면 기다린다. 앞의 몇 개는 여기서 0 을 받아 곧바로 지나간다.

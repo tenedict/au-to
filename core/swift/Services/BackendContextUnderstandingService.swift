@@ -7,7 +7,32 @@ protocol HTTPClient: Sendable {
 struct URLSessionHTTPClient: HTTPClient {
     private let session: URLSession
 
-    init(session: URLSession = .shared) {
+    /// 기본 세션을 쓰지 않고 직접 만든다.
+    ///
+    /// `URLSession.shared` 는 요청 하나의 제한시간만 보고 **전체 소요시간에는
+    /// 제한이 없다.** 앱이 뒤로 갔다 돌아오는 사이 요청이 어중간하게 살아 있으면
+    /// 사용자는 끝나지 않는 "읽는 중" 을 본다. 둘 다 못 박는다.
+    static func makeSession() -> URLSession {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = Self.requestTimeout
+        configuration.timeoutIntervalForResource = Self.requestTimeout * 2
+        // 연결이 없으면 기다리지 않고 곧바로 실패한다. 기다리면 그 사이 앱이 잠들고,
+        // 깨어난 뒤에는 이미 늦다 — 실패를 빨리 말해야 캡처가 상자에 남는다.
+        configuration.waitsForConnectivity = false
+        return URLSession(configuration: configuration)
+    }
+
+    /// 한 요청에 주는 시간.
+    ///
+    /// **20초로는 부족했다.** 백엔드가 `min-instances 0` 이라 첫 요청은 콜드
+    /// 스타트를 기다리고(수 초), 거기에 OpenAI 왕복이 더해진다. 그 합이 20초를
+    /// 넘으면 사용자에게는 "요청 시간이 다 됐어요" 만 보인다.
+    ///
+    /// iOS 가 백그라운드로 주는 시간이 대략 30초라 그보다 짧게 잡는다 —
+    /// 시간이 끝나 앱이 멈추는 것보다 우리가 먼저 포기하고 알리는 편이 낫다.
+    static let requestTimeout: TimeInterval = 25
+
+    init(session: URLSession = URLSessionHTTPClient.makeSession()) {
         self.session = session
     }
 
@@ -70,7 +95,7 @@ struct BackendContextUnderstandingService: ContextUnderstandingService {
 
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
-        request.timeoutInterval = 20
+        request.timeoutInterval = URLSessionHTTPClient.requestTimeout
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         // 로컬 백엔드는 키 없이 돕니다. 배포된 서버는 이 헤더가 없으면 401 을 줍니다.
         if let clientKey, !clientKey.isEmpty {

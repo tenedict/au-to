@@ -106,6 +106,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.whenly.share
         SKIP_INSTALL: YES
+        # core/swift 는 앱과 확장이 함께 쓴다. UIApplication.shared 처럼 확장에서
+        # 아예 못 쓰는 것을 `#if !APP_EXTENSION` 으로 가르려면 이 표시가 필요하다.
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) APP_EXTENSION"
         INFOPLIST_KEY_CFBundleDisplayName: "Whenly에 담기"
 
   # ── 위젯 ──────────────────────────────────────────────────
@@ -142,6 +145,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.whenly.widgets
         SKIP_INSTALL: YES
+        # core/swift 는 앱과 확장이 함께 쓴다. UIApplication.shared 처럼 확장에서
+        # 아예 못 쓰는 것을 `#if !APP_EXTENSION` 으로 가르려면 이 표시가 필요하다.
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) APP_EXTENSION"
   # ── macOS ────────────────────────────────────────────────
   # core/swift 를 iOS 와 그대로 공유한다.
   # apps/macos/Views 는 공유하지 않는다 — 화면은 플랫폼마다 다른 것이 맞다.
@@ -235,6 +241,9 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.whenly.mac.share
         SKIP_INSTALL: YES
+        # core/swift 는 앱과 확장이 함께 쓴다. UIApplication.shared 처럼 확장에서
+        # 아예 못 쓰는 것을 `#if !APP_EXTENSION` 으로 가르려면 이 표시가 필요하다.
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) APP_EXTENSION"
 
   WhenlyTests:
     type: bundle.unit-test

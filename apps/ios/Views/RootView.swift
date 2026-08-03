@@ -11,10 +11,13 @@ struct RootView: View {
     @ObservedObject var reminderTaps: ReminderTapRouter
     @Environment(\.scenePhase) private var scenePhase
 
-    /// 지금 열려 있는 편집기.
-    @State private var editing: AssistantTask?
-    @State private var showsManualCapture = false
-    @State private var showsSettings = false
+    /// 지금 떠 있는 시트. **하나뿐이다.**
+    ///
+    /// 예전에는 `.sheet` 를 셋 겹쳐 달았다 (설정 · 텍스트 · 편집기). SwiftUI 는
+    /// **뷰 하나에 표시 하나**만 지원해서, 겹쳐 달면 서로를 가린다 — 알림을 눌러
+    /// 편집기를 열라고 해도 아무것도 뜨지 않았다. 앱은 열리는데 화면이 없으니
+    /// 사용자에게는 "눌러도 안 들어가진다" 로 보인다.
+    @State private var sheet: Sheet?
     /// 잠금화면 위젯으로 들어왔다. 카메라를 곧바로 연다.
     @State private var showsCamera = false
     /// 카메라를 못 쓰는 기기(시뮬레이터)라 사진 고르기로 돌렸다.
@@ -46,17 +49,40 @@ struct RootView: View {
         }
     }
 
+    /// 띄울 수 있는 시트 전부. **여기 없는 시트는 없다.**
+    enum Sheet: Identifiable {
+        case editor(AssistantTask)
+        case settings
+        case manualCapture
+
+        var id: String {
+            switch self {
+            case .editor(let task): return "editor-\(task.id)"
+            case .settings: return "settings"
+            case .manualCapture: return "manual"
+            }
+        }
+    }
+
     /// 시트 라우팅.
     ///
     /// DEBUG 빌드에서 `WHENLY_SHEET=settings|text` 로 시작하자마자 그 시트를 연다.
     /// 시뮬레이터는 메뉴를 눌러 열 수 없어서, 이게 없으면 설정 화면을 사람이
     /// 손으로 눌러 보는 것 말고는 확인할 방법이 없다.
+    ///
+    /// `WHENLY_OPEN_TASK=first` 는 **알림을 누른 것과 같은 길**을 탄다.
+    /// 알림 탭은 자동화할 수 없어서, 이게 없으면 라우팅이 살아 있는지 확인할 방법이
+    /// 사람 손밖에 없다 — 실제로 그래서 깨진 것을 한참 뒤에 알았다.
     private func openSheetFromEnvironment() {
         #if DEBUG
         switch ProcessInfo.processInfo.environment["WHENLY_SHEET"] {
-        case "settings": showsSettings = true
-        case "text": showsManualCapture = true
+        case "settings": sheet = .settings
+        case "text": sheet = .manualCapture
         default: break
+        }
+        if let requested = ProcessInfo.processInfo.environment["WHENLY_OPEN_TASK"] {
+            let taskID = requested == "first" ? store.tasks.first?.id : UUID(uuidString: requested)
+            if let taskID { openTask(taskID) }
         }
         #endif
     }
@@ -68,23 +94,26 @@ struct RootView: View {
                     store: store,
                     expandedTaskID: $expandedTaskID,
                     onOpenReview: { selectedTab = .tasks },
-                    onEditTask: { editing = $0 },
-                    onAddTask: { editing = .blank(now: .now) },
-                    onAddText: { showsManualCapture = true },
+                    onEditTask: { sheet = .editor($0) },
+                    onAddTask: { sheet = .editor(.blank(now: .now)) },
+                    onAddText: { sheet = .manualCapture },
                     onPickPhotos: { isPickingPhotos = true },
-                    onOpenSettings: { showsSettings = true }
+                    onOpenSettings: { sheet = .settings }
                 )
             }
             .tabItem { Label("할 일", systemImage: "checklist") }
             .tag(Tab.tasks)
 
             NavigationStack {
-                MonthCalendarView(store: store, onOpen: { editing = $0 })
+                MonthCalendarView(store: store, onOpen: { sheet = .editor($0) })
             }
             .tabItem { Label("캘린더", systemImage: "calendar") }
             .tag(Tab.calendar)
         }
         .task {
+            // 알림을 눌러 들어온 **첫 실행**은 화면이 그려지기 전에 값이 도착해 있다.
+            // `onChange` 만 두면 그 첫 번째를 통째로 놓친다.
+            if let taskID = reminderTaps.requestedTaskID { openTask(taskID) }
             await store.refresh()
             openSheetFromEnvironment()
         }
@@ -105,20 +134,7 @@ struct RootView: View {
         // 는 말을 들었다.
         .onChange(of: reminderTaps.requestedTaskID) { _, taskID in
             guard let taskID else { return }
-            reminderTaps.requestedTaskID = nil
-            selectedTab = .tasks
-            expandedTaskID = taskID
-            openEditor(taskID)
-        }
-        // 알림을 눌러 들어온 첫 실행은 화면이 그려지기 **전에** 값이 들어와 있다.
-        // 위 onChange 만 두면 그 첫 번째를 놓친다.
-        .task {
-            if let taskID = reminderTaps.requestedTaskID {
-                reminderTaps.requestedTaskID = nil
-                selectedTab = .tasks
-                expandedTaskID = taskID
-                openEditor(taskID)
-            }
+            openTask(taskID)
         }
         // 사진 고르기는 별도 프로세스(PHPicker)에서 돈다. 그래서 사진 접근 권한을
         // 묻지 않는다 — 사용자가 고른 것만 앱에 건네진다.
@@ -169,16 +185,18 @@ struct RootView: View {
         } message: {
             Text(cameraFallbackMessage ?? "")
         }
-        .sheet(isPresented: $showsSettings) {
-            SettingsSheet(store: store)
-        }
-        .sheet(isPresented: $showsManualCapture) {
-            ManualCaptureSheet { text in
-                Task { await store.analyzeManualText(text) }
+        // **시트는 하나뿐이다.** 겹쳐 달면 서로를 가린다 (`Sheet` 참고).
+        .sheet(item: $sheet) { which in
+            switch which {
+            case .editor(let task):
+                TaskEditorSheet(task: task, store: store)
+            case .settings:
+                SettingsSheet(store: store)
+            case .manualCapture:
+                ManualCaptureSheet { text in
+                    Task { await store.analyzeManualText(text) }
+                }
             }
-        }
-        .sheet(item: $editing) { task in
-            TaskEditorSheet(task: task, store: store)
         }
         .alert(
             "처리하지 못했어요",
@@ -226,12 +244,15 @@ struct RootView: View {
         images.forEach(queue.enqueue(imageData:))
     }
 
-    /// 알림이 가리킨 일정의 편집기를 연다.
+    /// 알림이 가리킨 일정을 연다. **알림 탭이 도착하는 유일한 착지점이다.**
     ///
-    /// 그 사이 사용자가 지웠을 수 있다. 없으면 조용히 목록에 남는다 —
-    /// 없는 것을 열려고 빈 화면을 띄우는 것보다 낫다.
-    private func openEditor(_ taskID: UUID) {
+    /// 그 사이 사용자가 지웠을 수 있다. 그때도 **할 일 탭까지는 간다** — 눌렀는데
+    /// 아무 일도 안 일어나는 것이 이 화면에서 가장 나쁜 결과이기 때문이다.
+    private func openTask(_ taskID: UUID) {
+        reminderTaps.requestedTaskID = nil
+        selectedTab = .tasks
+        expandedTaskID = taskID
         guard let task = store.tasks.first(where: { $0.id == taskID }) else { return }
-        editing = task
+        sheet = .editor(task)
     }
 }

@@ -141,7 +141,13 @@ WhenlyTests      테스트       tests/swift
 읽지도 않고 끝냈는데, 등록 알림도 같은 접두사다. 앱은 열리는데 목록 맨 위에
 그대로 서 있었다. 지금은 **`taskID` 를 먼저 본다.**
 
-**둘 · 델리게이트를 너무 늦게 붙였다.** `.onAppear` 는 첫 화면이 그려진 뒤라,
+**둘 · 시트를 셋 겹쳐 달았다.** `.sheet` 를 같은 뷰에 셋 붙였는데(설정 · 텍스트 ·
+편집기), SwiftUI 는 **뷰 하나에 표시 하나**만 지원한다. 먼저 붙은 것이 이기고
+나머지는 조용히 무시된다 — 그래서 알림이 편집기를 열라고 해도 아무것도 뜨지 않았다.
+앱은 열리는데 화면이 없으니 사용자에게는 여전히 "안 들어가진다" 다.
+지금은 `Sheet` 열거형 하나에 `.sheet(item:)` 하나다.
+
+**셋 · 델리게이트를 너무 늦게 붙였다.** `.onAppear` 는 첫 화면이 그려진 뒤라,
 알림을 눌러 들어온 **첫 실행**은 시스템이 그 응답을 이미 버린 뒤였다.
 그래서 `UIApplicationDelegateAdaptor` 를 두고 `didFinishLaunchingWithOptions`
 에서 붙인다. **이 앱이 UIKit 델리게이트를 두는 유일한 이유다.**
@@ -223,6 +229,14 @@ DEBUG 갈고리 — 시뮬레이터에서는 `SIMCTL_CHILD_` 접두사를 붙인
 | `WHENLY_OFFLINE=1` | 규칙 기반 분석기로 시작 (백엔드 없이) |
 | `WHENLY_TAB=0\|1` | 시작 탭 |
 | `WHENLY_SHEET=settings\|text` | 시작하자마자 그 시트 |
+| `WHENLY_OPEN_TASK=first\|<uuid>` | **알림을 누른 것과 같은 길**을 탄다 |
+
+알림 탭은 자동화할 수 없다. 마지막 갈고리가 없으면 라우팅이 살아 있는지 확인할
+방법이 사람 손밖에 없고, 실제로 그래서 깨진 것을 한참 뒤에 알았다.
+
+```bash
+SIMCTL_CHILD_WHENLY_OPEN_TASK=first xcrun simctl launch <UDID> com.example.whenly
+```
 
 ```bash
 xcrun simctl openurl <UDID> "whenly://capture"    # 잠금화면 위젯과 같은 길
@@ -235,7 +249,7 @@ xcrun simctl openurl <UDID> "whenly://capture"    # 잠금화면 위젯과 같�
 | 증상 | 진짜 원인 |
 | --- | --- |
 | 담기는 성공하는데 앱에 도착하지 않음 | entitlements 가 빈 `<dict/>`. `project.yml` 의 `properties` 에 적어야 살아남는다 |
-| 알림을 눌러도 아무 데도 안 감 | 접두사로 종류를 단정 + 델리게이트를 늦게 붙임 (§5) |
+| 알림을 눌러도 아무 데도 안 감 | 접두사로 종류를 단정 · **`.sheet` 를 셋 겹쳐 닮** · 델리게이트를 늦게 붙임 (§5) |
 | 찍고 나가면 등록이 안 됨 | 백그라운드 작업을 안 잡음 (§4) |
 | "요청 시간이 다 되었어요" | 제한시간 20초 + 백엔드 콜드 스타트 (§4) |
 | 카드 마감이 잘림 | 화면이 날짜 문구를 직접 만듦 → `DueDateText` 로 |

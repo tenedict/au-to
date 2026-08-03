@@ -62,3 +62,76 @@ final class CaptureNoticeTests: XCTestCase {
         XCTAssertLessThanOrEqual(CaptureNotice.maxSummariesInBody, 5)
     }
 }
+
+/// 등록 알림에 무엇이 들어가는가.
+///
+/// **누르면 그 일정이 열려야 한다.** 그러려면 `taskID` 가 실려야 하는데, 알림
+/// 객체는 테스트에서 눌러 볼 수 없다 — `UNNotificationResponse` 를 만들 방법이 없다.
+/// 그래서 내용을 만드는 순수 함수를 따로 두고 여기서 계약을 지킨다.
+final class FiledNoticeTests: XCTestCase {
+
+    private func filed(
+        title: String = "치과 검진",
+        needsReview: Bool = false
+    ) -> FiledCapture {
+        FiledCapture(
+            id: UUID(),
+            title: title,
+            dueDate: Date(timeIntervalSince1970: 1_786_000_000),
+            hasExplicitTime: true,
+            calendarEventIdentifier: nil,
+            reviewReason: needsReview ? "오전인지 오후인지 모르겠어요" : nil,
+            filedAt: .now)
+    }
+
+    /// **이 파일에서 가장 중요한 테스트.**
+    /// 없으면 앱은 열리지만 목록 맨 위에 서 있고, 사용자는 "눌러도 안 들어가진다" 고 말한다.
+    func testNoticeAlwaysCarriesTheTaskToOpen() throws {
+        let one = filed()
+        let notice = try XCTUnwrap(CaptureNotice.filedNotice([one], captureID: nil))
+
+        XCTAssertEqual(notice.taskID, one.id)
+    }
+
+    /// 봐야 할 것이 있으면 **그것을** 연다. 멀쩡한 것을 열면 사용자가 다시 찾아야 한다.
+    func testNoticeOpensTheOneThatNeedsReviewFirst() throws {
+        let fine = filed(title: "괜찮은 것")
+        let flagged = filed(title: "봐야 하는 것", needsReview: true)
+        let notice = try XCTUnwrap(
+            CaptureNotice.filedNotice([fine, flagged], captureID: nil))
+
+        XCTAssertEqual(notice.taskID, flagged.id)
+    }
+
+    /// 등록됐다는 사실이 먼저다. 확인 요청만 있으면 사용자는 등록이 안 된 줄 알고
+    /// 같은 스크린샷을 다시 담는다.
+    func testNoticeSaysItWasRegisteredEvenWhenReviewIsNeeded() throws {
+        let notice = try XCTUnwrap(
+            CaptureNotice.filedNotice([filed(needsReview: true)], captureID: nil))
+
+        XCTAssertTrue(notice.title.contains("등록"), notice.title)
+        XCTAssertTrue(notice.body.contains("확인"), notice.body)
+    }
+
+    /// 문구에 **언제와 무엇**이 다 들어가야 한다. 없으면 앱을 열어 확인해야 하고,
+    /// 그러면 단계를 줄인 의미가 없다.
+    func testBodyCarriesWhatAndWhen() throws {
+        let notice = try XCTUnwrap(CaptureNotice.filedNotice([filed()], captureID: nil))
+
+        XCTAssertTrue(notice.body.contains("치과 검진"), notice.body)
+        XCTAssertTrue(notice.body.count > "치과 검진".count, "날짜가 빠졌습니다: \(notice.body)")
+    }
+
+    /// 마감 알림과 식별자가 겹치면 한쪽을 지울 때 다른 쪽까지 지워진다.
+    func testFiledNoticeDoesNotCollideWithReminderIdentifiers() throws {
+        let one = filed()
+        let notice = try XCTUnwrap(CaptureNotice.filedNotice([one], captureID: nil))
+
+        XCTAssertFalse(Set(ReminderSchedule.allIdentifiers(taskID: one.id)).contains(notice.identifier))
+        XCTAssertTrue(CaptureNotice.isCaptureNotice(notice.identifier))
+    }
+
+    func testNothingFiledMeansNoNotice() {
+        XCTAssertNil(CaptureNotice.filedNotice([], captureID: nil))
+    }
+}

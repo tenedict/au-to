@@ -41,13 +41,27 @@ enum CaptureNotice {
         captureID: UUID?,
         center: UNUserNotificationCenter = .current()
     ) {
-        guard let first = filed.first else { return }
-        let needing = filed.filter(\.needsReview)
+        guard let plan = filedNotice(filed, captureID: captureID) else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = filed.count == 1
-            ? "일정을 등록했어요"
-            : "일정 \(filed.count)개를 등록했어요"
+        content.title = plan.title
+        content.body = plan.body
+        content.sound = .default
+        content.userInfo = plan.userInfo
+
+        center.add(
+            UNNotificationRequest(identifier: plan.identifier, content: content, trigger: nil)
+        )
+    }
+
+    /// 등록 알림의 내용. **순수 함수라 테스트가 닿는다.**
+    ///
+    /// 알림 객체를 직접 만들면 `UNNotificationResponse` 를 만들 수 없어 눌렀을 때를
+    /// 검사할 방법이 사라진다. 실제로 그래서 `taskID` 가 빠진 것을 한참 못 잡았고,
+    /// 사용자에게는 **눌러도 아무 데도 안 가는 앱**으로 보였다.
+    static func filedNotice(_ filed: [FiledCapture], captureID: UUID?) -> Notice? {
+        guard let first = filed.first else { return nil }
+        let needing = filed.filter(\.needsReview)
 
         // 여러 개면 줄바꿈으로 나열한다. 알림은 펼치면 여러 줄이 보인다.
         var lines = filed.prefix(maxSummariesInBody).map(\.summary)
@@ -62,23 +76,29 @@ enum CaptureNotice {
                     ? "눌러서 한 번 확인해 주세요."
                     : "\(needing.count)개는 눌러서 확인해 주세요.")
         }
-        content.body = lines.joined(separator: "\n")
-        content.sound = .default
 
         // 누르면 열 것. 봐야 하는 것이 있으면 그것을 먼저 연다.
         let target = needing.first ?? first
-        content.userInfo = [
-            "taskID": target.id.uuidString,
-            "captureID": captureID?.uuidString ?? "",
-        ]
-
-        center.add(
-            UNNotificationRequest(
-                identifier: "\(identifierPrefix)filed-\(target.id.uuidString)",
-                content: content,
-                trigger: nil
-            )
+        return Notice(
+            identifier: "\(identifierPrefix)filed-\(target.id.uuidString)",
+            title: filed.count == 1 ? "일정을 등록했어요" : "일정 \(filed.count)개를 등록했어요",
+            body: lines.joined(separator: "\n"),
+            userInfo: [
+                "taskID": target.id.uuidString,
+                "captureID": captureID?.uuidString ?? "",
+            ]
         )
+    }
+
+    /// 알림 하나에 들어갈 것.
+    struct Notice: Equatable {
+        let identifier: String
+        let title: String
+        let body: String
+        let userInfo: [String: String]
+
+        /// 눌렀을 때 열 일정. **이 값이 없으면 앱은 열리지만 아무 데도 가지 않는다.**
+        var taskID: UUID? { userInfo["taskID"].flatMap(UUID.init(uuidString:)) }
     }
 
     /// 알림 본문에 나열할 최대 개수. 그 이상은 "외 N개" 로 줄인다.

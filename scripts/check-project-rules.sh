@@ -261,6 +261,52 @@ if [ -n "$hits" ]; then
 fi
 
 
+# ── 규칙 13 · 앱과 서버가 같은 인증 헤더를 쓰는가 ────────────
+# 이름이 어긋나면 서버는 401 을 주고, 앱은 "이 앱이 분석 서버를 쓸 수 없어요.
+# 앱을 업데이트해 주세요" 를 띄운다 — 방금 업데이트한 앱인데도.
+#
+# 실제로 CaptureTask → Whenly 일괄 치환이 앱과 서버의 헤더 이름을 함께 바꿨는데,
+# **배포된 서버는 옛 빌드였다.** 코드는 양쪽이 일치했으므로 리뷰로도 안 잡혔다.
+# 그래서 지금은 서버가 옛 이름도 받는다. 이 검사는 그 짝이 유지되는지만 본다.
+# 앱이 보내는 헤더 **전부** (새 이름 + 옛 이름). 하나라도 서버가 모르면 잡는다.
+app_header=$(grep -oE '[cC]lientKeyHeader[[:space:]]*=[[:space:]]*"[^"]+"' \
+  "$CORE/Services/BackendContextUnderstandingService.swift" 2>/dev/null \
+  | sed -E 's/.*"([^"]+)"/\1/' | tr 'A-Z' 'a-z')
+server_headers=$(grep -oE 'CLIENT_KEY_HEADER = "[^"]+"' server/src/auth.mjs 2>/dev/null \
+  | sed -E 's/.*"([^"]+)"/\1/')
+
+if [ -z "$app_header" ] || [ -z "$server_headers" ]; then
+  report error "인증 헤더 이름을 찾지 못함" "SPEC H-3" \
+    "앱은 BackendContextUnderstandingService, 서버는 server/src/auth.mjs 입니다."
+else
+  for one in $app_header; do
+    printf '%s\n' "$server_headers" | grep -qxF "$one" || \
+      report error "앱과 서버의 인증 헤더 불일치" "SPEC H-3" \
+        "앱이 '$one' 을 보내는데 서버가 받는 것은 [$(echo $server_headers)] 입니다. 서버가 401 을 줍니다."
+  done
+fi
+
+# ── 규칙 14 · 배포 주소를 제품 이름으로 바꾸지 않았는가 ──────
+# Secrets.xcconfig 는 커밋되지 않는다. 그래서 이 파일이 잘못되면 **리뷰가 잡을 수 없다.**
+# 실제로 일괄 치환이 살아 있는 Cloud Run 호스트 이름을 바꿔서, 존재하지 않는
+# 서비스로 요청이 가 404 를 받았다. 사용자에게는 "스크린샷 내용을 분석 요청으로
+# 보낼 수 없어요" 만 보였다 — 원인이 주소라는 단서가 어디에도 없었다.
+if [ -f config/apple/Secrets.xcconfig ]; then
+  host=$(grep -oE '^[[:space:]]*WHENLY_HOST[[:space:]]*=[[:space:]]*[^[:space:]]+' \
+    config/apple/Secrets.xcconfig 2>/dev/null | sed -E 's/.*=[[:space:]]*//')
+  case "$host" in
+    ""|127.0.0.1*|localhost*) ;;   # 로컬 백엔드는 확인할 것이 없다
+    *)
+      # 실제로 붙는지까지는 보지 않는다 (검사기가 네트워크를 타면 안 된다).
+      # DNS 에 있는지만 본다. 오타와 일괄 치환 사고는 여기서 전부 걸린다.
+      if command -v host >/dev/null 2>&1 && ! host "$host" >/dev/null 2>&1; then
+        report error "배포 백엔드 주소를 찾을 수 없음 ($host)" "NFR-SEC-05" \
+          "config/apple/Secrets.xcconfig 의 WHENLY_HOST 를 확인하세요. 이 값은 제품 이름이 아니라 인프라 주소입니다."
+      fi
+      ;;
+  esac
+fi
+
 echo
 if [ $fail -eq 0 ]; then
   printf '%s✓%s 프로젝트 규칙 통과\n' "$GRN" "$OFF"

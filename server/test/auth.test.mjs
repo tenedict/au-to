@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   CLIENT_KEY_HEADER,
+  LEGACY_CLIENT_KEY_HEADER,
   ClientKeyError,
   isAuthorized,
   MIN_CLIENT_KEY_LENGTH,
@@ -76,4 +77,33 @@ test("빈 문자열을 막는다", () => {
 /** 루프백 전용 모드에서는 헤더가 없어도 통과합니다. */
 test("키를 설정하지 않았으면 통과시킨다", () => {
   assert.equal(isAuthorized(requestWith(undefined), null), true);
+});
+
+/**
+ * 옛 헤더로 와도 통과해야 합니다.
+ *
+ * 앱과 서버는 함께 배포되지 않습니다. 서버가 새 이름만 받으면 아직 옛 빌드가 깔린
+ * 폰이 전부 401 을 받고, 사용자에게는 "앱을 업데이트해 주세요" 가 뜨는데
+ * 스토어에는 아직 새 빌드가 없습니다. 실제로 이름을 바꾸면서 이 사고가 났습니다.
+ */
+test("옛 이름의 헤더로 와도 통과한다", () => {
+  const request = { headers: { [LEGACY_CLIENT_KEY_HEADER]: GOOD_KEY } };
+  assert.equal(isAuthorized(request, GOOD_KEY), true);
+});
+
+test("둘 다 오면 새 이름이 이긴다", () => {
+  const request = {
+    headers: {
+      [CLIENT_KEY_HEADER]: GOOD_KEY,
+      [LEGACY_CLIENT_KEY_HEADER]: "x".repeat(MIN_CLIENT_KEY_LENGTH),
+    },
+  };
+  assert.equal(isAuthorized(request, GOOD_KEY), true);
+});
+
+test("옛 이름으로 와도 틀린 키는 막는다", () => {
+  const request = {
+    headers: { [LEGACY_CLIENT_KEY_HEADER]: "y".repeat(MIN_CLIENT_KEY_LENGTH) },
+  };
+  assert.equal(isAuthorized(request, GOOD_KEY), false);
 });

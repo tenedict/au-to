@@ -24,6 +24,18 @@ struct BackendContextUnderstandingService: ContextUnderstandingService {
     /// 서버가 이 앱에서 온 요청인지 보는 헤더.
     static let clientKeyHeader = "X-Whenly-Key"
 
+    /// 이름을 바꾸기 전에 쓰던 헤더. **아직 보낸다.**
+    ///
+    /// 앱과 서버는 함께 배포되지 않는다. 앱이 새 헤더만 보내는 순간, 아직 옛 빌드가
+    /// 도는 서버는 키가 없다고 보고 401 을 준다 — 사용자에게는 "앱을 업데이트해
+    /// 주세요" 가 뜨는데 방금 업데이트한 앱이다.
+    ///
+    /// 실제로 이 이름을 바꾸면서 그렇게 됐다. 둘 다 보내면 어느 쪽이 떠 있든 통한다.
+    ///
+    /// **지우는 조건** — 배포된 서버가 새 헤더를 받는 것을 확인한 뒤.
+    /// 그 전에 지우면 되돌아가는 길이 없다.
+    static let legacyClientKeyHeader = "X-CaptureTask-Key"
+
     private let endpoint: URL
     private let clientKey: String?
     private let httpClient: any HTTPClient
@@ -62,8 +74,10 @@ struct BackendContextUnderstandingService: ContextUnderstandingService {
         request.timeoutInterval = 20
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         // 로컬 백엔드는 키 없이 돕니다. 배포된 서버는 이 헤더가 없으면 401 을 줍니다.
+        // 옛 이름도 함께 보냅니다 — 서버가 아직 옛 빌드일 수 있습니다.
         if let clientKey, !clientKey.isEmpty {
             request.setValue(clientKey, forHTTPHeaderField: Self.clientKeyHeader)
+            request.setValue(clientKey, forHTTPHeaderField: Self.legacyClientKeyHeader)
         }
         request.httpBody = try JSONEncoder().encode(
             AnalyzeCaptureRequest(

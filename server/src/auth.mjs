@@ -5,6 +5,11 @@ import { timingSafeEqual } from "node:crypto";
  *
  * 앱이 `X-Whenly-Key` 헤더에 공유 비밀을 실어 보냅니다.
  *
+ * **옛 이름(`X-CaptureTask-Key`)도 받습니다.** 앱과 서버는 함께 배포되지 않습니다.
+ * 서버가 새 이름만 받으면, 아직 옛 빌드가 깔린 폰은 전부 401 을 받습니다 —
+ * 사용자에게는 "앱을 업데이트해 주세요" 가 뜨는데 스토어에는 아직 새 빌드가 없습니다.
+ * 실제로 이름을 바꾸면서 이 사고가 났습니다.
+ *
  * **이 비밀은 앱 번들을 뜯으면 나옵니다.** 그걸 알고 쓰는 방식입니다.
  * 그래도 의미가 있는 이유:
  *   · 새는 것은 OpenAI 키가 **아니라** 이 값입니다. 교체하면 끝입니다
@@ -14,6 +19,14 @@ import { timingSafeEqual } from "node:crypto";
  * 진짜로 앱만 통과시키려면 App Attest 가 필요합니다 (docs/09-SPEC.md H-3).
  */
 export const CLIENT_KEY_HEADER = "x-whenly-key";
+
+/**
+ * 이름을 바꾸기 전에 쓰던 헤더.
+ *
+ * **지우는 조건** — 옛 헤더로 들어오는 요청이 없는 것을 로그로 확인한 뒤.
+ * 그 전에 지우면 옛 앱을 쓰는 사람이 전부 막힙니다.
+ */
+export const LEGACY_CLIENT_KEY_HEADER = "x-capturetask-key";
 
 /** 이 값 미만이면 무작위 대입이 현실적으로 가능합니다. */
 export const MIN_CLIENT_KEY_LENGTH = 24;
@@ -65,7 +78,9 @@ export function resolveClientKey({ key, host }) {
 export function isAuthorized(request, expectedKey) {
   if (!expectedKey) return true; // 루프백 전용 모드
 
-  const provided = request.headers[CLIENT_KEY_HEADER];
+  // 새 이름을 먼저 본다. 없으면 옛 이름을 본다.
+  const provided =
+    request.headers[CLIENT_KEY_HEADER] ?? request.headers[LEGACY_CLIENT_KEY_HEADER];
   if (typeof provided !== "string") return false;
 
   const a = Buffer.from(provided);
